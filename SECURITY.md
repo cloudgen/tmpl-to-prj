@@ -4,7 +4,10 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.0.0 (current) | Yes |
+| 1.2.0 (current) | Yes |
+| 1.1.0 | Yes |
+| 1.0.1 | Yes |
+| 1.0.0 | Yes |
 
 ## Reporting a Vulnerability
 
@@ -23,7 +26,7 @@ This project follows **[CIAO](https://github.com/cloudgen/ciao)** / **[CIAO-Lite
 | Letter | Principle | Security application |
 |--------|-----------|----------------------|
 | **C** | **Caution** | Unknown commands fail closed; install fails loud if the target is not writable. |
-| **I** | **Intentional** | Type 0 lifecycle only; no host-mutating domain; no sudoers-file emit. |
+| **I** | **Intentional** | Local lifecycle plus a dest-docs hop; no sudoers-file emit of **this** product. |
 | **A** | **Anti-fragile** | Isolated scratch (`APP_NAME` + `USERNAME`); atomic install place with mode **0755**. |
 | **O** | **Over-protect** | Protection Zones on `out_*` and install; no online channel UX. |
 
@@ -34,7 +37,7 @@ This section is **design posture**, not a third-party certification claim.
 ## Scope notes
 
 - This product does **not** emit or install `/etc/sudoers.d` fragments.  
-- This product does **not** write under `/var/backup` or restore archives.  
+- This product does **not** write under `/var/backup` itself; it may invoke sibling `folder-backup backup <dest>` when that grant exists.  
 - Uninstall removes only the managed binary.  
-- Local `~/.local/bin` install is user-rewritable; prefer global install on multi-user hosts when a shared CLI is desired.  
+- Local `~/.local/bin` install is user-rewritable; prefer global install on multi-user POSIX hosts when a shared CLI is desired. On Termux / Git Bash / Windows cmd this product **MUST NOT** invoke `sudo`.  
 - Related docs: [`README.md`](./README.md), [`LICENSE.md`](./LICENSE.md).

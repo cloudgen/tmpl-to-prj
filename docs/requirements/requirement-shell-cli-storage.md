@@ -6,9 +6,27 @@
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **shell CLI storage resolution** of cli-template: volatile scratch and app-scoped cache path selection, per-user isolation, central resolver ownership, `app_main` wire, and about diagnostics.
+This requirement is the **project Single Source of Truth** for **shell CLI storage resolution** of tmpl-to-prj: volatile scratch and app-scoped cache path selection, per-user isolation, central resolver ownership, `app_main` wire, and about diagnostics.
 
 Used for **install staging** (`mktemp` under the isolated root). Not a durable backup deposit.
+
+### 1.1 Human-facing
+
+**In one sentence:** Scratch files go under a per-login folder (`/dev/shm` when it exists, else `/tmp` or cache).
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Isolated scratch | `/dev/shm/tmpl-to-prj-<you>` |
+| The other role | Dest project tree | Not scratch |
+| Not this file | Dest overlay | `requirement-domain-tmpl-to-prj` |
+
+| Includes | Excludes |
+|----------|----------|
+| `util_resolve_storage` | `/var/backup` as this product’s path |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Run apply | Staging uses the isolated root | `tmpl-to-prj apply --force kit dest` |
 
 ---
 
@@ -51,8 +69,8 @@ First match that is available and writable:
 
 | Item | Live value |
 |------|------------|
-| **Product / binary** | `cli-template` |
-| **Resolver** | `util_resolve_storage` in `src/cli-template` |
+| **Product / binary** | `tmpl-to-prj` |
+| **Resolver** | `util_resolve_storage` in `src/tmpl-to-prj` |
 | **Call sites** | `app_main`, `app_about`, install staging |
 | **Not used for** | Durable `/var/backup` (not a product path) |
 
@@ -62,6 +80,21 @@ First match that is available and writable:
 - **Intentional:** One resolver.  
 - **Anti-fragile:** Missing `/dev/shm` still works.  
 - **Principle 11 – Temps:** Cleanup, not museum copies of staging.
+
+---
+
+## Under command line for normal user only
+
+When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
+| Same resolver; missing `/dev/shm` on Termux is expected | Write `/etc`; treat `/dev/shm` as required |
+
+**This requirement:** `/dev/shm` absence is a normal Termux skip to `/tmp` or cache.
+
+Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
 ---
 
@@ -79,7 +112,7 @@ First match that is available and writable:
 
 1. Remove `${APP_NAME}` / `${USERNAME}` isolation.  
 2. Replace the fallback chain with a shared world-writable dump.  
-3. Scatter hard-coded `/tmp/cli-template` roots outside the resolver.  
+3. Scatter hard-coded `/tmp/tmpl-to-prj` roots outside the resolver.  
 4. Leave the resolver dead with no call sites while claiming storage is product law.  
 5. Echo a tier path without creating it.  
 6. Treat `/var/backup` as a product storage path.

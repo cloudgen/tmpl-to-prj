@@ -1,11 +1,11 @@
-# What to review — cli-template
+# What to review — tmpl-to-prj
 
-**Living checklist** (review plan). Product: **cli-template** local self-managed Type 0 CLI.  
-**Class:** software-development · **no** domain SSOT · **local-only** install channel.  
+**Living checklist** (review plan). Product: **tmpl-to-prj** local self-managed POSIX `/bin/sh` CLI with domain hop.  
+**Project nature:** software-development · domain SSOT `requirement-domain-tmpl-to-prj` · **local-only** install · **Termux** is a target.  
 **Always load first:** `reviews/lessons.md`
 
-**Last plan update:** 2026-08-13  
-**Ship unit VERSION:** 1.0.0  
+**Last plan update:** 2026-09-06  
+**Ship unit VERSION:** 1.2.0  
 **Suite baseline:** see `reviews/test-plan.md`
 
 ---
@@ -14,8 +14,8 @@
 
 | # | Check | Notes |
 |---|--------|--------|
-| P1 | Read `docs/requirements/index.md` | Class + architecture + shell; no domain / three-layer |
-| P2 | Confirm ship unit `src/cli-template` | `APP_NAME` / `VERSION` hard-assign (**1.0.0**) |
+| P1 | Read `docs/requirements/index.md` | Class + architecture + shell + domain + Termux-ish |
+| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.2.0**) |
 | P3 | Load `reviews/lessons.md` and re-check open L-* that still apply | Skip L-SUDOERS / restore lessons as parent-only |
 | P4 | Run `./tests/run.sh` | Record PASS/FAIL/SKIP in report |
 | P5 | Confirm install **channel** still local-only | No SCRIPT_URL product UX |
@@ -27,15 +27,17 @@
 
 | Surface | Path | Review focus |
 |---------|------|--------------|
-| Class | `requirement-class-software-dev.md` | posix-sh, local-only residual |
-| Bootstrap chain | `requirement-bootstrap-chain.md` | cli-template is hop 0 (no live parent) |
-| Project folder | `requirement-project-folder.md` | `src/`, bins; no `/var/backup` |
-| CLI interface | `requirement-shell-cli-interface.md` | Type 0 commands, flags, dispatch |
-| Empty argv Type N | `requirement-shell-cli-zero-arguments.md` | Empty = help |
+| Class | `requirement-class-software-dev.md` | posix-sh, local-only residual, Termux OS family |
+| Bootstrap chain | `requirement-bootstrap-chain.md` | cli-template → tmpl-to-prj (do not reverse-copy) |
+| Project folder | `requirement-project-folder.md` | `src/tmpl-to-prj`, bins; no `/var/backup` |
+| CLI interface | `requirement-shell-cli-interface.md` | Commands, flags, dispatch |
+| Empty argv | `requirement-shell-cli-zero-arguments.md` | TTY menu; off-TTY help |
 | Local self-management | `requirement-shell-local-self-management.md` | install/uninstall; mode 0755 |
+| Termux-ish | `requirement-shell-termux-ish.md` | Detect; empty `pkg` table; skip sudo |
 | Output SSOT | `requirement-shell-output-requirements.md` | `out_*`; JSON errors |
-| Modular design | `requirement-shell-modular-function-design.md` | no domain prefix |
+| Modular design | `requirement-shell-modular-function-design.md` | `t2p_` domain prefix |
 | Idempotency | `requirement-shell-idempotency.md` | Re-install |
-| Storage | `requirement-shell-cli-storage.md` | Isolation |
+| Storage | `requirement-shell-cli-storage.md` | Isolation; `/dev/shm` optional |
+| Domain hop | `requirement-domain-tmpl-to-prj.md` | plan/apply; dest requirements preserved |
 
 **Do not review as this product’s law:** folder-archive backup, restore dest whitelist, sudoers-file emit (those remain on sibling **folder-backup**).

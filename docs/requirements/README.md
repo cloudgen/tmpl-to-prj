@@ -1,19 +1,19 @@
 # Requirements
 
-Authoritative specialized product law for **cli-template** lives here.
+Authoritative specialized product law for **tmpl-to-prj** lives here.
 
-**Current state (2026-08-13):** Specialized **software-development** product. Left genesis. **This product is the Type 0 bootstrap origin** (no live parent). Registry is populated — see `index.md`.
+**Current state (2026-09-06):** Specialized **software-development** product. Left genesis. Bootstrap **cli-template → tmpl-to-prj**. Termux is a named target. Registry is populated — see `index.md`.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
-| Product / `APP_NAME` | `cli-template` |
-| Version SSOT | `1.0.0` (ship unit hard-assign) |
-| Ship unit | `src/cli-template` |
-| Default install | `~/.local/bin/cli-template` |
+| Product / `APP_NAME` | `tmpl-to-prj` |
+| Version SSOT | `1.1.0` (ship unit hard-assign) |
+| Ship unit | `src/tmpl-to-prj` |
+| Default install | `~/.local/bin/tmpl-to-prj` |
 | Install mode | **Local-only** |
-| Domain surface | **None** (Type 0 bootstrap/template: version, install, about, help) |
+| Domain surface | **Active** — `requirement-domain-tmpl-to-prj` |
 
 ## Class requirement gate
 

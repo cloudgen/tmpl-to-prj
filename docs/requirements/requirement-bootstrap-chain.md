@@ -1,16 +1,34 @@
 **file**: docs/requirements/requirement-bootstrap-chain.md  
-**Status**: Active (Version 4.0.0)  
+**Status**: Active (Version 4.1.0)  
 **Area**: architecture  
 **Key**: `requirement-bootstrap-chain`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Declare the **bootstrap chain** for this product: this workspace **is** the Type 0 bootstrap origin (root hop). There is **no live parent**. Future products specialize **from** this origin (A = `cli-template` → B = descendant).
+Declare the **bootstrap chain** for this product: **A = `cli-template` → B = `tmpl-to-prj`**. Direction is sacred: ancestor → descendant only. Never reverse-copy this product onto `cli-template`.
 
 **This product does not point to selfmanaged or folder-backup as origin.** Those names are retired hops / related products only. Historical copy sources stay in status history.
 
 **Direction is sacred:** when a descendant exists, ancestor → descendant only. Never reverse-copy a descendant onto this origin.
+
+### 1.1 Human-facing
+
+**In one sentence:** This product grew from **cli-template**; never copy tmpl-to-prj back onto that origin.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Maintainer of tmpl-to-prj | Edit `src/tmpl-to-prj` |
+| The other role | Origin A = `cli-template` | Sibling tree; do not overwrite |
+| Not this file | Domain hop | `requirement-domain-tmpl-to-prj` |
+
+| Includes | Excludes |
+|----------|----------|
+| A→B direction | Reverse-copy onto `src/cli-template` |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Specialize further | Keep architecture; retarget identity | Work in this checkout only |
 
 ---
 
@@ -18,24 +36,24 @@ Declare the **bootstrap chain** for this product: this workspace **is** the Type
 
 ### 2.1 Direction
 
-1. This product **is** hop 0 (bootstrap origin). It has **no** immediate parent.  
-2. Every future edge **MUST** be **this origin → descendant** only.  
-3. Plans **MUST NOT** copy a descendant ship unit onto `src/cli-template` to “share fixes.”  
-4. Detected reverse-copy **MUST** be treated as critical pollution (restore this origin; rebuild the descendant).  
-5. Agents **MUST NOT** treat `selfmanaged` or `folder-backup` as this product’s live origin, nor run “maintain bootstrap from …” those products as standing work.
+1. This product **is** leaf B specialized from A = `cli-template`.  
+2. Every edge **MUST** be **cli-template → tmpl-to-prj** only.  
+3. Plans **MUST NOT** copy this ship unit onto sibling `src/cli-template`.  
+4. Detected reverse-copy **MUST** be treated as critical pollution (restore A; rebuild B).  
+5. Agents **MUST NOT** treat `folder-backup` as this product’s live origin.
 
 ### 2.2 Chain declaration (this product)
 
 | Field | Value |
 |-------|--------|
-| **Root / hop 0 (this product)** | `cli-template` — Type 0 template; bootstrap origin for future specialize |
-| **Immediate origin** | **None** — this product is the origin |
-| **Leaf** | `cli-template` (until a descendant is specialized from this tree) |
-| **Specialize mode (as origin)** | Type 0 local-only template; **no domain**; descendants inherit architecture and retarget identity |
-| **This ship unit** | `src/cli-template` |
+| **Root / hop 0** | `cli-template` — Type 0 template origin (sibling tree; do not overwrite) |
+| **Immediate origin (A)** | `cli-template` |
+| **Leaf (this product B)** | `tmpl-to-prj` |
+| **Specialize mode** | Type 0 local-only + domain harness-docs hop; inherit architecture; retarget identity |
+| **This ship unit** | `src/tmpl-to-prj` |
 | **This channel ownership** | **None** — local-only install by design |
-| **This domain** | **none** — Type 0 bootstrap/template (`version`, `install`, `about`, `help`). **Not** a host-OS setup product. |
-| **Retired names (not live hops)** | `selfmanaged`, `folder-backup` — related products / historical copy sources. **Do not** name them as origin. |
+| **This domain** | harness-docs apply (`plan` / `apply`) — `requirement-domain-tmpl-to-prj` |
+| **Related (not origin)** | `folder-backup` — composed sibling for dest archive; **not** parent |
 
 ### 2.3 Architecture contracts (this origin owns)
 
@@ -45,29 +63,29 @@ These are **this product’s** structural contracts. Descendants inherit them. T
 |-------|-------------|
 | Runtime | POSIX `/bin/sh`, `set -u`, explicit errors |
 | Output SSOT | `out_*` family |
-| Modular prefixes | `out_`, `inst_`, `util_`, `app_`, `path_`, `prompt_` |
-| Domain prefix | **None** — do not invent a host prefix until a descendant has domain |
+| Modular prefixes | `out_`, `inst_`, `util_`, `app_`, `path_`, `prompt_`, `t2p_` |
+| Domain prefix | `t2p_` |
 | Entry / dispatch | Single `app_main`; always call `app_main "$@"` at end |
 | Global flags | `--quiet` / `--json` / `--debug` / `--force` / `--global` |
 | Integrity companion | **Absent** (no product channel digest law) |
 | Online lifecycle | **Absent** (`version-check`, `self-update`, `self-uninstall`, Type O, `SCRIPT_URL` UX) |
 | Local lifecycle | **Present** — `install` / `uninstall` / `where-is-me` |
-| Empty argv | **Type N** help (not Type O install-ensure) |
-| Backup / restore / sudoers emit | **Absent** — never this product’s domain |
+| Empty argv | Interactive = menu; off-TTY = help (not Type O) |
+| Backup / restore / sudoers emit | **Absent** as this CLI’s verbs — compose sibling `folder-backup` |
 
 ### 2.4 Surface matrix (normative for this product)
 
-| Surface | Decision | Notes for cli-template |
+| Surface | Decision | Notes for tmpl-to-prj |
 |---------|----------|------------------------|
 | `out_*` output SSOT | **Keep** | This origin’s family |
 | Modular single-file design | **Keep** | Ship unit under `src/` |
-| Global flags + `app_main` | **Keep** | Same contracts; no domain flags |
+| Global flags + `app_main` | **Keep** | Plus `--template` / `--project` / `--dry-run` |
 | Storage resolve | **Keep** | Scratch only |
 | Idempotency / interactive modes | **Keep** | Lifecycle only |
 | Online channel | **Absent** | Not install source; not help/about product UX |
-| Type O empty argv | **Absent** | Empty argv = Type N help |
-| Domain backup + restore | **Absent** | Not this product’s domain |
-| Sudoers print / install-script / remove-draft | **Absent** | Not this product’s domain |
+| Type O empty argv | **Absent** | TTY empty argv = menu; off-TTY = help |
+| Domain backup + restore verbs on **this** CLI | **Absent** | Compose sibling `folder-backup`; do not add `backup`/`restore` tokens here |
+| Sudoers print / install-script / remove-draft | **Absent** | This product does not emit sudoers |
 | Local `install` / `uninstall` / `where-is-me` | **Keep** | Local self-managed package |
 | Domain / out Protection Zones | **Keep spirit** | Do not simplify `out_*` |
 
@@ -75,7 +93,7 @@ These are **this product’s** structural contracts. Descendants inherit them. T
 
 | Concern | Value |
 |---------|---------|
-| `APP_NAME` | `cli-template` |
+| `APP_NAME` | `tmpl-to-prj` |
 | `VERSION` | `1.0.0` (product version SSOT in ship unit) |
 | Primary install story | Local copy from running ship unit → `${USER_BIN}` (default `~/.local/bin`) |
 | README one-liner | **No** `curl \| sh` channel claim |
@@ -84,10 +102,10 @@ These are **this product’s** structural contracts. Descendants inherit them. T
 
 | Item | Value |
 |------|--------|
-| **Product** | `cli-template` |
-| **Workspace** | `/home/leolio/prjs/cli-template` |
-| **Role** | Bootstrap origin (hop 0). Not a child of selfmanaged or folder-backup. |
-| **Related (not origin)** | `selfmanaged`, `folder-backup` — do not overwrite; do not maintain this product from them |
+| **Product** | `tmpl-to-prj` |
+| **Workspace** | `{{PROJECTS_ROOT}}/tmpl-to-prj` (RAM `/dev/shm/tmpl-to-prj` if present) |
+| **Role** | Specialized leaf from `cli-template`. Compose `folder-backup`; do not reverse-copy onto A. |
+| **Related (not origin)** | `folder-backup` — dest archive sibling |
 
 ### 2.7 Why This Requirement Exists (CIAO)
 
@@ -110,10 +128,10 @@ These are **this product’s** structural contracts. Descendants inherit them. T
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Name `selfmanaged` or `folder-backup` as this product’s live origin or immediate parent.  
-2. Reverse-copy a descendant onto `src/cli-template`.  
-3. Reintroduce `backup`, `restore`, or sudoers-file verbs without new Active requirements and explicit user order.  
-4. Create a hollow Active `requirement-domain-*` while there is no domain surface.  
+1. Name `folder-backup` as this product’s live origin.  
+2. Reverse-copy this leaf onto sibling `cli-template` / `src/cli-template`.  
+3. Reintroduce this product’s own `backup` / `restore` / `print-sudoers` verbs.  
+4. Leave domain unowned while `plan`/`apply` exist.  
 5. Reintroduce online install / Type O / `SCRIPT_URL` UX without explicit user order.  
 6. Drop Type 0 lifecycle while claiming this product is the Type 0 template origin.  
 7. Re-add a live parent hop without explicit user order.
@@ -127,7 +145,7 @@ These are **this product’s** structural contracts. Descendants inherit them. T
 | ID | Criterion |
 |----|-----------|
 | AC-1 | Chain names **cli-template** as hop 0 / origin; no live parent |
-| AC-2 | Ship unit is `src/cli-template` |
+| AC-2 | Ship unit is `src/tmpl-to-prj` |
 | AC-3 | Help does not list backup / restore / print-sudoers |
 | AC-4 | Unknown domain verbs fail closed |
 | AC-5 | Empty argv is Type N help |

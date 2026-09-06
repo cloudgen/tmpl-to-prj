@@ -41,6 +41,8 @@ run_test_cli() {
     assert_contains "TP-CLI-04 help install" "$_out" "install"
     assert_contains "TP-CLI-04 help uninstall" "$_out" "uninstall"
     assert_contains "TP-CLI-04 help where-is-me" "$_out" "where-is-me"
+    assert_contains "TP-CLI-04 help plan" "$_out" "plan"
+    assert_contains "TP-CLI-04 help apply" "$_out" "apply"
     assert_contains "TP-CLI-04 help --json" "$_out" "--json"
     assert_not_contains "TP-CLI-04 no backup verb" "$_out" "backup <"
     assert_not_contains "TP-CLI-04 no restore verb" "$_out" "restore <"
@@ -68,12 +70,12 @@ run_test_cli() {
     assert_not_contains "TP-CLI-06 no CHECKSUM" "$_out" "CHECKSUM"
     assert_not_contains "TP-CLI-06 no SCRIPT_URL" "$_out" "SCRIPT_URL"
 
-    # TP-CLI-07 empty argv = Type N help (not install)
+    # TP-CLI-07 empty argv off-TTY = help (not install)
     _out=$(sh "${SCRIPT}" 2>/dev/null)
     _ec=$?
     assert_eq "TP-CLI-07 empty argv exit 0" 0 "$_ec"
     assert_contains "TP-CLI-07 empty argv is help" "$_out" "Usage:"
-    assert_contains "TP-CLI-07 empty argv mentions Type N or help" "$_out" "help"
+    assert_contains "TP-CLI-07 empty argv mentions help" "$_out" "help"
 
     # TP-CLI-08 unknown command fail-closed
     _err=$(sh "${SCRIPT}" no-such-command 2>&1 >/dev/null)
@@ -130,4 +132,19 @@ run_test_cli() {
         assert_eq "TP-CLI-13 ${_verb} exit 1" 1 "$_ec"
         assert_contains "TP-CLI-13 ${_verb} unknown" "$_err" "Unknown command"
     done
+
+    # TP-CLI-17 main-menu header is APP_NAME(VERSION); TTY bold name / italic version
+    _esc=$(printf '\033')
+    _out=$(printf '9\n' | TTY=1 sh "${SCRIPT}" menu 2>/dev/null)
+    _ec=$?
+    assert_eq "TP-CLI-17 TTY menu exit 0" 0 "$_ec"
+    _plain=$(printf '%s' "$_out" | sed "s/${_esc}\\[[0-9;]*m//g")
+    assert_contains "TP-CLI-17 header token APP_NAME(APP_VERSION)" "$_plain" "${APP_NAME}(${APP_VERSION})"
+    assert_contains "TP-CLI-17 board title" "$_plain" "numbered list of live commands"
+    assert_contains "TP-CLI-17 bold SGR 1" "$_out" "${_esc}[1m"
+    assert_contains "TP-CLI-17 italic SGR 3" "$_out" "${_esc}[3m"
+    assert_contains "TP-CLI-17 plan row" "$_plain" "1. plan: Show template and project roots (no writes)"
+    assert_contains "TP-CLI-17 apply row" "$_plain" "2. apply: Copy harness docs from the template into the project"
+    assert_contains "TP-CLI-17 Exit 9" "$_plain" "9. Exit"
+    assert_not_contains "TP-CLI-17 no CSI in stripped header" "$_plain" "${_esc}"
 }

@@ -1,6 +1,6 @@
 #!/bin/sh
 # =============================================================================
-# tests/run.sh — CI entrypoint for cli-template
+# tests/run.sh — CI entrypoint for tmpl-to-prj
 # =============================================================================
 #
 # GENERAL PURPOSE:
@@ -18,9 +18,9 @@ set -u
 TESTS_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_ROOT=$(CDPATH= cd -- "${TESTS_ROOT}/.." && pwd)
 export TESTS_ROOT REPO_ROOT
-SCRIPT="${REPO_ROOT}/src/cli-template"
+SCRIPT="${REPO_ROOT}/src/tmpl-to-prj"
 export SCRIPT
-APP_NAME="cli-template"
+APP_NAME="tmpl-to-prj"
 export APP_NAME
 
 # shellcheck source=helpers.sh
@@ -29,6 +29,10 @@ export APP_NAME
 . "${TESTS_ROOT}/test_cli.sh"
 # shellcheck source=test_local_lifecycle.sh
 . "${TESTS_ROOT}/test_local_lifecycle.sh"
+# shellcheck source=test_domain_tmpl_to_prj.sh
+. "${TESTS_ROOT}/test_domain_tmpl_to_prj.sh"
+# shellcheck source=test_termux.sh
+. "${TESTS_ROOT}/test_termux.sh"
 
 PASS=0
 FAIL=0
@@ -39,7 +43,7 @@ _cleanup() {
 }
 trap _cleanup EXIT INT HUP TERM
 
-printf 'cli-template CI tests\n'
+printf 'tmpl-to-prj CI tests\n'
 printf 'script: %s\n' "${SCRIPT}"
 
 if [ ! -f "${SCRIPT}" ]; then
@@ -52,6 +56,8 @@ fi
 
 run_test_cli
 run_test_local_lifecycle
+run_test_domain_tmpl_to_prj
+run_test_termux
 
 printf '\n== summary ==\n'
 printf 'PASS=%s FAIL=%s SKIP=%s\n' "${PASS}" "${FAIL}" "${SKIP}"

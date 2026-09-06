@@ -1,16 +1,34 @@
 **file**: docs/requirements/requirement-shell-modular-function-design.md  
-**Status**: Active (Version 2.0.0)  
+**Status**: Active (Version 2.1.0)  
 **Area**: shell  
 **Key**: `requirement-shell-modular-function-design`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **modular function organization** of the cli-template POSIX shell CLI.
+This requirement is the **project Single Source of Truth** for **modular function organization** of the tmpl-to-prj POSIX shell CLI.
 
 **Core idea:** Modularity is achieved through **clear function boundaries, consistent prefixes, and full CIAO documentation** — **not** by splitting the installable CLI into multiple shipped files.
 
-Ship unit remains a **single executable** at `src/cli-template`.
+Ship unit remains a **single executable** at `src/tmpl-to-prj`.
+
+### 1.1 Human-facing
+
+**In one sentence:** One file, with prefixes: `out_*` prints, `inst_*` installs, `t2p_*` does the docs hop.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Editor of `src/tmpl-to-prj` | Add `t2p_*` not a bare `apply()` |
+| The other role | Coding-style REQ | specialize-in home |
+| Not this file | Overlay semantics | `requirement-domain-tmpl-to-prj` |
+
+| Includes | Excludes |
+|----------|----------|
+| Prefix table; single file | Split into many shipped binaries |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Add a helper | Use a defined prefix | Open `src/tmpl-to-prj` |
 
 ---
 
@@ -33,14 +51,15 @@ Ship unit remains a **single executable** at `src/cli-template`.
 |--------|----------|---------|-------------------|
 | `out_` | Output system | All user-facing and machine-readable output | `out_text`, `out_info`, `out_json`, `out_die` |
 | `inst_` | Installation lifecycle | Local install/uninstall detect and place/remove | `inst_local_install`, `inst_local_uninstall`, `inst_is_installed` |
-| `util_` | General utilities | Path resolve, storage, CIAO pre-change `.bak` helper | `util_resolve_storage`, `util_get_install_bin_path`, `util_backup` |
+| `util_` | General utilities | Path resolve, storage, identity nametag, Termux / Git Bash / Windows cmd detect | `util_resolve_storage`, `util_app_ident`, `util_is_termux`, `util_is_normal_user_only_cli` |
 | `app_` | Cross-cutting CLI surface | Entry, dispatch, about/help/version/where-is-me | `app_main`, `app_about`, `app_help`, `app_version`, `app_where_is_me` |
 | `path_` | Shell PATH & environment | Optional PATH ensure after user install | `path_add_shell` |
 | `prompt_` | Interactive prompts | TTY-safe confirmations | `prompt_yes_no` |
+| `t2p_` | Domain (harness-docs hop) | Resolve, gate, overlay, empty Termux `pkg` companion | `t2p_plan`, `t2p_apply`, `t2p_resolve_root`, `t2p_termux_pkg_ensure` |
 
 **Notes:**
 
-- **No domain prefix** until a real domain surface exists. Do not invent `hm_*` for unused ops.  
+- Domain prefix **`t2p_`** is required.  
 - **Do not** put generic about/help/main under a domain prefix.  
 - Parent `fb_*` **MUST NOT** be reintroduced.  
 - Online-only prefixes from grandparent (`ver_check` remote network path, download install family) **MUST NOT** be reintroduced unless product mode changes.  
@@ -66,9 +85,9 @@ Critical sections (output SSOT, install place/remove, storage resolve) **MUST** 
 
 | Item | Value |
 |------|--------|
-| **Ship unit** | `src/cli-template` |
-| **Domain prefix** | **none** |
-| **Bootstrap role** | This product is hop 0; Type 0 prefixes; no domain prefix |
+| **Ship unit** | `src/tmpl-to-prj` |
+| **Domain prefix** | `t2p_` |
+| **Bootstrap role** | Specialized from cli-template; keep Type 0 prefixes plus `t2p_` |
 | **Multi-file authoring** | Optional later only if pack still yields one installable artifact and this requirement is updated |
 
 ### 2.6 Why This Requirement Exists (CIAO)
@@ -80,11 +99,26 @@ Critical sections (output SSOT, install place/remove, storage resolve) **MUST** 
 
 ---
 
+## Under command line for normal user only
+
+When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
+| Detect helpers stay `util_is_*`; `pkg` companion stays `t2p_termux_pkg_ensure` | Scatter `sudo` outside `util_sudo` |
+
+**This requirement:** prefix table for detect / skip.
+
+Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
+
+---
+
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
 - Single file; logical modules via prefixes.  
-- Do not invent a domain prefix for an empty domain.  
-- Keep `out_*` intact.
+- Keep `out_*` intact.  
+- Domain prefix is `t2p_`.
 
 ---
 
@@ -105,7 +139,7 @@ Critical sections (output SSOT, install place/remove, storage resolve) **MUST** 
 
 | ID | Criterion |
 |----|-----------|
-| AC-1 | Ship unit is a single file at `src/cli-template` |
+| AC-1 | Ship unit is a single file at `src/tmpl-to-prj` |
 | AC-2 | No `fb_` functions exist |
 | AC-3 | Dispatcher is `app_main` |
 

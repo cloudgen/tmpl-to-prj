@@ -6,9 +6,27 @@
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **idempotency (re-run safety)** of state-changing operations in the cli-template POSIX shell CLI.
+This requirement is the **project Single Source of Truth** for **idempotency (re-run safety)** of state-changing operations in the tmpl-to-prj POSIX shell CLI.
 
 **Informal formula:** for ensure-style operation *f* and system state *x*, **f(f(x)) ≈ f(x)** for the **desired outcome** (logs and timestamps may differ).
+
+### 1.1 Human-facing
+
+**In one sentence:** Running `install` or `uninstall` twice is safe: already done is success, not an error.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Repeat a command | `tmpl-to-prj install` then again |
+| The other role | Dest hop | `apply --force` is documented force, not silent duplicate overlay |
+| Not this file | Confirm policy | `requirement-shell-interactive-vs-noninteractive` |
+
+| Includes | Excludes |
+|----------|----------|
+| Re-install no-op; uninstall absent no-op | Fail because “already installed” |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Re-run install | Success; mode still healed to 0755 | `tmpl-to-prj install` |
 
 ---
 
@@ -50,6 +68,21 @@ Force policy (`--force` / `FORCE=1`) **MAY** re-apply ensure steps that would ot
 
 - **Principle 1 – Caution**: Re-runs must not corrupt installs.  
 - **Principle 3 – Anti-fragile**: Safe to re-invoke.
+
+---
+
+## Under command line for normal user only
+
+When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
+| Same re-run safety for `install` / `uninstall` | Use `sudo` to “heal” a second run |
+
+**This requirement:** re-run safety stays user-bin on Termux.
+
+Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
 ---
 

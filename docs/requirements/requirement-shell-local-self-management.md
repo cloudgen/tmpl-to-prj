@@ -1,14 +1,33 @@
 **file**: docs/requirements/requirement-shell-local-self-management.md  
-**Status**: Active (Version 1.3.0)  
+**Status**: Active (Version 1.4.0)  
 **Area**: shell  
 **Key**: `requirement-shell-local-self-management`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **local self-managed lifecycle** of the cli-template POSIX shell CLI: **`install`**, **`uninstall`**, and **`where-is-me`**, plus the local diagnostics package contract for **`version`**, **`about`**, and **`help`** (wiring owned with CLI interface).
+This requirement is the **project Single Source of Truth** for **local self-managed lifecycle** of the tmpl-to-prj POSIX shell CLI: **`install`**, **`uninstall`**, and **`where-is-me`**, plus the local diagnostics package contract for **`version`**, **`about`**, and **`help`** (wiring owned with CLI interface).
 
 **Install mode:** **local-only**. Online channel install, remote version-check, self-update, and self-uninstall are **out of scope** (intentionally absent).
+
+### 1.1 Human-facing
+
+**In one sentence:** You copy this program into your own bin with `install`; you remove only that copy with `uninstall`.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Owner of `${USER_BIN}` | `tmpl-to-prj install` |
+| The other role | Multi-user POSIX host (root / `--global`) | `sudo tmpl-to-prj install` — **not** on Termux |
+| Not this file | Dest-docs hop | `requirement-domain-tmpl-to-prj` |
+
+| Includes | Excludes |
+|----------|----------|
+| Local copy, mode **0755**, `where-is-me` | `curl\|sh`, `self-uninstall` |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Place the CLI | Copy the running script | `sh src/tmpl-to-prj install` |
+| On Termux | Same local copy; do not use `sudo` | `tmpl-to-prj install` |
 
 ---
 
@@ -31,7 +50,7 @@ This requirement is the **project Single Source of Truth** for **local self-mana
 |---------|---------|---------|
 | **Local version** | `version` | **MUST NOT** fetch remote |
 | About | `about` | Local diagnostics only; **no** `SCRIPT_URL` install one-liner as product UX |
-| Help | `help` | Lists local lifecycle commands only |
+| Help | `help` | Lists local lifecycle **and** domain operational verbs (test-purpose apart) |
 
 ### 2.3 Local install rules
 
@@ -43,7 +62,7 @@ This requirement is the **project Single Source of Truth** for **local self-mana
 6. Idempotent: already installed + force off → success no-op **for content**; mode **MUST** still be healed to the required mode when the installer can write the target (see §2.3.1).  
 7. **MUST NOT** require network for install.  
 8. **`install --global`** (or `FORCE_GLOBAL=1`): target **`${GLOBAL_BIN}/${APP_NAME}`**; if not writable, fail with clear root/sudo guidance.  
-9. Global install **SHOULD** be used on multi-user hosts when a shared CLI is desired. Local install remains correct for Type 0 day-to-day use.
+9. Global install **SHOULD** be used on multi-user POSIX hosts when a shared CLI is desired. Local install remains correct for day-to-day use. On Termux / Git Bash / Windows cmd, global install **MUST** fail closed and **MUST NOT** recommend `sudo`.
 
 ### 2.3.1 Installed binary mode (multi-user runnable) — mandatory
 
@@ -81,8 +100,8 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 
 | Variable | Role | Default / note |
 |----------|------|----------------|
-| `APP_NAME` | Binary basename SSOT | hard-assign `cli-template` |
-| `VERSION` | Local version SSOT | hard-assign `1.0.0` |
+| `APP_NAME` | Binary basename SSOT | hard-assign `tmpl-to-prj` |
+| `VERSION` | Local version SSOT | hard-assign `1.2.0` |
 | `GLOBAL_BIN` | System-wide bin | `/usr/local/bin` |
 | `USER_BIN` | Per-user bin | `${HOME}/.local/bin` |
 | `FORCE` | Replace / skip confirm | `0` |
@@ -93,9 +112,9 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 
 | Item | Value |
 |------|--------|
-| **Product / binary** | `cli-template` |
-| **Ship unit** | `src/cli-template` |
-| **Primary install path story** | Type 0 day-to-day: `${HOME}/.local/bin/cli-template`; multi-user: `/usr/local/bin/cli-template` |
+| **Product / binary** | `tmpl-to-prj` |
+| **Ship unit** | `src/tmpl-to-prj` |
+| **Primary install path story** | Day-to-day: `${HOME}/.local/bin/tmpl-to-prj`; multi-user POSIX: `/usr/local/bin/tmpl-to-prj`; Termux: user bin only |
 | **Handlers** | `inst_local_install`, `inst_local_uninstall`, `app_where_is_me`, `app_version` |
 | **Detect** | `inst_is_installed` / privilege-correct path helpers |
 | **Online package** | **Absent by design** (bootstrap trim) |
@@ -106,6 +125,22 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 - **Principle 10 – Least privilege**: User bin without root when possible.  
 - **Principle 3 – Anti-fragile**: Works offline / air-gapped.  
 - **Principle 16 – Interactive**: Uninstall confirm contract.
+
+---
+
+## Under command line for normal user only
+
+When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
+| Install to `${USER_BIN}` | Recommend `sudo ${APP_NAME} install`; wrap `apt`; write `/etc` |
+| Call `t2p_termux_pkg_ensure` (empty table) | Invoke Termux `pkg` because Git Bash or Windows cmd was detected |
+
+**This requirement:** owns local place/remove. Termux detect is `requirement-shell-termux-ish`.
+
+Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
 ---
 
@@ -157,6 +192,7 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 | `requirement-project-folder` | Path defaults |
 | `requirement-shell-idempotency` | Already installed / uninstalled |
 | `requirement-bootstrap-chain` | Why online package is absent |
+| `requirement-shell-termux-ish` | Termux install companion (empty `pkg` table) |
 | `docs/requirements/index.md` | Registry |
 
 ---

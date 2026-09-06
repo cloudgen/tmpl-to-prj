@@ -6,7 +6,25 @@
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for how cli-template behaves in **interactive** (human + TTY) versus **non-interactive** (automation, CI/CD, pipes, `--json` / often `--quiet`) environments.
+This requirement is the **project Single Source of Truth** for how tmpl-to-prj behaves in **interactive** (human + TTY) versus **non-interactive** (automation, CI/CD, pipes, `--json` / often `--quiet`) environments.
+
+### 1.1 Human-facing
+
+**In one sentence:** On a terminal, uninstall asks before deleting the binary; in a script without `--force` it refuses instead of hanging.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Person at a TTY | `tmpl-to-prj uninstall` then confirm |
+| The other role | CI / pipe | `tmpl-to-prj --json uninstall` fails without `--force` |
+| Not this file | Menu rows | `requirement-shell-cli-default-interaction` |
+
+| Includes | Excludes |
+|----------|----------|
+| TTY measured outside functions; helpers consume `TTY` | Hang on `read` in `--json` |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Uninstall in CI | Must pass `--force` | `tmpl-to-prj uninstall --force` |
 
 ---
 
@@ -47,7 +65,7 @@ Rules:
 
 | Item | Value |
 |------|--------|
-| **Product** | `cli-template` |
+| **Product** | `tmpl-to-prj` |
 | **No curl\|sh auto-install path** | Local-only; non-interactive does not mean Type O install-ensure |
 | **Prompt helper** | `prompt_yes_no` for uninstall (and any future destructive confirm) |
 
@@ -56,6 +74,21 @@ Rules:
 - **Principle 16 – Interactive vs Non-Interactive**  
 - **Principle 1 – Caution**: Never hang automation  
 - **Principle 14 – Traceability**: Errors visible under quiet/json contracts
+
+---
+
+## Under command line for normal user only
+
+When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
+| Same TTY vs JSON split | Prompt for a sudo password |
+
+**This requirement:** interactive confirms stay Type 0 on Termux.
+
+Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
 ---
 

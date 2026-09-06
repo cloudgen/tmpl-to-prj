@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.3.0 – cli-template class law + residual stack)  
+**Status**: Active (Version 1.5.0 – residual points at requirement-shell-termux-ish)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -9,6 +9,24 @@
 Declare this workspace as a **software-development** project class and hold the **residual collection** of software-engineering stack facts **not already owned** by more specific Active peer requirements: primary language, toolchain policy, package/test tooling, and runtime OS family.
 
 This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycle, output, or storage tables (those stay on peer requirements).
+
+### 1.1 Human-facing
+
+**In one sentence:** This workspace is software-development: a POSIX `/bin/sh` CLI that copies kit docs onto a named project, including on Termux as yourself.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Operator of `tmpl-to-prj` | `tmpl-to-prj apply --force kit dest` |
+| The other role | Bootstrap origin `cli-template` | Do not reverse-copy onto it |
+| Not this file | Domain hop details | `requirement-domain-tmpl-to-prj` |
+
+| Includes | Excludes |
+|----------|----------|
+| Language, toolchain, OS family residual | Second copy of `out_*` tables |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Check stack facts | posix-sh, local-only, Linux + Termux | Open this file’s Implementation Notes |
 
 ---
 
@@ -66,9 +84,9 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 
 ### 2.7 Implementation Notes (this project)
 
-| Field | Value (cli-template) |
+| Field | Value (tmpl-to-prj) |
 |-------|---------------------|
-| **Project display name** | `cli-template` |
+| **Project display name** | `tmpl-to-prj` |
 | **Project class** | software-development |
 | **Class requirement basename** | `requirement-class-software-dev.md` |
 | **Primary language(s)** | `posix-sh` (`/bin/sh`) |
@@ -81,12 +99,12 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | **Lockfile policy** | not used |
 | **Test runner** | POSIX shell suite under `tests/` when present (`tests/run.sh` pattern) |
 | **Linter/formatter** | none as project law (shellcheck optional for maintainers) |
-| **Primary runtime / OS family** | POSIX Linux (and compatible UNIX where `/bin/sh` + `mktemp` + `date` exist) |
+| **Primary runtime / OS family** | POSIX Linux and **Termux** (Android userspace `/bin/sh`); compatible UNIX where `/bin/sh` + `mktemp` + `date` exist |
 | **Architectures supported** | any arch with POSIX sh and the external tools the script invokes |
 | **Git surface** | used when product is published |
-| **Ship unit / install** | yes — `src/cli-template` → `${USER_BIN}/cli-template` (default `~/.local/bin/cli-template`); **local-only** install (no online channel) |
-| **Product version SSOT** | `VERSION="1.0.0"` hard-assign in `src/cli-template` |
-| **Bootstrap origin** | **this product** (`cli-template`) — hop 0 Type 0 template. No live parent. |
+| **Ship unit / install** | yes — `src/tmpl-to-prj` → `${USER_BIN}/tmpl-to-prj`; **local-only** install (no online channel) |
+| **Product version SSOT** | `VERSION="1.2.0"` hard-assign in `src/tmpl-to-prj` |
+| **Bootstrap origin** | `cli-template` (A) → this product (B) |
 
 **Residual ownership table:**
 
@@ -95,20 +113,25 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Project class membership | **this file** | Fixed |
 | Primary language + toolchain policy | **this file** | posix-sh, unconstrained |
 | Package/build tool + lockfile | **this file** | none / not used |
-| Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | cli-template is hop 0 (no live parent) |
-| Project layout / ship path | `requirement-project-folder` | `src/` + bin targets |
-| Type 0 CLI surface / flags / dispatch | `requirement-shell-cli-interface` | Do not duplicate |
-| Empty argv Type N help | `requirement-shell-cli-zero-arguments` | Local-only |
+| Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | A=`cli-template` → B=`tmpl-to-prj` |
+| Project layout / ship path | `requirement-project-folder` | `src/tmpl-to-prj` |
+| Type 0 CLI surface / flags / dispatch | `requirement-shell-cli-interface` | Dual-mention domain verbs |
+| Empty argv | `requirement-shell-cli-zero-arguments` | TTY menu; off-TTY help |
+| Default interaction | `requirement-shell-cli-default-interaction` | plan / apply menu |
 | Local self-managed lifecycle | `requirement-shell-local-self-management` | install / uninstall / where-is-me |
+| Coding style | `requirement-shell-script-coding` | specialize-in home |
+| In-tool sudo | `requirement-shell-sudo-command` | wrap sibling folder-backup only; skip on Termux / Git Bash / Windows cmd |
+| Termux target / empty `pkg` table | `requirement-shell-termux-ish` | Detect; no extra packages |
+| Actor / role / subject | `requirement-actor-role-subject` | light table; no dest |
 | Output SSOT (`out_*`) | `requirement-shell-output-requirements` | Do not duplicate |
 | Scratch/cache storage resolve | `requirement-shell-cli-storage` | Do not duplicate |
 | Idempotency / re-run safety | `requirement-shell-idempotency` | Do not duplicate |
 | Interactive vs non-interactive | `requirement-shell-interactive-vs-noninteractive` | Do not duplicate |
-| Modular prefixes / single-file layout | `requirement-shell-modular-function-design` | Do not duplicate |
-| Privilege / sudoers-file emit | **intentionally absent** | Not this product’s domain |
-| Folder archive backup / restore / retention | **intentionally absent** | Not this product’s domain (sibling folder-backup) |
-| Domain surface (`requirement-domain-*`) | **intentionally absent** | Type 0 bootstrap/template; not host-OS setup |
-| Online install / remote self-management / companion checksum | **intentionally absent** | Not this origin’s channel |
+| Modular prefixes / single-file layout | `requirement-shell-modular-function-design` | `t2p_` |
+| Privilege / sudoers-file emit | **intentionally absent** | Compose sibling folder-backup sudoers |
+| Folder archive backup / restore / retention | **intentionally absent as this CLI’s verbs** | Sibling `folder-backup` |
+| Domain surface (`requirement-domain-*`) | `requirement-domain-tmpl-to-prj` | Current domain SSOT |
+| Online install / remote self-management / companion checksum | **intentionally absent** | Local-only |
 
 ---
 
@@ -176,6 +199,9 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | `requirement-shell-idempotency` | Re-run safety |
 | `requirement-shell-interactive-vs-noninteractive` | Mode policy |
 | `requirement-shell-modular-function-design` | Prefixes / single-file modularity |
+| `requirement-shell-script-coding` | Coding-style related REQ (points; wrap not here) |
+| `requirement-shell-sudo-command` | In-tool sudo wrap + studied allow table |
+| `requirement-shell-termux-ish` | Termux target; empty `pkg` table |
 | `docs/requirements/index.md` | Registry SSOT |
 
 ---
@@ -188,9 +214,11 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | 2026-08-13 | Active 1.1.0 | Retarget to cli-template; drop domain/privilege residual owners |
 | 2026-08-13 | Active 1.2.0 | Bootstrap origin = selfmanaged; folder-backup hop retired (no longer maintain bootstrap from it) |
 | 2026-08-13 | Active 1.3.0 | This product is hop 0; selfmanaged is not origin |
+| 2026-09-02 | Active 1.4.0 | Residual + Related point at `requirement-shell-sudo-command` |
+| 2026-09-06 | Active 1.5.0 | Residual + OS family point at Termux (`requirement-shell-termux-ish`) |
 
 ---
 
-**Last Updated**: 2026-08-13  
+**Last Updated**: 2026-09-02  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

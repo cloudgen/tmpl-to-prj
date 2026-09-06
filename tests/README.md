@@ -1,4 +1,4 @@
-# Tests — cli-template
+# Tests — tmpl-to-prj
 
 ## Run
 
@@ -16,8 +16,10 @@ Exit **0** when all assertions pass; **1** on failure; **2** if ship unit missin
 |------|--------|-------------|
 | `run.sh` | Entrypoint | — |
 | `helpers.sh` | Asserts + isolated HOME | — |
-| `test_cli.sh` | CLI surface, Type N empty argv, offline reject, trimmed-verb reject | **TP-CLI-*** |
+| `test_cli.sh` | CLI surface, Type N empty argv, offline reject, trimmed-verb reject, TTY menu header | **TP-CLI-*** |
 | `test_local_lifecycle.sh` | install / uninstall / where-is-me | **TP-LC-*** |
+| `test_domain_tmpl_to_prj.sh` | RAM-first resolve, plan/apply overlay, folder-backup gate | **TP-TMPL-TO-PRJ-*** |
+| `test_termux.sh` | Termux detect, empty `pkg` table, skip `sudo` | **TP-TX-*** |
 
 ## Isolation
 
@@ -27,7 +29,7 @@ Exit **0** when all assertions pass; **1** on failure; **2** if ship unit missin
 
 ## Ship unit under test
 
-`src/cli-template`
+`src/tmpl-to-prj`
 
 ## Maps
 

@@ -1,5 +1,5 @@
 # =============================================================================
-# tests/helpers.sh — shared assertions for cli-template CI tests
+# tests/helpers.sh — shared assertions for tmpl-to-prj CI tests
 # =============================================================================
 # Source from test scripts (POSIX /bin/sh). Does not modify product code.
 # =============================================================================
@@ -7,8 +7,8 @@
 # shellcheck disable=SC2034
 : "${TESTS_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)}"
 : "${REPO_ROOT:=$(CDPATH= cd -- "${TESTS_ROOT}/.." && pwd)}"
-: "${SCRIPT:=${REPO_ROOT}/src/cli-template}"
-: "${APP_NAME:=cli-template}"
+: "${SCRIPT:=${REPO_ROOT}/src/tmpl-to-prj}"
+: "${APP_NAME:=tmpl-to-prj}"
 : "${PASS:=0}"
 : "${FAIL:=0}"
 : "${SKIP:=0}"
@@ -19,6 +19,8 @@ PRODUCT_VERSION=$(grep '^VERSION="' "${SCRIPT}" 2>/dev/null | head -n1 | cut -d'
 PRODUCT_APP=$(grep '^APP_NAME="' "${SCRIPT}" 2>/dev/null | head -n1 | cut -d'"' -f2)
 : "${PRODUCT_APP:=${APP_NAME}}"
 APP_NAME="${PRODUCT_APP}"
+# Test alias of Config VERSION (not a second SSOT).
+APP_VERSION="${PRODUCT_VERSION}"
 
 # --- output ---
 t_info()  { printf '  · %s\n' "$*"; }

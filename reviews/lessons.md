@@ -1,4 +1,4 @@
-# Lessons — cli-template
+# Lessons — tmpl-to-prj
 
 Durable failure modes. **Always re-check on product review.**
 
@@ -12,6 +12,11 @@ Durable failure modes. **Always re-check on product review.**
 | L-PUSH-VAULT-01 | Bare `git push` uses wrong active SSH vault when default face ≠ repository-user | Pre-git report + bound SSH transport; incident 20260810-001 | open watch |
 | L-SETU-01 | `set -u` crash with unset HOME | TP-CLI-11 | open watch |
 | L-STOR-01 | Shared world-writable storage | util_resolve_storage; TP-CLI-12 | open watch |
+| L-FB-GATE-01 | Guess `/etc/<user>/folder-backup` and call a miss “verb-only too narrow” while sibling dest `/etc/sudoers.d/folder-backup-<user>` has `backup *` | Probe sibling dest + `sudo -n -l`; split narrow vs unproven; TTY operate; TP-TMPL-TO-PRJ-14..16; INC-20260902-001 | open watch |
+| L-T2P-KIT-01 | Template picker lists every `~/prjs` child because `docs/README.md` still says Template name after a hop | Unspecialized kit only: 0 `requirement-*.md`, no incident bodies, no product tests; TP-TMPL-TO-PRJ-17 | open watch |
+| L-T2P-BACK-01 | TTY name pickers have no numbered return to the main menu (9 collides with item 9 on long lists) | Print **only 0. Back to main menu**; accept all-nines when free (do not print a second Back row); TP-TMPL-TO-PRJ-19 | open watch |
+| L-T2P-ID-01 | Implementation Notes still say `cli-template` / `src/cli-template` after A→B | Retarget notes to `tmpl-to-prj`; AC-2 ship unit `src/tmpl-to-prj`; registry honesty | closed 2026-09-06 |
+| L-TX-SUDO-01 | Termux / Git Bash still invoke `sudo folder-backup` or recommend `sudo install` | Detect class; `util_sudo` skip; gate missing; TP-TX-06..08 | open watch |
 
 **Related-product only (do not re-apply as this origin’s law):** L-DEPOSIT-01, L-SUDOERS-01..05, L-OVERWRITE-01 stay on folder-backup. Type O empty-argv / online-channel lessons stay on products that own those surfaces. This product is hop 0.
 

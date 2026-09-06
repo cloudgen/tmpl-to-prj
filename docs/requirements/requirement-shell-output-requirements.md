@@ -6,9 +6,27 @@
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **all CLI output** of cli-template: human messages, machine JSON, channel split (stdout vs stderr), and mode behavior (normal / quiet / JSON / debug).
+This requirement is the **project Single Source of Truth** for **all CLI output** of tmpl-to-prj: human messages, machine JSON, channel split (stdout vs stderr), and mode behavior (normal / quiet / JSON / debug).
 
-This origin owns the `out_*` family. No domain messages.
+This origin owns the `out_*` family. Domain hop messages still go through `out_*`.
+
+### 1.1 Human-facing
+
+**In one sentence:** Everything you see from this program (info, errors, JSON) goes through `out_*`, not raw `echo`.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Reader of `[INFO]` / `[ERROR]` | `tmpl-to-prj plan kit dest` |
+| The other role | Machine consumer | `tmpl-to-prj --json about` |
+| Not this file | Command catalog | `requirement-shell-cli-interface` |
+
+| Includes | Excludes |
+|----------|----------|
+| `out_*`, quiet/JSON split | Raw `echo` for product messages |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Capture JSON | stdout is one object | `tmpl-to-prj --json version` |
 
 ---
 
@@ -61,7 +79,7 @@ Rules:
 
 1. Fatal paths use `out_die` / `out_json_error`.  
 2. JSON mode: no colors, banners, or progress mixed into stdout JSON.  
-3. Capture pattern: `cli-template --json <cmd> 2>err.log`.  
+3. Capture pattern: `tmpl-to-prj --json <cmd> 2>err.log`.  
 4. **No secrets** on either channel (tokens, passwords, private keys, full private key material).
 
 ### 2.4 Mode behavior
@@ -77,8 +95,8 @@ Rules:
 
 | Item | Value |
 |------|--------|
-| **Product** | `cli-template` |
-| **Ship unit** | `src/cli-template` |
+| **Product** | `tmpl-to-prj` |
+| **Ship unit** | `src/tmpl-to-prj` |
 | **Human prefixes** | `[INFO]`, `[OK]`, `[WARN]`, `[ERROR]` (or equivalent consistent set) |
 | **Domain messages** | None (Type 0 only) |
 | **Bootstrap role** | This product is hop 0; `out_*` is this origin’s family |

@@ -6,16 +6,34 @@
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **zero-argument (empty argv) dispatcher behavior** of the cli-template POSIX shell CLI.
+This requirement is the **project Single Source of Truth** for **zero-argument (empty argv) dispatcher behavior** of the tmpl-to-prj POSIX shell CLI.
 
 ### 1.0 Product type
 
-| Field | Value for cli-template |
+| Field | Value for tmpl-to-prj |
 |-------|-------------------------|
 | **Empty-argv type** | **Type N — Non-online-install** |
-| **Rationale** | Product is **local-only**; no `curl \| sh` channel; empty argv shows **help**, not install-ensure |
+| **Rationale** | Product is **local-only**; no `curl \| sh` channel; **TTY** empty argv shows the **main menu**; **off-TTY** empty argv shows **help**, not install-ensure |
 
 Type O (online-install empty-argv = install-ensure) does **not** apply.
+
+### 1.1 Human-facing
+
+**In one sentence:** On a terminal, running `tmpl-to-prj` with no words shows the numbered list; in a script it prints help.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Operator at a terminal | `tmpl-to-prj` then `9` |
+| The other role | Automation / pipe | `tmpl-to-prj` prints help; does not hang |
+| Not this file | What the numbered rows are | `requirement-shell-cli-default-interaction` |
+
+| Includes | Excludes |
+|----------|----------|
+| TTY menu; off-TTY help | Empty argv as install |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Open the menu | Empty argv on a TTY | `tmpl-to-prj` |
 
 ---
 
@@ -23,28 +41,30 @@ Type O (online-install empty-argv = install-ensure) does **not** apply.
 
 ### 2.1 Single meaning of empty argv
 
-1. When **argv is empty** (`$# -eq 0` at entry to `app_main`), the dispatcher **MUST** route to **`help`** / usage (`app_help`).  
-2. Empty argv **MUST NOT** perform install or any state-changing ensure.  
-3. Explicit `cli-template help` remains a valid full-usage path (same content family as empty argv).  
-4. Explicit `cli-template install` remains the only first-time local install path (plus documented force refresh).  
-5. Script entry **MUST** always call `app_main "$@"` (no basename product-name gate that blocks dispatch).
+1. When **argv is empty** (`$# -eq 0` at entry to `app_main`) **and** `TTY=1`, the dispatcher **MUST** route to the main menu (`app_default`) — `requirement-shell-cli-default-interaction`.  
+2. When argv is empty **and** `TTY=0`, the dispatcher **MUST** route to **`help`** (`app_help`).  
+3. Empty argv **MUST NOT** perform install or any state-changing ensure.  
+4. Explicit `tmpl-to-prj help` remains a valid full-usage path.  
+5. Explicit `tmpl-to-prj install` remains the only first-time local install path (plus documented force refresh).  
+6. Script entry **MUST** always call `app_main "$@"` (no basename product-name gate that blocks dispatch).
 
 ### 2.2 Normative matrix
 
 | Invocation | Behavior |
 |------------|----------|
-| `cli-template` (no args) | Show help; exit 0 |
-| `cli-template help` | Show help; exit 0 |
-| `cli-template install` | Local install ensure |
+| `tmpl-to-prj` (no args, TTY) | Main menu; exit 0 after pick or Exit |
+| `tmpl-to-prj` (no args, off-TTY) | Show help; exit 0 |
+| `tmpl-to-prj help` | Show help; exit 0 |
+| `tmpl-to-prj install` | Local install ensure |
 | Flags only (e.g. `--json` with no command) | **MUST** still resolve to help (or fail with clear usage if product chooses fail-closed) — default: **help** after flag parse with no command token |
 
 ### 2.3 Implementation Notes (this project)
 
 | Item | Value |
 |------|--------|
-| **Product** | `cli-template` |
-| **Type** | **Type N** |
-| **Default COMMAND** | `help` |
+| **Product** | `tmpl-to-prj` |
+| **Type** | **Type N** (local-only; TTY menu is still not install-ensure) |
+| **Default COMMAND** | TTY: menu handler; off-TTY: `help` |
 | **Contrast Type O** | Type O install-ensure is **not** this origin’s empty-argv law |
 
 ### 2.4 Why This Requirement Exists (CIAO)
@@ -52,6 +72,21 @@ Type O (online-install empty-argv = install-ensure) does **not** apply.
 - **Principle 2 – Intentional**: Empty argv meaning is explicit and not left as “whatever the parent did.”  
 - **Principle 1 – Caution**: Avoid surprise install on bare invocation for an ops CLI.  
 - **Principle 16 – Interactive**: Help is the safe human default for local tools.
+
+---
+
+## Under command line for normal user only
+
+When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
+| Same empty-argv split (TTY menu / off-TTY help) | Treat empty argv as `sudo` install or `pkg` ensure |
+
+**This requirement:** empty argv still is not install-ensure on Termux.
+
+Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
 ---
 
@@ -80,7 +115,7 @@ Type O (online-install empty-argv = install-ensure) does **not** apply.
 
 | ID | Criterion |
 |----|-----------|
-| AC-1 | Empty argv shows help and does not install |
+| AC-1 | Off-TTY empty argv shows help and does not install; TTY empty argv shows the menu |
 | AC-2 | Type N is the declared empty-argv type |
 | AC-3 | `install` remains an explicit command |
 

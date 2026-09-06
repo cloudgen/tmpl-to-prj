@@ -1,12 +1,30 @@
 **file**: docs/requirements/requirement-project-folder.md  
-**Status**: Active (Version 2.0.0)  
+**Status**: Active (Version 2.1.0)  
 **Area**: architecture  
 **Key**: `requirement-project-folder`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define **project folder structure** and path ownership for the cli-template CLI: source layout, install locations, and scratch/cache. This product has **no** durable host backup deposit.
+Define **project folder structure** and path ownership for the tmpl-to-prj CLI: source layout, install locations, and scratch/cache. This product has **no** durable host backup deposit of its own (sibling `folder-backup` owns `/var/backup`).
+
+### 1.1 Human-facing
+
+**In one sentence:** The program lives at `src/tmpl-to-prj`; day-to-day install is your `~/.local/bin/tmpl-to-prj`.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Checkout + user bin | `src/tmpl-to-prj` → `${USER_BIN}/tmpl-to-prj` |
+| The other role | Multi-user POSIX global bin | `/usr/local/bin/tmpl-to-prj` |
+| Not this file | How install copies bytes | `requirement-shell-local-self-management` |
+
+| Includes | Excludes |
+|----------|----------|
+| `src/`, user/global bins, scratch isolation | This product’s `/var/backup` deposit |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Find the ship unit | One file under `src/` | Open `src/tmpl-to-prj` |
 
 ---
 
@@ -16,7 +34,7 @@ Define **project folder structure** and path ownership for the cli-template CLI:
 
 | Path | Role |
 |------|------|
-| `src/cli-template` | **Ship unit** — single POSIX shell executable source |
+| `src/tmpl-to-prj` | **Ship unit** — single POSIX shell executable source |
 | `tests/` | CLI tests when present |
 | `docs/requirements/` | Product law (this surface) |
 | Product root README / CHANGELOG / LICENSE / SECURITY | Product user docs when specialized |
@@ -30,8 +48,8 @@ Define **project folder structure** and path ownership for the cli-template CLI:
 
 | Mode | Binary path | Default |
 |------|-------------|---------|
-| **Per-user (normal)** | `${USER_BIN}/${APP_NAME}` | `${HOME}/.local/bin/cli-template` |
-| **Global (root)** | `${GLOBAL_BIN}/${APP_NAME}` | `/usr/local/bin/cli-template` |
+| **Per-user (normal)** | `${USER_BIN}/${APP_NAME}` | `${HOME}/.local/bin/tmpl-to-prj` |
+| **Global (root)** | `${GLOBAL_BIN}/${APP_NAME}` | `/usr/local/bin/tmpl-to-prj` |
 
 Rules:
 
@@ -58,11 +76,11 @@ Rules:
 
 | Item | Value |
 |------|--------|
-| **APP_NAME** | `cli-template` |
-| **Ship unit path** | `src/cli-template` |
+| **APP_NAME** | `tmpl-to-prj` |
+| **Ship unit path** | `src/tmpl-to-prj` |
 | **USER_BIN default** | `${HOME}/.local/bin` |
 | **GLOBAL_BIN default** | `/usr/local/bin` |
-| **Config dir (optional)** | `${HOME}/.config/cli-template/` if needed later |
+| **Config dir (optional)** | `${HOME}/.config/tmpl-to-prj/` if needed later |
 | **No Type 2 app data tree** | No dedicated system app user for routine ops |
 | **No backup deposit** | `/var/backup` is not a product path |
 
@@ -101,8 +119,8 @@ Rules:
 
 | ID | Criterion |
 |----|-----------|
-| AC-1 | Ship unit lives at `src/cli-template` |
-| AC-2 | Default user install path is `~/.local/bin/cli-template` |
+| AC-1 | Ship unit lives at `src/tmpl-to-prj` |
+| AC-2 | Default user install path is `~/.local/bin/tmpl-to-prj` |
 | AC-3 | No product law requires `/var/backup` |
 
 ---

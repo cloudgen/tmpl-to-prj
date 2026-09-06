@@ -1,120 +1,142 @@
-# cli-template - Type 0 self-managed CLI template (local and global install)
+# tmpl-to-prj - Copy harness docs from a genesis template into a named project
 
-![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.2.0-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
-[![Stars](https://img.shields.io/github/stars/cloudgen/cli-template?style=flat-square)](https://github.com/cloudgen/cli-template)
 
-**cli-template** is a small POSIX `/bin/sh` program you copy from this repository and install into a bin directory so a normal login can run `install`, `uninstall`, `where-is-me`, `version`, `about`, and `help` without becoming root and without downloading from the network.
+**tmpl-to-prj** is a small POSIX `/bin/sh` program. You name a **template** (genesis-template or a subclass such as sh-cli-template) and a **project**. It copies the template’s `docs/` onto the project and puts the project’s own `docs/requirements/` back so product law is not replaced by a blank kit.
 
 | You | The other role | Not this |
 |-----|----------------|----------|
-| A normal login placing the CLI in `~/.local/bin` (or asking root to place it in `/usr/local/bin`) | A root login using `sudo … install` so every user can run the same binary | A host-OS manager, backup/restore tool, sudoers emitter, or online `curl\|sh` installer |
+| A login who already has two project folders | Sibling `folder-backup`, when globally installed, archives the dest tree | A host-OS manager, an online `curl\|sh` installer, or a sudoers emitter |
 
-**Includes / excludes:** Includes **where** the binary is placed (user bin and system bin). Excludes online install, OS `setup`, packages, `/etc`, backup/restore, and sudoers-file emit. This product is the bootstrap origin for that local CLI pattern (no live parent).
+**Includes / excludes:** Includes RAM-drive-first lookup of both names, a dest backup when `folder-backup` is ready, and `mv` of dest requirements. Excludes overlay of dest `src/`, tests, root README, or `AGENTS.md`. On **Termux** (and Git Bash / Windows cmd) it stays a command line for **you only**: no `sudo`, no Linux `apt`.
 
 **Practice:**
 
 | Step | What it means | What you type |
 |------|---------------|---------------|
-| Install (your bin) | Copies the script to `~/.local/bin/cli-template` so your login can run it. Does not fetch a URL. | `sh src/cli-template install` |
-| Install (everyone) | Same bytes into `/usr/local/bin/cli-template`, mode `0755`, so other users can run it. Needs write access to that directory. | `sudo sh src/cli-template install` |
-| No arguments | Prints help. Does not install and does not start a review. | `cli-template` |
+| Preview | Show which RAM or disk roots would be used. No writes. | `tmpl-to-prj plan sh-cli-template grok-cli` |
+| Apply | Archive dest (if ready), replace dest docs, restore dest requirements. | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
 
 ## Features
 
-- **Self-management**: `install`, `uninstall`, `where-is-me`, `version`, `about`, `help` (user-bin **and** system-bin place/remove)
-- **Empty argv shows help**: running with no arguments prints help (it does not install)
-- **Managed binary mode 0755**: global install stays readable and runnable for every user
-- **Fail-closed**: unknown commands (including verbs this template does not ship) exit non-zero
+- **Self-management**: `install`, `uninstall`, `where-is-me`, `version`, `about`, `help`
+- **Harness-docs hop**: `plan` and `apply` with **template-name** and **project-name**
+- **RAM-drive first**: `/dev/shm/<name>` wins over `${HOME}/prjs/<name>` when both exist (on Termux, `/dev/shm` is often absent — hard-disk `prjs` is used)
+- **Requirements preserved**: dest `docs/requirements/` is moved aside, then restored
+- **folder-backup compose**: dest archive when the global binary is ready on a POSIX host with a matching grant; skipped on Termux / Git Bash / Windows cmd (local dest-docs snapshot instead)
+- **Termux target**: detect Termux-like userspace; no extra `pkg` list (this program is `/bin/sh` only)
+- **Numbered menu** on a real terminal (empty argv or `menu`)
+- **Empty argv in a script** prints help (does not install)
+- **Fail-closed**: unknown commands exit non-zero
 - **CIAO / CIAO-Lite** defensive design (Protection Zones, `out_*` output SSOT)
 
 ## Quick Installation
 
-**Local (Type 0 day-to-day):**
+**Local (this login — POSIX Linux and Termux):**
 
 ```sh
-# From this repository checkout
-sh src/cli-template install
+sh src/tmpl-to-prj install
 # or force refresh after updates
-sh src/cli-template install --force
+sh src/tmpl-to-prj install --force
 
-# Ensure ~/.local/bin is on PATH, then:
-cli-template version
+# Ensure ~/.local/bin is on PATH (on Termux you may set USER_BIN=$PREFIX/bin), then:
+tmpl-to-prj version
 ```
 
-**Global (multi-user hosts):**
+**Global (multi-user POSIX hosts only — not Termux):**
 
 ```sh
-sudo sh src/cli-template install
-# or: cli-template install --global   # needs write access to /usr/local/bin
-# Managed binary mode is always 0755 so every user can run the shell ship unit.
+sudo sh src/tmpl-to-prj install
 ```
 
-This product is **local-only** for its install channel (no default `SCRIPT_URL` online install). Global vs local here means install *location*, not an online channel.
+On Termux, Git Bash, or Windows cmd, use the **local** path. Do not run `sudo` for this program there.
 
-**Source repository:** [cloudgen/cli-template](https://github.com/cloudgen/cli-template)  
-Config identity: `REPO_USER=cloudgen`, `REPO_NAME=cli-template` (override with env if needed; does not enable online install while `SCRIPT_URL` is empty).
+At a real terminal, empty argv shows the numbered list:
+
+```text
+[INFO] **tmpl-to-prj**(*1.2.0*) — numbered list of live commands
+1. plan: Show template and project roots (no writes)
+2. apply: Copy harness docs from the template into the project
+9. Exit
+Choice:
+```
 
 ## Usage
 
 ```sh
-cli-template help
-cli-template about
-cli-template --json about
+tmpl-to-prj help
+tmpl-to-prj about
+tmpl-to-prj --json about
 
-cli-template install
-cli-template where-is-me
-cli-template uninstall --force
+tmpl-to-prj plan sh-cli-template grok-cli
+tmpl-to-prj apply --template sh-cli-template --project grok-cli
+tmpl-to-prj apply --force --dry-run genesis-template my-cli
+tmpl-to-prj list-templates
+tmpl-to-prj list-projects
+
+tmpl-to-prj install
+tmpl-to-prj where-is-me
+tmpl-to-prj uninstall --force
 ```
 
 **Environment (selected):**
 
 | Variable | Role |
 |----------|------|
+| `T2P_RAM_ROOT` | RAM-drive parent (default `/dev/shm`) |
+| `PROJECTS_ROOT` | Hard-disk projects parent (default `${HOME}/prjs`) |
 | `REPO_USER` | Git host owner (default `cloudgen`) |
-| `REPO_NAME` | Git repository name (default `cli-template`) |
+| `REPO_NAME` | Git repository name (default `tmpl-to-prj`) |
 | `SCRIPT_URL` | Online install channel (default **empty** — local only) |
 | `USER_BIN` | Per-user install destination (default `~/.local/bin`) |
 | `GLOBAL_BIN` | Global install destination (default `/usr/local/bin`) |
 
+**Source repository:** local-only. Config identity: `REPO_USER=cloudgen`, `REPO_NAME=tmpl-to-prj`.
+
 ## Examples
 
+Preview without writing:
+
 ```sh
-# Local install (user bin)
-sh src/cli-template install
-
-# Global install (system bin)
-sudo sh src/cli-template install
-
-# Diagnostics
-cli-template about
-cli-template --json version
+tmpl-to-prj plan sh-cli-template grok-cli
 ```
+
+Apply and keep the dest project’s own requirements:
+
+```sh
+tmpl-to-prj apply --force sh-cli-template grok-cli
+```
+
+On Termux, the same commands work after a local install. Dest backup uses a snapshot under the project (not `sudo folder-backup`).
 
 ## Platform Compatibility
 
-| Platform | Status |
-|----------|--------|
-| Linux, `/bin/sh` (dash/bash) | Supported |
-| `mktemp`, `date` | Required |
-| macOS / BSD | Not primary; GNU `stat`/`sed -E` assumptions may differ |
+| Platform | Status | Notes |
+|----------|--------|-------|
+| POSIX Linux (`/bin/sh`) | **Supported** | Primary runtime. RAM-drive `/dev/shm` when present. |
+| Termux (Android userspace) | **Supported** | Command line for this login only. No `sudo`. No extra `pkg`. User-bin install. |
+| Other UNIX with `/bin/sh` + `mktemp` + `date` | **Best effort** | Same local install story. |
+| Git Bash / Windows cmd | **Privilege freeze** | Same “normal user only” ceiling; no Termux `pkg`; no `sudo`. POSIX hop may still need a UNIX-like tree. |
+| Windows without a POSIX `sh` | **Not supported** | This is a `/bin/sh` program. |
 
 ## Related Projects
 
-- [selfmanaged](https://github.com/cloudgen/selfmanaged) — related Type 0 product (online channel); **not** this product’s origin
-- [folder-backup](https://github.com/cloudgen/folder-backup) — related product (backup/restore/sudoers); **not** this product’s origin
-- [CIAO Defensive Programming](https://github.com/cloudgen/ciao)
-- [CIAO-Lite](https://github.com/cloudgen/ciao-lite)
+| Project | Relation |
+|---------|----------|
+| **cli-template** | Bootstrap origin (A). Do not reverse-copy this product onto it. |
+| **folder-backup** | Sibling CLI composed for dest archive when globally installed on POSIX. |
+| **genesis-template** / **sh-cli-template** | Typical **template-name** kits (unspecialized `docs/`). |
 
 ## Contributing
 
-Keep changes surgical. Honor **CIAO-Lite Protection Zones** in `src/cli-template`. Product behavior must stay consistent with live `docs/requirements/requirement-*.md`. Run `sh tests/run.sh` before proposing commits.
+Keep CIAO / CIAO-Lite Protection Zones. Trace behavior to live `docs/requirements/`. Run `./tests/run.sh` before a change is claimed done. Do not reintroduce an online `curl|sh` channel unless product law is explicitly changed.
 
 ## License
 
-MIT License — see [`LICENSE.md`](./LICENSE.md).
+MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
 
-2026-08-19 — version **1.0.0** (bootstrap origin; forge **cloudgen/cli-template**; author-email **wongcf22@gmail.com**; Description voice).
+2026-09-06 — Termux is a supported target (normal-user-only; empty `pkg` table; no `sudo`). README fills Examples, Platform Compatibility, Related Projects, Contributing, License. Version **1.2.0**.
