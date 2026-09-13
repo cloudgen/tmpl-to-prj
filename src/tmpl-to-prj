@@ -1,7 +1,9 @@
 #!/bin/sh
 # =============================================================================
 # tmpl-to-prj - Copy harness docs from a genesis template (or subclass)
-#               into a named project, keeping dest docs/requirements/
+#               into a named project, keeping dest specialized docs folders
+#               (requirements, incidents, filled checklists, whitelists,
+#               housekeeping, docs/reviews)
 # =============================================================================
 #
 # LOCAL TYPE 0 LIFECYCLE + DOMAIN APPLY (CIAO / CIAO-Lite Compliant)
@@ -35,7 +37,7 @@
 # Single-file ship unit under src/; install to ~/.local/bin (user) or /usr/local/bin (root/--global).
 #
 # APP NAME: hard-assign APP_NAME="tmpl-to-prj"
-# VERSION: hard-assign VERSION="1.2.0"
+# VERSION: hard-assign VERSION="1.2.1"
 #
 # =============================================================================
 
@@ -50,10 +52,10 @@ APP_NAME="tmpl-to-prj"
 : "${APP_NAME:=tmpl-to-prj}"
 : "${APP_DESC:=Copy harness docs from a genesis template (or subclass) into a named project}"
 : "${SHORT_DESCRIPTION:=${APP_DESC}}"
-: "${DESCRIPTION:=POSIX /bin/sh local CLI: apply or plan a harness-docs hop using template-name and project-name. RAM-drive first. Preserves dest docs/requirements/.}"
+: "${DESCRIPTION:=POSIX /bin/sh local CLI: apply or plan a harness-docs hop using template-name and project-name. RAM-drive first. Preserves dest specialized docs folders (requirements, incidents, checklists, whitelists, housekeeping, docs/reviews).}"
 # Product version SSOT (semver). Extractors use: grep '^VERSION="'
-VERSION="1.2.0"
-: "${VERSION:=1.2.0}"
+VERSION="1.2.1"
+: "${VERSION:=1.2.1}"
 # Repository identity SSOT (git host owner/repo for project-repository alignment).
 # Install remains local-only: SCRIPT_URL stays empty (no online curl|sh channel).
 : "${REPO_USER:=cloudgen}"
@@ -72,6 +74,7 @@ VERSION="1.2.0"
 : "${T2P_FB_VERB_ONLY:=0}"
 : "${T2P_LAST_HOST_VERSION:=}"
 : "${T2P_ASIDE_PATH:=}"
+: "${T2P_OVERLAY_STAMP:=}"
 : "${T2P_BACKUP_NOTE:=}"
 : "${T2P_PICK_CANCEL:=0}"
 : "${T2P_IN_MENU:=0}"
@@ -2580,7 +2583,7 @@ t2p_preflight() {
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-02
+# Last updated: 2026-09-10
 # =============================================================================
 t2p_report_resolve() {
     : "${JSON:=0}"
@@ -2595,7 +2598,8 @@ t2p_report_resolve() {
             "project_root" "${T2P_DST_ROOT}" \
             "project_host" "${T2P_DST_HOST}" \
             "folder_backup_gate" "${T2P_FB_GATE}" \
-            "dest_requirements" "$(t2p_count_requirements "${T2P_DST_ROOT}")"
+            "dest_requirements" "$(t2p_count_requirements "${T2P_DST_ROOT}")" \
+            "dest_incidents" "$(t2p_count_non_readme_files "${T2P_DST_ROOT}/docs/incidents")"
         return 0
     fi
     out_info "Template: ${TEMPLATE_NAME}"
@@ -2606,6 +2610,7 @@ t2p_report_resolve() {
     out_info "  host: ${T2P_DST_HOST}"
     out_info "folder-backup gate: ${T2P_FB_GATE}"
     out_info "Dest requirement files: $(t2p_count_requirements "${T2P_DST_ROOT}")"
+    out_info "Dest incident bodies: $(t2p_count_non_readme_files "${T2P_DST_ROOT}/docs/incidents")"
 }
 
 # =============================================================================
@@ -2639,7 +2644,7 @@ t2p_return_to_menu_if_cancelled() {
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-03
+# Last updated: 2026-09-10
 # =============================================================================
 t2p_plan() {
     if ! t2p_preflight; then
@@ -2650,7 +2655,7 @@ t2p_plan() {
     if [ "${JSON}" -eq 1 ]; then
         return 0
     fi
-    out_info "Plan only: no docs overlay. apply will mv dest docs/requirements aside, copy template docs, then restore dest requirements."
+    out_info "Plan only: no docs overlay. apply will mv dest specialized docs folders aside (requirements, incidents, checklists, whitelists, housekeeping, reviews), copy template docs, then restore those dest folders."
     if [ "${T2P_FB_GATE}" = "missing" ]; then
         out_warn "Global folder-backup is not installed. apply will take a local dest-docs snapshot. Next: sudo folder-backup install"
     fi
@@ -2738,61 +2743,110 @@ t2p_backup_dest() {
 }
 
 # =============================================================================
-# t2p_overlay_docs() - mv requirements aside, replace docs, restore
+# t2p_aside_dir_for() - Storage tmp path for one dest docs/ subdir
 # =============================================================================
 #
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-02
+# Last updated: 2026-09-10
+# =============================================================================
+t2p_aside_dir_for() {
+    _name="${1:-}"
+    : "${HOME:=/tmp}"
+    : "${EFFECTIVE_STORAGE_DIR:=${HOME}}"
+    : "${T2P_OVERLAY_STAMP:=none}"
+    printf '%s/t2p-%s-%s' "${EFFECTIVE_STORAGE_DIR}" "${_name}" "${T2P_OVERLAY_STAMP}"
+}
+
+# =============================================================================
+# t2p_restore_asides() - Put dest specialized docs folders back after overlay fail
+# =============================================================================
+#
+# ALIGNMENT:
+# - requirement-domain-tmpl-to-prj.md
+#
+# Last updated: 2026-09-10
+# =============================================================================
+t2p_restore_asides() {
+    _dst="${1:-}"
+    mkdir -p "${_dst}/docs"
+    if [ -d "${T2P_ASIDE_PATH:-}" ]; then
+        rm -rf "${_dst}/docs/requirements"
+        mv "${T2P_ASIDE_PATH}" "${_dst}/docs/requirements" 2>/dev/null || true
+    fi
+    for _name in incidents checklists whitelists housekeeping reviews; do
+        _aside=$(t2p_aside_dir_for "${_name}")
+        if [ -d "${_aside}" ]; then
+            rm -rf "${_dst}/docs/${_name}"
+            mv "${_aside}" "${_dst}/docs/${_name}" 2>/dev/null || true
+        fi
+    done
+}
+
+# =============================================================================
+# t2p_overlay_docs() - mv specialized dest docs folders aside, replace docs, restore
+# =============================================================================
+#
+# ALIGNMENT:
+# - requirement-domain-tmpl-to-prj.md
+#
+# Last updated: 2026-09-10
 # =============================================================================
 t2p_overlay_docs() {
     _src="${1:-}"
     _dst="${2:-}"
     : "${HOME:=/tmp}"
     : "${EFFECTIVE_STORAGE_DIR:=${HOME}}"
-    _stamp=$(t2p_utc_stamp)
-    T2P_ASIDE_PATH="${EFFECTIVE_STORAGE_DIR}/t2p-requirements-${_stamp}"
-    export T2P_ASIDE_PATH
+    T2P_OVERLAY_STAMP=$(t2p_utc_stamp)
+    T2P_ASIDE_PATH="${EFFECTIVE_STORAGE_DIR}/t2p-requirements-${T2P_OVERLAY_STAMP}"
+    export T2P_ASIDE_PATH T2P_OVERLAY_STAMP EFFECTIVE_STORAGE_DIR
     if [ -d "${_dst}/docs/requirements" ]; then
         mv "${_dst}/docs/requirements" "${T2P_ASIDE_PATH}" || out_die "Could not move dest docs/requirements aside. Next: check write access."
         out_info "Moved dest docs/requirements aside: ${T2P_ASIDE_PATH}"
     fi
+    for _name in incidents checklists whitelists housekeeping reviews; do
+        if [ -d "${_dst}/docs/${_name}" ]; then
+            _aside=$(t2p_aside_dir_for "${_name}")
+            mv "${_dst}/docs/${_name}" "${_aside}" || out_die "Could not move dest docs/${_name} aside. Next: check write access."
+            out_info "Moved dest docs/${_name} aside: ${_aside}"
+        fi
+    done
     if [ -e "${_dst}/docs" ]; then
-        rm -rf "${_dst}/docs" || out_die "Could not remove dest docs after saving requirements. Next: restore from ${T2P_ASIDE_PATH}."
+        rm -rf "${_dst}/docs" || out_die "Could not remove dest docs after saving specialized dest docs folders. Next: restore from ${T2P_ASIDE_PATH} and ${EFFECTIVE_STORAGE_DIR}/t2p-*-${T2P_OVERLAY_STAMP}."
     fi
     if [ ! -d "${_src}/docs" ]; then
-        if [ -d "${T2P_ASIDE_PATH}" ]; then
-            mkdir -p "${_dst}/docs"
-            mv "${T2P_ASIDE_PATH}" "${_dst}/docs/requirements"
-        fi
-        out_die "Template has no docs/ folder. Dest requirements were restored when possible."
+        t2p_restore_asides "${_dst}"
+        out_die "Template has no docs/ folder. Dest specialized docs folders were restored when possible."
     fi
     cp -a "${_src}/docs" "${_dst}/docs" || {
-        if [ -d "${T2P_ASIDE_PATH}" ]; then
-            mkdir -p "${_dst}/docs"
-            mv "${T2P_ASIDE_PATH}" "${_dst}/docs/requirements" 2>/dev/null || true
-        fi
-        out_die "Could not copy template docs. Dest requirements were restored when possible."
+        t2p_restore_asides "${_dst}"
+        out_die "Could not copy template docs. Dest specialized docs folders were restored when possible."
     }
-    if [ -e "${_dst}/docs/requirements" ]; then
-        rm -rf "${_dst}/docs/requirements"
-    fi
     mkdir -p "${_dst}/docs"
+    rm -rf "${_dst}/docs/requirements"
     if [ -d "${T2P_ASIDE_PATH}" ]; then
         mv "${T2P_ASIDE_PATH}" "${_dst}/docs/requirements" || out_die "Copied template docs but could not restore dest requirements from ${T2P_ASIDE_PATH}."
         out_info "Restored dest docs/requirements."
     fi
+    for _name in incidents checklists whitelists housekeeping reviews; do
+        _aside=$(t2p_aside_dir_for "${_name}")
+        if [ -d "${_aside}" ]; then
+            rm -rf "${_dst}/docs/${_name}"
+            mv "${_aside}" "${_dst}/docs/${_name}" || out_die "Copied template docs but could not restore dest ${_name} from ${_aside}."
+            out_info "Restored dest docs/${_name}."
+        fi
+    done
 }
 
 # =============================================================================
-# t2p_apply() - Backup dest, overlay harness docs, keep dest requirements
+# t2p_apply() - Backup dest, overlay harness docs, keep dest specialized docs folders
 # =============================================================================
 #
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-02
+# Last updated: 2026-09-10
 # =============================================================================
 t2p_apply() {
     : "${FORCE:=0}"
@@ -2812,7 +2866,7 @@ t2p_apply() {
         t2p_report_resolve
     fi
     if [ "${FORCE}" -ne 1 ]; then
-        if ! prompt_yes_no "Replace dest docs from the template (keep dest docs/requirements)?"; then
+        if ! prompt_yes_no "Replace dest docs from the template (keep dest specialized docs folders)?"; then
             out_die "Apply cancelled. Next: re-run with --force if you meant to skip the confirm."
         fi
     fi
@@ -2826,10 +2880,11 @@ t2p_apply() {
             "project_root" "${T2P_DST_ROOT}" \
             "folder_backup_gate" "${T2P_FB_GATE}" \
             "backup" "${T2P_BACKUP_NOTE}" \
-            "dest_requirements" "$(t2p_count_requirements "${T2P_DST_ROOT}")"
+            "dest_requirements" "$(t2p_count_requirements "${T2P_DST_ROOT}")" \
+            "dest_incidents" "$(t2p_count_non_readme_files "${T2P_DST_ROOT}/docs/incidents")"
         return 0
     fi
-    out_success "Apply complete: harness docs from ${TEMPLATE_NAME} onto ${PROJECT_NAME}; dest requirements kept."
+    out_success "Apply complete: harness docs from ${TEMPLATE_NAME} onto ${PROJECT_NAME}; dest specialized docs folders kept."
 }
 
 # =============================================================================
@@ -2988,7 +3043,7 @@ app_help() {
     out_plain "  plan <template-name> <project-name>"
     out_plain "                      Show RAM-first roots and folder-backup gate (no writes)"
     out_plain "  apply <template-name> <project-name>"
-    out_plain "                      Backup dest, mv dest docs/requirements aside, copy template docs, restore requirements"
+    out_plain "                      Backup dest, mv dest specialized docs folders aside, copy template docs, restore those dest folders"
     out_plain "  menu                 Numbered list (plan / apply). Alias: main"
     out_plain "                      After plan/apply, TTY lists unspecialized templates then projects; 0 returns to the menu"
     out_empty_line

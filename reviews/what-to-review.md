@@ -4,8 +4,8 @@
 **Project nature:** software-development · domain SSOT `requirement-domain-tmpl-to-prj` · **local-only** install · **Termux** is a target.  
 **Always load first:** `reviews/lessons.md`
 
-**Last plan update:** 2026-09-06  
-**Ship unit VERSION:** 1.2.0  
+**Last plan update:** 2026-09-13  
+**Ship unit VERSION:** 1.2.1  
 **Suite baseline:** see `reviews/test-plan.md`
 
 ---
@@ -15,7 +15,7 @@
 | # | Check | Notes |
 |---|--------|--------|
 | P1 | Read `docs/requirements/index.md` | Class + architecture + shell + domain + Termux-ish |
-| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.2.0**) |
+| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.2.1**) |
 | P3 | Load `reviews/lessons.md` and re-check open L-* that still apply | Skip L-SUDOERS / restore lessons as parent-only |
 | P4 | Run `./tests/run.sh` | Record PASS/FAIL/SKIP in report |
 | P5 | Confirm install **channel** still local-only | No SCRIPT_URL product UX |
@@ -38,6 +38,6 @@
 | Modular design | `requirement-shell-modular-function-design.md` | `t2p_` domain prefix |
 | Idempotency | `requirement-shell-idempotency.md` | Re-install |
 | Storage | `requirement-shell-cli-storage.md` | Isolation; `/dev/shm` optional |
-| Domain hop | `requirement-domain-tmpl-to-prj.md` | plan/apply; dest requirements preserved |
+| Domain hop | `requirement-domain-tmpl-to-prj.md` | plan/apply; dest specialized docs folders preserved (requirements, incidents, filled checklists, whitelists, housekeeping, dest `docs/reviews/`) (L-T2P-INC-01) |
 
 **Do not review as this product’s law:** folder-archive backup, restore dest whitelist, sudoers-file emit (those remain on sibling **folder-backup**).

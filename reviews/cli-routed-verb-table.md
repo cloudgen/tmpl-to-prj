@@ -1,6 +1,6 @@
 # CLI routed-verb table — tmpl-to-prj
 
-**Last updated:** 2026-09-03  
+**Last updated:** 2026-09-13  
 **Ship unit:** `src/tmpl-to-prj`
 
 Human-readable column is `{{short-descript}}: {{explain}}` (short description = routed-verb).
@@ -14,7 +14,7 @@ Human-readable column is `{{short-descript}}: {{explain}}` (short description = 
 | about | `app_about` | Type 0 | 2026-09-02 | `about: Show diagnostics` | operational | live |
 | help | `app_help` | Type 0 | 2026-09-02 | `help: Show usage` | operational | live |
 | plan | `t2p_plan` | Type 0 | 2026-09-02 | `plan: Show template and project roots (no writes)` | operational | live |
-| apply | `t2p_apply` | Type 0 | 2026-09-02 | `apply: Copy harness docs from the template into the project` | operational | live |
+| apply | `t2p_apply` | Type 0 | 2026-09-13 | `apply: Copy harness docs from the template into the project` | operational | live |
 | menu | `app_default` | Type 0 | 2026-09-02 | `menu: Numbered list of plan and apply` | operational | live |
 | main | `app_default` | Type 0 | 2026-09-02 | `main: Alias of menu` | operational | live |
 | list-templates | `t2p_cmd_list_templates` | Type 0 | 2026-09-02 | `list-templates: Numbered genesis-template (or subclass) kits` | test-purpose | live |

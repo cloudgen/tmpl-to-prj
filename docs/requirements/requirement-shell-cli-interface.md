@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-interface.md  
-**Status**: Active (Version 2.1.0)  
+**Status**: Active (Version 2.1.1)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -80,7 +80,7 @@ Additional flags **MAY** be added only when documented here (or a superseding re
 
 In JSON mode, help **MUST NOT** dump long human text; return a short structured success/note object.
 
-`help` **MUST** list operational domain verbs (`plan`, `apply`, `menu`) **apart** from test-purpose (none in v1). **MUST NOT** list this product’s own backup, restore, or sudoers-file verbs.
+`help` **MUST** list operational domain verbs (`plan`, `apply`, `menu`) **apart** from test-purpose (`list-templates`, `list-projects`). **MUST NOT** list this product’s own backup, restore, or sudoers-file verbs.
 
 ### 2.5 Implementation Notes (this project)
 
@@ -90,7 +90,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | **Primary executable** | `src/tmpl-to-prj` (POSIX `/bin/sh`, single-file ship unit) |
 | **Dispatcher** | `app_main` |
 | **Output SSOT** | `out_text` + wrappers (`out_info`, `out_success`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_json`, …) |
-| **Version SSOT** | `VERSION="1.2.0"` hard-assign in ship unit |
+| **Version SSOT** | `VERSION="1.2.1"` hard-assign in ship unit |
 | **Install paths** | Global: `GLOBAL_BIN` default `/usr/local/bin`; User: `USER_BIN` default `${HOME}/.local/bin` |
 | **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` |
 | **Online channel env** | **Not product UX** (trimmed) |
@@ -215,6 +215,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | `requirement-shell-output-requirements` | `out_*` |
 | `requirement-bootstrap-chain` | Trimmed surfaces |
 | `requirement-shell-termux-ish` | Termux target |
+| `requirement-domain-tmpl-to-prj` | Dual mention of plan/apply/list-* |
 | `docs/requirements/index.md` | Registry |
 
 ---
@@ -224,7 +225,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
 | **TP-CLI-01..13** | `tests/test_cli.sh` | have | includes stripped-verb fail-closed |
+| **TP-CLI-17** | `tests/test_cli.sh` | have | TTY menu header APP_NAME(VERSION) |
 | **TP-LC-*** | `tests/test_local_lifecycle.sh` | have | lifecycle |
+| **TP-TMPL-TO-PRJ-11** | `tests/test_domain_tmpl_to_prj.sh` | have | help lists testers apart |
 
 **Matrix:** `reviews/requirement-test-matrix.md`  
 **Map:** `reviews/test-plan.md`
@@ -236,9 +239,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | 2026-08-03 | Active 1.0.0 | folder-backup Type 0 + domain verbs |
 | 2026-08-13 | Active 2.0.0 | cli-template Type 0 only |
 | 2026-09-06 | Active 2.1.0 | Termux target; human-facing; empty argv AC is TTY menu / off-TTY help |
+| 2026-09-13 | Active 2.1.1 | Help lists test-purpose `list-templates` / `list-projects` apart (stale “none in v1” removed) |
 
 ---
 
-**Last Updated**: 2026-09-06  
+**Last Updated**: 2026-09-13  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

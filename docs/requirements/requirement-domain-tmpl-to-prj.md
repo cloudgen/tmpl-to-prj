@@ -1,16 +1,16 @@
 **file**: docs/requirements/requirement-domain-tmpl-to-prj.md  
-**Status**: Active (Version 1.4.0)  
+**Status**: Active (Version 1.6.0)  
 **Area**: domain  
 **Key**: `requirement-domain-tmpl-to-prj`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable harness docs** from a **genesis-template or subclass** (template-name) into a **named dest project** (project-name), **preserving dest `docs/requirements/`**.
+This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable harness docs** from a **genesis-template or subclass** (template-name) into a **named dest project** (project-name), **preserving dest specialized `docs/` folders**.
 
 ### 1.1 Human-facing
 
-**In one sentence:** You name a template kit and a project; this CLI copies the kit’s `docs/` onto the project and puts the project’s own requirements folder back.
+**In one sentence:** You name a template kit and a project; this CLI copies the kit’s `docs/` onto the project and puts the project’s own specialized docs folders back.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -21,7 +21,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | Includes | Excludes |
 |----------|----------|
 | RAM-first resolve of both names | Overlay of dest `src/`, tests, root README, `AGENTS.md` |
-| `mv` dest `docs/requirements/` aside before copy | Emptying dest product law to match genesis |
+| `mv` dest specialized `docs/` folders aside before copy | Emptying dest product law, postmortems, filled checklists, live grants, or housekeeping summaries to match genesis |
 | folder-backup dest backup when the gate passes | This product emitting its own sudoers |
 
 | Surface | What you open | What for |
@@ -32,7 +32,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
 | Preview roots | No writes | `tmpl-to-prj plan sh-cli-template grok-cli` |
-| Apply the hop | Dest docs replaced; dest requirements kept | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
+| Apply the hop | Dest docs replaced; dest specialized docs folders kept | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
 | Pick from lists | Terminal shows unspecialized kits, then current folder / `~/prjs`; **0** returns to the main menu | `tmpl-to-prj` then `2` then `0` |
 
 ---
@@ -44,7 +44,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | Command | Handler | Type | Behavior |
 |---------|---------|------|----------|
 | `plan` | `t2p_plan` | Type 0 | Resolve names, detect hosts, folder-backup gate, counts. **No** `mv` / `rm` / copy |
-| `apply` | `t2p_apply` | Type 0 | Confirm (unless `--force`) → backup dest → overlay docs → restore requirements |
+| `apply` | `t2p_apply` | Type 0 | Confirm (unless `--force`) → backup dest → overlay docs → restore dest specialized docs folders |
 | `menu` / `main` | `app_default` | Type 0 | Numbered list; then TTY template list and project list |
 | `list-templates` | `t2p_cmd_list_templates` | Type 0 test-purpose | Print genesis-shaped kits; no writes |
 | `list-projects` | `t2p_cmd_list_projects` | Type 0 test-purpose | Print current folder (if a project) and `PROJECTS_ROOT` children |
@@ -123,14 +123,33 @@ v1 backs up **dest** (the mutated tree). Help **MAY** mention optional source ba
 
 #### Overlay (sacred preserve)
 
-1. `mv` dest `docs/requirements/` aside (storage tmp).  
-2. Remove dest `docs/`.  
-3. Copy template `docs/` to dest `docs/`.  
-4. Remove the **copied** `docs/requirements/` (template registry **MUST NOT** remain).  
-5. `mv` dest requirements back.  
-6. On failure after aside: restore requirements; fail closed.
+Specialized dest `docs/` folders (keep when dest **had** that directory):
 
-**MUST NOT** copy dest `AGENTS.md`, `src/`, `tests/`, `reviews/`, root README/CHANGELOG/LICENSE/SECURITY.
+| Dest folder | Why keep |
+|-------------|----------|
+| `docs/requirements/` | Product law |
+| `docs/incidents/` | Postmortems (`INC-20260910-001`) |
+| `docs/checklists/` | Filled audit runs (not blank `docs/templates/checklists/`) |
+| `docs/whitelists/` | Live exception grants |
+| `docs/housekeeping/` | Local cadence summaries |
+| `docs/reviews/` | Dest TP map when it lives under `docs/` (product-root `reviews/` is already outside overlay) |
+
+Recipe:
+
+1. `mv` dest `docs/requirements/` aside (storage tmp) when that directory exists.  
+2. For each other specialized dest folder in the table: `mv` dest `docs/<name>/` aside when that directory exists.  
+3. Remove dest `docs/`.  
+4. Copy template `docs/` to dest `docs/`.  
+5. Remove the **copied** `docs/requirements/` (template registry **MUST NOT** remain).  
+6. `mv` dest requirements back when dest had that directory.  
+7. For each other specialized folder dest **had**: remove the **copied** `docs/<name>/` (kit placeholder **MUST NOT** replace dest bodies) and `mv` dest folder back. If dest had **no** such directory, keep the copied template placeholder.  
+8. On failure after aside: restore every asided dest folder; fail closed.
+
+Portable dest folders **MUST** be replaced from the kit: `docs/skills/`, `docs/terminologies/`, `docs/templates/`, `docs/policies/`, `docs/human-intro/`, dest `docs/README.md` (then warn: rebind maps).
+
+**MUST NOT** copy dest `AGENTS.md`, `src/`, `tests/`, product-root `reviews/`, root README/CHANGELOG/LICENSE/SECURITY.
+
+**MUST NOT** wipe dest `incident-*.md` bodies (or dest `docs/incidents/README.md`) while leaving dest `AGENTS.md` (which may list those IDs). That split is the INC-20260910-001 class (grok-cli dest map vs disk). The same class applies to dest filled checklists, live whitelist grants, housekeeping summaries, and dest `docs/reviews/` when dest had those directories.
 
 After apply, dest `docs/README.md` **MAY** still describe the source kit. **MUST** warn: rebind dest maps in an agent session. This CLI **MUST NOT** impersonate that rebind.
 
@@ -167,7 +186,7 @@ tmpl-to-prj menu
 ### 2.6 Why This Requirement Exists (CIAO)
 
 - **Principle 1 – Caution**: Detect existence; sudoers exact argv; refuse home/root.  
-- **Principle 2 – Intentional**: Two names; mv requirements so genesis overlay cannot own dest law.  
+- **Principle 2 – Intentional**: Two names; mv dest specialized docs folders so genesis overlay cannot own dest law, postmortems, filled audits, live grants, or housekeeping summaries.  
 - **Principle 5 – Output SSOT**: `out_*`.  
 - **Principle 12 – Backup**: Prefer sibling global backup of dest.  
 - **Principle 16 – Interactive**: Guided names; no hang under JSON.
@@ -193,8 +212,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
 - **Caution:** Fail closed on missing names, refused paths, grant-too-narrow.  
-- **Intentional:** Recipe is dest-docs replace + restore requirements.  
-- **Anti-fragile:** Restore requirements if copy fails; local snapshot only when binary missing.  
+- **Intentional:** Recipe is dest-docs replace + restore dest specialized docs folders.  
+- **Anti-fragile:** Restore those dest folders if copy fails; local snapshot only when binary missing.  
 - **Over-protect:** Never delete dest project root; never emit sudoers.
 
 ---
@@ -205,6 +224,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 1. Default dest to `$PWD` instead of **project-name**.  
 2. Overlay dest `docs/requirements/` with the template registry.  
+2a. Overlay dest `docs/incidents/` (bodies or dest README) with the template genesis incidents placeholder when dest had that directory.  
+2b. Overlay dest `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, or dest `docs/reviews/` with the kit placeholder when dest had that directory.  
 3. Skip the folder-backup gate when the global binary exists.  
 4. Treat verb-only sudoers `backup` as authorizing `backup <folder>`.  
 5. Treat a missing `/etc/{{username}}/folder-backup` as verb-only / grant-too-narrow when sibling dest is `/etc/sudoers.d/folder-backup-<user>`.  
@@ -234,9 +255,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-TMPL-TO-PRJ-01..19** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back) |
+| **TP-TMPL-TO-PRJ-01..23** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none) |
 | **TP-TX-06** | `tests/test_termux.sh` | have (Termux apply: no `sudo`; local snapshot) |
 
-**Last Updated**: 2026-09-06  
+**Last Updated**: 2026-09-10 (1.6.0 specialized dest docs folders)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

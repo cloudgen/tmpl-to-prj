@@ -46,7 +46,7 @@ Claimed **yes**. Zero-argument REQ exists; product is **non-online-installable**
 
 Labels **MUST** be `command: what it does`.
 
-Header **MUST** print **`${APP_NAME}`**(*`${VERSION}`*) (app-name-version-display): live Config `APP_NAME` immediately followed by parenthesized live Config `VERSION`, no space. **`APP_NAME` bold**, **`VERSION` italic**. TTY: SGR 1 / SGR 3 via `util_app_ident`. Off-TTY: plain. **MUST NOT** a bare `${APP_NAME}` on that header. Typical: `[INFO] **tmpl-to-prj**(*1.1.0*) — numbered list of live commands`.
+Header **MUST** print **`${APP_NAME}`**(*`${VERSION}`*) (app-name-version-display): live Config `APP_NAME` immediately followed by parenthesized live Config `VERSION`, no space. **`APP_NAME` bold**, **`VERSION` italic**. TTY: SGR 1 / SGR 3 via `util_app_ident`. Off-TTY: plain. **MUST NOT** a bare `${APP_NAME}` on that header. Typical: `[INFO] **tmpl-to-prj**(*1.2.1*) — numbered list of live commands`.
 
 | # | Token | Label |
 |---|-------|-------|

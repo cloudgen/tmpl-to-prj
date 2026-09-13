@@ -1,30 +1,30 @@
 # tmpl-to-prj - Copy harness docs from a genesis template into a named project
 
-![Version](https://img.shields.io/badge/Version-1.2.0-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.2.1-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 
-**tmpl-to-prj** is a small POSIX `/bin/sh` program. You name a **template** (genesis-template or a subclass such as sh-cli-template) and a **project**. It copies the template’s `docs/` onto the project and puts the project’s own `docs/requirements/` back so product law is not replaced by a blank kit.
+**tmpl-to-prj** is a small POSIX `/bin/sh` program. You name a **template** (genesis-template or a subclass such as sh-cli-template) and a **project**. It copies the template’s `docs/` onto the project and puts the project’s own specialized docs folders back (requirements, incidents, filled checklists, whitelists, housekeeping, dest `docs/reviews/`) so product law and dest history are not replaced by a blank kit.
 
 | You | The other role | Not this |
 |-----|----------------|----------|
 | A login who already has two project folders | Sibling `folder-backup`, when globally installed, archives the dest tree | A host-OS manager, an online `curl\|sh` installer, or a sudoers emitter |
 
-**Includes / excludes:** Includes RAM-drive-first lookup of both names, a dest backup when `folder-backup` is ready, and `mv` of dest requirements. Excludes overlay of dest `src/`, tests, root README, or `AGENTS.md`. On **Termux** (and Git Bash / Windows cmd) it stays a command line for **you only**: no `sudo`, no Linux `apt`.
+**Includes / excludes:** Includes RAM-drive-first lookup of both names, a dest backup when `folder-backup` is ready, and `mv` of dest specialized docs folders. Excludes overlay of dest `src/`, tests, root README, or `AGENTS.md`. On **Termux** (and Git Bash / Windows cmd) it stays a command line for **you only**: no `sudo`, no Linux `apt`.
 
 **Practice:**
 
 | Step | What it means | What you type |
 |------|---------------|---------------|
 | Preview | Show which RAM or disk roots would be used. No writes. | `tmpl-to-prj plan sh-cli-template grok-cli` |
-| Apply | Archive dest (if ready), replace dest docs, restore dest requirements. | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
+| Apply | Archive dest (if ready), replace dest docs, restore dest specialized docs folders. | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
 
 ## Features
 
 - **Self-management**: `install`, `uninstall`, `where-is-me`, `version`, `about`, `help`
 - **Harness-docs hop**: `plan` and `apply` with **template-name** and **project-name**
 - **RAM-drive first**: `/dev/shm/<name>` wins over `${HOME}/prjs/<name>` when both exist (on Termux, `/dev/shm` is often absent — hard-disk `prjs` is used)
-- **Requirements preserved**: dest `docs/requirements/` is moved aside, then restored
+- **Specialized dest docs preserved**: dest `docs/requirements/`, `docs/incidents/`, filled `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, and dest `docs/reviews/` are moved aside, then restored
 - **folder-backup compose**: dest archive when the global binary is ready on a POSIX host with a matching grant; skipped on Termux / Git Bash / Windows cmd (local dest-docs snapshot instead)
 - **Termux target**: detect Termux-like userspace; no extra `pkg` list (this program is `/bin/sh` only)
 - **Numbered menu** on a real terminal (empty argv or `menu`)
@@ -56,7 +56,7 @@ On Termux, Git Bash, or Windows cmd, use the **local** path. Do not run `sudo` f
 At a real terminal, empty argv shows the numbered list:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.2.0*) — numbered list of live commands
+[INFO] **tmpl-to-prj**(*1.2.1*) — numbered list of live commands
 1. plan: Show template and project roots (no writes)
 2. apply: Copy harness docs from the template into the project
 9. Exit
@@ -103,7 +103,7 @@ Preview without writing:
 tmpl-to-prj plan sh-cli-template grok-cli
 ```
 
-Apply and keep the dest project’s own requirements:
+Apply and keep the dest project’s specialized docs folders:
 
 ```sh
 tmpl-to-prj apply --force sh-cli-template grok-cli
@@ -139,4 +139,4 @@ MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
 
-2026-09-06 — Termux is a supported target (normal-user-only; empty `pkg` table; no `sudo`). README fills Examples, Platform Compatibility, Related Projects, Contributing, License. Version **1.2.0**.
+2026-09-13 — Apply keeps dest specialized docs folders (requirements, incidents, filled checklists, whitelists, housekeeping, dest `docs/reviews/`). **INC-20260910-001**. Version **1.2.1**.

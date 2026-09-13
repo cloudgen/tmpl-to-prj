@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - 2026-09-13
+
+### Fixed
+
+- **Apply wiped dest specialized `docs/` folders** other than requirements. Overlay now `mv`s dest `docs/incidents/`, `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, and dest `docs/reviews/` aside with `docs/requirements/`, then restores each folder dest **had**. Kit placeholders stay only when dest lacked that directory. Portable folders (skills, terms, templates, policies, human-intro, dest `docs/README.md`) still come from the kit. Law: `requirement-domain-tmpl-to-prj` **1.6.0**. Suite **TP-TMPL-TO-PRJ-20..23**. Incident class **INC-20260910-001**.
+- CLI interface law listed test-purpose as **none in v1** while `list-templates` / `list-projects` are live and help already lists them apart (`requirement-shell-cli-interface` **2.1.1**).
+- Public `reviews/` README and report index still named leftover **cli-template** / `src/cli-template` **1.0.0**. Retargeted to **tmpl-to-prj** `src/tmpl-to-prj` **1.2.1**.
+
+### Tests
+
+- **TP-TMPL-TO-PRJ-23** now asserts dest without `docs/reviews/` keeps the kit placeholder (kit fixture includes that directory).
+
 ## [1.2.0] - 2026-09-06
 
 ### Added

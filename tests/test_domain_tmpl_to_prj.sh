@@ -9,19 +9,37 @@
 
 t2p_mk_kit() {
     _root="$1"
-    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements"
+    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements" "${_root}/docs/incidents" \
+        "${_root}/docs/checklists" "${_root}/docs/whitelists" "${_root}/docs/housekeeping" \
+        "${_root}/docs/reviews"
     printf '# kit\n\n**Template name** | genesis-template\n' >"${_root}/docs/README.md"
     printf 'FROM-KIT\n' >"${_root}/docs/skills/from-kit.md"
     printf '# genesis empty\n' >"${_root}/docs/requirements/README.md"
+    printf 'FROM-KIT-INC-README\n' >"${_root}/docs/incidents/README.md"
+    printf 'FROM-KIT-CL-README\n' >"${_root}/docs/checklists/README.md"
+    printf 'FROM-KIT-WL-README\n' >"${_root}/docs/whitelists/README.md"
+    printf 'FROM-KIT-HK-README\n' >"${_root}/docs/housekeeping/README.md"
+    printf 'FROM-KIT-DREV-README\n' >"${_root}/docs/reviews/README.md"
 }
 
 t2p_mk_proj() {
     _root="$1"
-    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements" "${_root}/src"
+    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements" "${_root}/docs/incidents" \
+        "${_root}/docs/checklists" "${_root}/docs/whitelists/external-access/grants" \
+        "${_root}/docs/housekeeping" "${_root}/docs/reviews" "${_root}/src"
     printf 'PRODUCT-README-KEEP\n' >"${_root}/README.md"
     printf 'AGENTS-KEEP\n' >"${_root}/AGENTS.md"
     printf 'OLD-SKILL\n' >"${_root}/docs/skills/old.md"
     printf 'KEEP-ME\n' >"${_root}/docs/requirements/requirement-keep.md"
+    printf 'DEST-INC-README\n' >"${_root}/docs/incidents/README.md"
+    printf 'KEEP-INC\n' >"${_root}/docs/incidents/incident-20260910-001-keep.md"
+    printf 'DEST-CL-README\n' >"${_root}/docs/checklists/README.md"
+    printf 'KEEP-CL\n' >"${_root}/docs/checklists/2026-09-10-checklist-code-review.md"
+    printf 'DEST-WL-README\n' >"${_root}/docs/whitelists/README.md"
+    printf 'KEEP-WL\n' >"${_root}/docs/whitelists/external-access/grants/WA-KEEP.md"
+    printf 'DEST-HK-README\n' >"${_root}/docs/housekeeping/README.md"
+    printf 'KEEP-HK\n' >"${_root}/docs/housekeeping/2026-09-10-housekeeping-summary.md"
+    printf 'KEEP-DREV\n' >"${_root}/docs/reviews/test-plan.md"
     printf 'SHIP-KEEP\n' >"${_root}/src/not-the-cli"
 }
 
@@ -70,6 +88,12 @@ run_test_domain_tmpl_to_prj() {
     _ec=$?
     assert_eq "TP-TMPL-TO-PRJ-05 apply exit 0" 0 "$_ec"
     assert_contains "TP-TMPL-TO-PRJ-05 dest req kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/requirements/requirement-keep.md")" "KEEP-ME"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest incident body kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/incident-20260910-001-keep.md")" "KEEP-INC"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest incidents README kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/README.md")" "DEST-INC-README"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest checklist body kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/checklists/2026-09-10-checklist-code-review.md")" "KEEP-CL"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest whitelist grant kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/whitelists/external-access/grants/WA-KEEP.md")" "KEEP-WL"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest housekeeping summary kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/housekeeping/2026-09-10-housekeeping-summary.md")" "KEEP-HK"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest docs/reviews kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/reviews/test-plan.md")" "KEEP-DREV"
     assert_contains "TP-TMPL-TO-PRJ-05 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-a/docs/skills/from-kit.md")" "RAM-HOST"
     assert_file_missing "TP-TMPL-TO-PRJ-05 old dest skill gone" "${PROJECTS_ROOT}/proj-a/docs/skills/old.md"
     assert_contains "TP-TMPL-TO-PRJ-05 root README kept" "$(cat "${PROJECTS_ROOT}/proj-a/README.md")" "PRODUCT-README-KEEP"
@@ -204,6 +228,52 @@ run_test_domain_tmpl_to_prj() {
     _human=$(sh "${SCRIPT}" list-projects 2>/dev/null)
     assert_contains "TP-TMPL-TO-PRJ-13 current-folder row" "$_human" "current-folder"
     assert_contains "TP-TMPL-TO-PRJ-13 prjs child" "$_human" "proj-a"
+
+    # TP-TMPL-TO-PRJ-20 kit incidents README must not replace dest bodies (INC-20260910-001)
+    assert_not_contains "TP-TMPL-TO-PRJ-20 kit incidents README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/README.md")" "FROM-KIT-INC-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-20 dest incident file" \
+        "${PROJECTS_ROOT}/proj-a/docs/incidents/incident-20260910-001-keep.md"
+
+    # TP-TMPL-TO-PRJ-21 dest with no incidents dir keeps template placeholder
+    mkdir -p "${PROJECTS_ROOT}/proj-noinc/docs/skills" "${PROJECTS_ROOT}/proj-noinc/docs/requirements"
+    printf 'AGENTS-KEEP\n' >"${PROJECTS_ROOT}/proj-noinc/AGENTS.md"
+    printf 'KEEP-ME\n' >"${PROJECTS_ROOT}/proj-noinc/docs/requirements/requirement-keep.md"
+    printf 'OLD-SKILL\n' >"${PROJECTS_ROOT}/proj-noinc/docs/skills/old.md"
+    _out=$(sh "${SCRIPT}" apply --force kit-a proj-noinc 2>&1)
+    assert_eq "TP-TMPL-TO-PRJ-21 apply dest without incidents exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-21 kit incidents placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/incidents/README.md")" "FROM-KIT-INC-README"
+    assert_contains "TP-TMPL-TO-PRJ-21 dest req still kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/requirements/requirement-keep.md")" "KEEP-ME"
+
+    # TP-TMPL-TO-PRJ-22 dest specialized folders survive; kit placeholders are not dest SSOT
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit checklists README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/checklists/README.md")" "FROM-KIT-CL-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-22 dest checklist file" \
+        "${PROJECTS_ROOT}/proj-a/docs/checklists/2026-09-10-checklist-code-review.md"
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit whitelists README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/whitelists/README.md")" "FROM-KIT-WL-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-22 dest whitelist grant" \
+        "${PROJECTS_ROOT}/proj-a/docs/whitelists/external-access/grants/WA-KEEP.md"
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit housekeeping README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/housekeeping/README.md")" "FROM-KIT-HK-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-22 dest housekeeping summary" \
+        "${PROJECTS_ROOT}/proj-a/docs/housekeeping/2026-09-10-housekeeping-summary.md"
+    assert_contains "TP-TMPL-TO-PRJ-22 dest docs/reviews kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/reviews/test-plan.md")" "KEEP-DREV"
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit docs/reviews README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/reviews/README.md" 2>/dev/null || true)" "FROM-KIT-DREV-README"
+
+    # TP-TMPL-TO-PRJ-23 dest with no checklists/whitelists/housekeeping/docs/reviews dirs keeps kit placeholders
+    assert_contains "TP-TMPL-TO-PRJ-23 kit checklists placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/checklists/README.md")" "FROM-KIT-CL-README"
+    assert_contains "TP-TMPL-TO-PRJ-23 kit whitelists placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/whitelists/README.md")" "FROM-KIT-WL-README"
+    assert_contains "TP-TMPL-TO-PRJ-23 kit housekeeping placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/housekeeping/README.md")" "FROM-KIT-HK-README"
+    assert_contains "TP-TMPL-TO-PRJ-23 kit docs/reviews placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/reviews/README.md")" "FROM-KIT-DREV-README"
 
     rm -rf "${T2P_RAM_ROOT}" "${PROJECTS_ROOT}"
     ci_cleanup_env

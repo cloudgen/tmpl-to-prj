@@ -3,9 +3,9 @@
 Maps **TP-*** coverage to `tests/`.  
 **Suite entry:** `./tests/run.sh`  
 **Ship unit:** `src/tmpl-to-prj`  
-**Product VERSION:** 1.2.0  
-**Last plan update:** 2026-09-06  
-**Last suite run:** PASS=175 FAIL=0 SKIP=0 (2026-09-06)
+**Product VERSION:** 1.2.1  
+**Last plan update:** 2026-09-13  
+**Last suite run:** PASS=198 FAIL=0 SKIP=0 (2026-09-13)
 
 Status: **have** = automated today · **todo** = needed · **optional** · **n/a** · **skip** (environment)
 
@@ -26,7 +26,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | Local install / idempotent / uninstall / mode 0755 | have | TP-LC-01..10 |
 | Backup / restore / sudoers emit | n/a | Absent by design (Type 0 template; not a backup product) |
 | Online curl / companion checksum | n/a | Local-only product |
-| Domain harness-docs hop | have | TP-TMPL-TO-PRJ-01..19 |
+| Domain harness-docs hop | have | TP-TMPL-TO-PRJ-01..23 |
 | Termux target / normal-user-only | have | TP-TX-01,02,06,07,08 |
 
 ### TP-TMPL-TO-PRJ (domain)
@@ -37,7 +37,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-02 | missing template fails | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-03 | RAM-drive wins over hard-disk | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-04 | plan does not mutate dest | test_domain | requirement-domain-tmpl-to-prj | **have** |
-| TP-TMPL-TO-PRJ-05 | apply keeps dest requirements and root README | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-05 | apply keeps dest specialized docs folders and root README | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-06 | template requirements do not remain | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-07 | observed verb-only fails closed | test_domain | requirement-shell-sudo-command | **have** |
 | TP-TMPL-TO-PRJ-08 | missing folder-backup uses local snapshot | test_domain | requirement-domain-tmpl-to-prj | **have** |
@@ -52,6 +52,10 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-17 | specialized product / incidents / tests are not templates | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-18 | list-templates has no Back row | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-19 | TTY picker 0 returns to main menu (no duplicate 9 Back row) | test_domain | requirement-shell-cli-default-interaction | **have** |
+| TP-TMPL-TO-PRJ-20 | dest incident bodies survive apply; kit incidents README is not dest SSOT | test_domain | requirement-domain-tmpl-to-prj · INC-20260910-001 | **have** |
+| TP-TMPL-TO-PRJ-21 | dest with no incidents dir keeps template incidents placeholder | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-22 | dest filled checklists / whitelists / housekeeping / docs/reviews survive apply | test_domain | requirement-domain-tmpl-to-prj · INC-20260910-001 | **have** |
+| TP-TMPL-TO-PRJ-23 | dest without those dirs keeps kit placeholders | test_domain | requirement-domain-tmpl-to-prj | **have** |
 
 ---
 
