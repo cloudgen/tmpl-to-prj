@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - CLI interface law listed test-purpose as **none in v1** while `list-templates` / `list-projects` are live and help already lists them apart (`requirement-shell-cli-interface` **2.1.1**).
 - Public `reviews/` README and report index still named leftover **cli-template** / `src/cli-template` **1.0.0**. Retargeted to **tmpl-to-prj** `src/tmpl-to-prj` **1.2.1**.
 
+### Changed
+
+- Product GitHub home is public `cloudgen/tmpl-to-prj` (Stars banner). Author-email remains `wongcf22@gmail.com`.
+
 ### Tests
 
 - **TP-TMPL-TO-PRJ-23** now asserts dest without `docs/reviews/` keeps the kit placeholder (kit fixture includes that directory).

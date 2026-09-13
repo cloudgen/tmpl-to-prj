@@ -3,6 +3,7 @@
 ![Version](https://img.shields.io/badge/Version-1.2.1-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
+[![Stars](https://img.shields.io/github/stars/cloudgen/tmpl-to-prj?style=flat-square)](https://github.com/cloudgen/tmpl-to-prj)
 
 **tmpl-to-prj** is a small POSIX `/bin/sh` program. You name a **template** (genesis-template or a subclass such as sh-cli-template) and a **project**. It copies the template’s `docs/` onto the project and puts the project’s own specialized docs folders back (requirements, incidents, filled checklists, whitelists, housekeeping, dest `docs/reviews/`) so product law and dest history are not replaced by a blank kit.
 
@@ -139,4 +140,4 @@ MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
 
-2026-09-13 — Apply keeps dest specialized docs folders (requirements, incidents, filled checklists, whitelists, housekeeping, dest `docs/reviews/`). **INC-20260910-001**. Version **1.2.1**.
+2026-09-13 — Public GitHub home `cloudgen/tmpl-to-prj`. Apply keeps dest specialized docs folders (requirements, incidents, filled checklists, whitelists, housekeeping, dest `docs/reviews/`). **INC-20260910-001**. Version **1.2.1**.
