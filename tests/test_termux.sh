@@ -68,9 +68,17 @@ run_test_termux() {
     TERMUX_VERSION="0.118.0"
     export PREFIX TERMUX_VERSION
     : >"${_pkglog}"
-    sh "${SCRIPT}" install --force >/dev/null 2>&1
-    _ec=$?
-    assert_eq "TP-TX-02 Termux install exit 0" 0 "$_ec"
+    if ! ci_start_channel; then
+        t_fail "TP-TX-02 local channel start"
+    else
+        PREFIX="${PREFIX}" TERMUX_VERSION="${TERMUX_VERSION}" \
+            HOME="${CI_HOME}" USER_BIN="${CI_USER_BIN}" GLOBAL_BIN="${CI_GLOBAL_BIN}" \
+            SCRIPT_URL="${CI_SCRIPT_URL}" PATH="${_stub}:${PATH}" \
+            sh "${SCRIPT}" install --force >/dev/null 2>&1
+        _ec=$?
+        assert_eq "TP-TX-02 Termux install exit 0" 0 "$_ec"
+        ci_stop_channel
+    fi
     if [ -s "${_pkglog}" ]; then
         t_fail "TP-TX-02 empty table does not call pkg (log=$(_trunc "$(cat "${_pkglog}")"))"
     else

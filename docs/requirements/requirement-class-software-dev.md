@@ -17,7 +17,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Box | Meaning | Example |
 |-----|---------|---------|
 | You / this login | Operator of `tmpl-to-prj` | `tmpl-to-prj apply --force kit dest` |
-| The other role | Bootstrap origin `cli-template` | Do not reverse-copy onto it |
+| The other role | Bootstrap origin `selfmanaged` | Do not reverse-copy onto it |
 | Not this file | Domain hop details | `requirement-domain-tmpl-to-prj` |
 
 | Includes | Excludes |
@@ -26,7 +26,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Check stack facts | posix-sh, local-only, Linux + Termux | Open this file’s Implementation Notes |
+| Check stack facts | posix-sh, online Type 0, Linux + Termux | Open this file’s Implementation Notes |
 
 ---
 
@@ -102,9 +102,9 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | **Primary runtime / OS family** | POSIX Linux and **Termux** (Android userspace `/bin/sh`); compatible UNIX where `/bin/sh` + `mktemp` + `date` exist |
 | **Architectures supported** | any arch with POSIX sh and the external tools the script invokes |
 | **Git surface** | used when product is published |
-| **Ship unit / install** | yes — `src/tmpl-to-prj` → `${USER_BIN}/tmpl-to-prj`; **local-only** install (no online channel) |
-| **Product version SSOT** | `VERSION="1.2.1"` hard-assign in `src/tmpl-to-prj` |
-| **Bootstrap origin** | `cli-template` (A) → this product (B) |
+| **Ship unit / install** | yes — `src/tmpl-to-prj` + published `./tmpl-to-prj` + companion `tmpl-to-prj.sha256`; **online-installable** Type 0 |
+| **Product version SSOT** | `VERSION="1.3.0"` hard-assign in `src/tmpl-to-prj` |
+| **Bootstrap origin** | `selfmanaged` (A) → this product (B) |
 
 **Residual ownership table:**
 
@@ -113,12 +113,13 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Project class membership | **this file** | Fixed |
 | Primary language + toolchain policy | **this file** | posix-sh, unconstrained |
 | Package/build tool + lockfile | **this file** | none / not used |
-| Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | A=`cli-template` → B=`tmpl-to-prj` |
-| Project layout / ship path | `requirement-project-folder` | `src/tmpl-to-prj` |
+| Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | A=`selfmanaged` → B=`tmpl-to-prj` |
+| Project layout / ship path | `requirement-project-folder` | `src/tmpl-to-prj` + `./tmpl-to-prj` |
 | Type 0 CLI surface / flags / dispatch | `requirement-shell-cli-interface` | Dual-mention domain verbs |
-| Empty argv | `requirement-shell-cli-zero-arguments` | TTY menu; off-TTY help |
+| Empty argv | `requirement-shell-cli-zero-arguments` | TTY menu; off-TTY Type O |
 | Default interaction | `requirement-shell-cli-default-interaction` | plan / apply menu |
-| Local self-managed lifecycle | `requirement-shell-local-self-management` | install / uninstall / where-is-me |
+| Self-management lifecycle | `requirement-shell-self-management` | install / version-check / self-update / self-uninstall |
+| Automatic companion digest | `requirement-shell-automatic-checksum` | `${SCRIPT_URL}.sha256` |
 | Coding style | `requirement-shell-script-coding` | specialize-in home |
 | In-tool sudo | `requirement-shell-sudo-command` | wrap sibling folder-backup only; skip on Termux / Git Bash / Windows cmd |
 | Termux target / empty `pkg` table | `requirement-shell-termux-ish` | Detect; no extra packages |
@@ -131,7 +132,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Privilege / sudoers-file emit | **intentionally absent** | Compose sibling folder-backup sudoers |
 | Folder archive backup / restore / retention | **intentionally absent as this CLI’s verbs** | Sibling `folder-backup` |
 | Domain surface (`requirement-domain-*`) | `requirement-domain-tmpl-to-prj` | Current domain SSOT |
-| Online install / remote self-management / companion checksum | **intentionally absent** | Local-only |
+| Online install / remote self-management / companion checksum | **present** — self-management + automatic-checksum peers | Inherited from selfmanaged |
 
 ---
 
@@ -193,7 +194,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | `requirement-project-folder` | Layout and install locations |
 | `requirement-shell-cli-interface` | Command surface, flags, dispatch |
 | `requirement-shell-cli-zero-arguments` | Type N empty argv |
-| `requirement-shell-local-self-management` | Local install lifecycle |
+| `requirement-shell-self-management` | Online Type 0 lifecycle |
 | `requirement-shell-output-requirements` | `out_*` SSOT |
 | `requirement-shell-cli-storage` | Scratch/cache resolve |
 | `requirement-shell-idempotency` | Re-run safety |

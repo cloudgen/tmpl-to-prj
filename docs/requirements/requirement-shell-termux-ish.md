@@ -175,7 +175,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Artifact | Role |
 |----------|------|
 | `docs/requirements/index.md` | Registry |
-| `docs/requirements/requirement-shell-local-self-management.md` | `install` call site |
+| `docs/requirements/requirement-shell-self-management.md` | `install` call site |
 | `docs/requirements/requirement-shell-sudo-command.md` | `util_sudo` skip on detect |
 | `docs/requirements/requirement-shell-cli-interface.md` | Dual mention of `install` |
 | `docs/requirements/requirement-domain-tmpl-to-prj.md` | Dest backup falls to local snapshot |

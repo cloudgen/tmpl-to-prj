@@ -6,16 +6,16 @@
 
 ## 1. Purpose
 
-tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan` and `apply`. `requirement-shell-cli-zero-arguments` exists (not online-installable). **Interactive** empty argv **MUST** show this menu. **Non-interactive** empty argv **MUST** stay help. Command **`menu`** (alias **`main`**) uses the same handler.
+tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan` and `apply`. `requirement-shell-cli-zero-arguments` exists (hybrid: TTY menu / off-TTY Type O). **Interactive** empty argv **MUST** show this menu. **Non-interactive** empty argv is **install-ensure** (zero-arguments). Command **`menu`** (alias **`main`**) uses the same handler; off-TTY `menu` **MUST** stay help.
 
 ### 1.1 Human-facing
 
-**In one sentence:** At a real terminal, typing only `tmpl-to-prj` shows numbered plan/apply; in a script it prints help.
+**In one sentence:** At a real terminal, typing only `tmpl-to-prj` shows numbered plan/apply; under a pipe it installs.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
 | You / this login | Pick 1 or 2, then names | `tmpl-to-prj` then `2` |
-| The other role | CI / pipe | empty argv = help |
+| The other role | CI / pipe | empty argv = Type O install-ensure |
 | Not this file | Install / version on the list | those stay on `help` |
 
 | Includes | Excludes |
@@ -33,7 +33,7 @@ tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan` an
 
 ### 2.1 Claim and case
 
-Claimed **yes**. Zero-argument REQ exists; product is **non-online-installable**. TTY empty argv **MUST** use this menu. Off-TTY empty argv **MUST** be help (zero-arguments).
+Claimed **yes**. Zero-argument REQ exists; product is **online-installable**. TTY empty argv **MUST** use this menu. Off-TTY empty argv is Type O (zero-arguments). Off-TTY **`menu`** **MUST** still be help.
 
 ### 2.2 `menu` / `main`
 

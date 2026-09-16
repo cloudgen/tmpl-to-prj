@@ -1,32 +1,40 @@
 **file**: docs/requirements/requirement-shell-output-requirements.md  
-**Status**: Active (Version 1.0.0)  
-**Area**: shell  
-**Key**: `requirement-shell-output-requirements`  
-**Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
+**Status**: Active (Version 1.0.1)  
+**Philosophy**: CIAO / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered)
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **all CLI output** of tmpl-to-prj: human messages, machine JSON, channel split (stdout vs stderr), and mode behavior (normal / quiet / JSON / debug).
+This requirement is the **project Single Source of Truth** for **all CLI output** of the tmpl-to-prj POSIX shell tool: human messages, machine JSON, channel split (stdout vs stderr), and mode behavior (normal / quiet / JSON / debug).
 
-This origin owns the `out_*` family. Domain hop messages still go through `out_*`.
+It defines the centralized output system and stdout/stderr channel contracts for this shell project.
+
+**Scope:** Central `out_*` system, mode contracts, channel rules, JSON purity, quiet filtering, TTY colors, fatal error emission.  
+**Out of scope (cited, not re-owned):** Command catalog (`requirement-shell-cli-interface.md`); self-management semantics; modular prefix table (except that output owns `out_*`); interactive prompt logic beyond prompt output hooks.
 
 ### 1.1 Human-facing
 
-**In one sentence:** Everything you see from this program (info, errors, JSON) goes through `out_*`, not raw `echo`.
+**In one sentence:** Everything the tool **says** to a person or a machine goes through **one printer family** (`out_*`): ordinary text on a terminal, silence under `--quiet` except errors, one JSON object under `--json`, and fatal errors that still tell you **what happened** and **what to type next**.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Reader of `[INFO]` / `[ERROR]` | `tmpl-to-prj plan kit dest` |
-| The other role | Machine consumer | `tmpl-to-prj --json about` |
-| Not this file | Command catalog | `requirement-shell-cli-interface` |
+| You / this login | Reading the terminal or parsing JSON | `tmpl-to-prj version` vs `tmpl-to-prj --json version` |
+| The other role | Automation that must not see banners mixed into JSON | `--json` on stdout; errors still visible |
+| Not this file | Whether to ask a yes/no; whether empty argv installs | Interactive + zero-arguments peers |
 
 | Includes | Excludes |
 |----------|----------|
-| `out_*`, quiet/JSON split | Raw `echo` for product messages |
+| stdout vs stderr split; quiet; JSON purity; colors only on a real terminal | Command meaning; checksum algorithm |
+| Blocking errors a person can act on | Raw `echo` / `printf` for product messages |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `tmpl-to-prj --json about` | Command | One JSON object |
+| `./tmpl-to-prj` | Program file | `out_*` helpers |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Capture JSON | stdout is one object | `tmpl-to-prj --json version` |
+| Read as a person | Colored `[OK]` / `[ERROR]` on a terminal; `--quiet` hides chatter but **not** fatals. | `tmpl-to-prj about` |
+| Read as a machine | Exactly one JSON object on stdout; no human banners. | `tmpl-to-prj --json about` |
 
 ---
 
@@ -41,80 +49,185 @@ This origin owns the `out_*` family. Domain hop messages still go through `out_*
 | Raw `echo` / bare `printf` for **user messages** | `out_info`, `out_success`, `out_warn`, `out_error`, `out_plain`, … |
 | Direct `printf` of JSON from command logic | `out_json` / `out_json_error` |
 | Ad-hoc `echo >&2` diagnostics | `out_warn` / `out_error` / `out_debug` |
-| Second parallel print helper that bypasses mode guards | Extend `out_text` / wrappers only |
+| Second parallel “print helper” that bypasses mode guards | Extend `out_text` / wrappers only |
 
-### 2.1.1 Allowed `printf` / `echo` exceptions
+**Not every `printf` / `echo` is a violation.** The ban targets **product messaging** (what the CLI user or machine consumer sees as the command’s message/JSON). The following exceptions are **allowed** and intentional in this project (aligned with live `./tmpl-to-prj` practice and §2.1.1 below).
 
-| Exception class | Rule |
-|-----------------|------|
-| **A. Inside output SSOT** | Only `out_text`, `out_json`, and `out_json_error` may `printf` to fd 1/2 for product human or JSON lines |
-| **B. Function return-via-stdout** | Helpers may `printf '%s' "$value"` solely for `$(…)` capture (data return, not UI) |
-| **C. File I/O (redirected)** | Writing install staging files is file mutation; user-visible status still via `out_*` |
-| **D. Tool protocol / computation pipes** | e.g. feeding `tar`/`gzip`/`sha256sum` via pipes; product status still via `out_*` |
-| **E. Command-sub fallbacks** | Logic defaults only (`id -un \|\| echo "unknown"`) |
+### 2.1.1 Allowed `printf` / `echo` exceptions (this project)
 
-### 2.2 Output function catalog
+| Exception class | Rule | Live examples in `./tmpl-to-prj` |
+|-----------------|------|-----------------------------------|
+| **A. Inside output SSOT** | Only `out_text`, `out_json`, and `out_json_error` may `printf` to fd 1/2 for **product** human or JSON lines. Nested `printf … \| sed` used only to escape strings for those emitters is part of the same SSOT. | `out_text` level cases; `out_json` / `out_json_error` body builders |
+| **B. Function return-via-stdout** | A helper may `printf '%s' "$value"` (or `echo "$value"`) **solely** so callers capture it with `$(…)`. That write is a **data return**, not product UI. Callers must capture it; bare top-level invocation must not be used as the user-facing message path. | `inst_self_uninstall_determine_bin`, `util_get_install_bin_path`, `inst_get_version`, `util_resolve_storage`, `util_get_current_shell`, `prompt_ask` (answer/default return only; prompt text still via `out_*`) |
+| **C. File I/O (redirected)** | `printf … >> "$file"` that appends config/content to a path is file mutation, not product stdout/stderr messaging. User-visible “what changed” lines still go through `out_*`. | `path_add_bashrc`, `path_add_zshrc`, `path_add_fish` |
+| **D. Tool protocol / computation pipes** | `printf` feeding another program (checksum verify, filters) with product status still reported via `out_*`. | `inst_perform_install_download_with_checksum` → `printf … \| sha256sum -c` |
+| **E. Command-sub fallbacks** | `cmd \|\| echo "unknown"` (or similar) assigned into a variable for logic only. | `USERNAME="$(id -un … \|\| echo "unknown")"`, remote version empty fallbacks, boolean strings built for `out_json` fields |
+
+**Still forbidden:** product banners, install progress, errors, or JSON results via raw print outside classes A–E; using return-via-stdout as a substitute for `out_info` / `out_plain`; writing user text to the terminal while claiming “it is only a return value.”
+
+### 2.2 Output function catalog (portable)
 
 | Function | Purpose | Typical channel | Quiet | JSON |
 |----------|---------|-----------------|-------|------|
-| `out_text` | SSOT for human levels | Level-dependent | Filters | Suppress all human levels |
-| `out_info` | Informational | stdout | Suppress | Suppress human |
+| `out_text` | **SSOT** for human levels | Level-dependent | Filters | Suppress all human levels |
+| `out_info` | Informational | stdout | Suppress | Suppress human; use JSON APIs for data |
 | `out_success` | Success / OK | stdout | Suppress | Suppress human |
-| `out_warn` | Warning | stderr | Should still show | Prefer structured status when designed |
-| `out_error` | Error | stderr | Always show (human) | Prefer `out_json_error` / `out_die` |
-| `out_die` | Fatal + exit 1 | stderr (+ JSON error when JSON) | Always | Emits JSON error then exits |
+| `out_warn` | Warning | stderr | **Should still show** (see Implementation Notes if code differs) | Suppress human; prefer structured error/status as designed |
+| `out_error` | Error | stderr | **Always show** (human) | Prefer `out_json_error` / `out_die` for structure |
+| `out_die` | Fatal error + exit 1 | stderr (+ JSON error when JSON) | Always | Emits JSON error then exits |
 | `out_plain` | Plain text, no prefix | stdout | Suppress under quiet | Suppress under JSON |
 | `out_msg_n` | Prompt fragment without newline | stdout | Suppress under quiet/json | Never for machines |
-| `out_json` | Machine success/status object | stdout | N/A | Only when `JSON=1` |
-| `out_json_error` | Machine error object | as designed for fatal path | N/A | Only when `JSON=1` |
+| `out_empty_line` / `out_double_line` | Visual separators | stdout | Suppress under quiet | Suppress under JSON |
+| `out_json` | Machine success/status object | stdout | N/A (JSON path) | Only when `JSON=1` |
+| `out_json_error` | Machine error object | via JSON emitter (stderr when fatal path uses it as designed) | N/A | Only when `JSON=1` |
 
-### 2.3 Channel contract
+All convenience wrappers **MUST** delegate to the central human (`out_text`) or JSON (`out_json`) SSOT — no independent print logic in wrappers beyond argument shaping.
+
+### 2.3 Channel contract (stdout vs stderr)
+
+Align with SSOT-of-stdout and SSOT-of-stderr terms:
 
 | Channel | Allowed content (via `out_*` only) |
 |---------|-------------------------------------|
-| **stdout (fd 1)** | Human info/success/plain in normal mode; **exactly one** JSON value in JSON mode for success/status |
-| **stderr (fd 2)** | Errors, warnings, debug/diagnostics |
+| **stdout (fd 1)** | Human info/success/plain **payload** in normal mode; **exactly one** JSON value in JSON mode for success/status results |
+| **stderr (fd 2)** | Errors, warnings, and debug/diagnostics |
 
-Rules:
+**Rules:**
 
-1. Fatal paths use `out_die` / `out_json_error`.  
-2. JSON mode: no colors, banners, or progress mixed into stdout JSON.  
-3. Capture pattern: `tmpl-to-prj --json <cmd> 2>err.log`.  
-4. **No secrets** on either channel (tokens, passwords, private keys, full private key material).
+1. **Errors never as the primary success payload on stdout** in a way that corrupts JSON pipes — fatal paths use `out_die` / `out_json_error`.  
+2. **JSON purity:** In JSON mode, stdout is reserved for the structured result; no colors, banners, or progress mixed in.  
+3. **Capture pattern for agents/CI:**  
+   `tmpl-to-prj --json <cmd> 2>err.log` → stdout = JSON; stderr = diagnostics as mode allows.  
+4. **No secrets** on either channel (tokens, passwords, private keys).
 
-### 2.4 Mode behavior
+### 2.4 Mode behavior (portable)
 
-| Mode | Contract |
-|------|----------|
-| Normal (TTY) | Prefixed human messages; colors only when TTY and not quiet/json |
-| Quiet | Suppress info/success/plain; still show errors (and should show warnings) |
-| JSON | Force quiet; structured JSON only on success path; structured errors on failure |
-| Debug | Extra diagnostics on stderr; suppressed under JSON purity rules for stdout |
+#### 2.4.1 Normal (human) mode
 
-### 2.5 Implementation Notes (this project)
+- Full human-readable messages with level prefixes (`[INFO]`, `[OK]`, `[WARN]`, `[ERROR]`).  
+- Colors **only** when TTY is detected **and** not quiet **and** not JSON.  
+- Primary success/info on stdout; warn/error on stderr.
 
-| Item | Value |
+#### 2.4.2 Quiet mode (`--quiet` / `-q` or `QUIET=1`)
+
+- Suppress informational, success, and plain chatter.  
+- **MUST** still surface errors (and **SHOULD** surface warnings).  
+- Does not by itself enable JSON.
+
+#### 2.4.3 JSON mode (`--json` or `JSON=1`)
+
+- **MUST force quiet** for human chatter (`QUIET=1` when flag parsed).  
+- Human `out_text` path **MUST** no-op for all human levels.  
+- Success/status **MUST** use `out_json` (or equivalent structured emitter).  
+- Failures **MUST** use `out_json_error` / `out_die` so machines get a structured error.  
+- **MUST NOT** emit multiple competing human lines interleaved with JSON on stdout.  
+- Prefer **one** primary JSON object per successful command invocation (additional JSON only if a specialized command explicitly documents a multi-emit protocol — default is single primary object).
+
+#### 2.4.4 Debug mode (`--debug` or `DEBUG=1`)
+
+- Extra diagnostics **MUST** go through the output system (or a dedicated `out_debug` when added) on **stderr**.  
+- Debug **MUST NOT** pollute stdout.  
+- Under JSON mode, debug **MUST** be suppressed or redirected so JSON stdout purity holds.
+
+### 2.5 Implementation guidelines (portable)
+
+1. Centralize color, quiet filtering, and JSON gating in the output module.  
+2. Detect TTY once at startup (or via documented SSOT flags); do not scatter `test -t` for coloring.  
+3. Escape JSON string fields safely (no raw unescaped quotes).  
+4. Interactive prompts use `out_msg_n` / `prompt_*` and **MUST** not hang or print prompts in quiet/json/non-interactive paths.  
+5. Command logic selects **what** to say; `out_*` decides **whether**, **where**, and **how**.
+
+### 2.6 Implementation Notes (this project)
+
+| Item | Value for tmpl-to-prj |
+|------|------------------------|
+| **Product / binary** | `tmpl-to-prj` (`APP_NAME`) |
+| **Implementation file** | Repo root `./tmpl-to-prj` |
+| **Human SSOT** | `out_text` |
+| **JSON SSOT** | `out_json` / `out_json_error` |
+| **Mode flags** | `QUIET`, `JSON`, `DEBUG`, `TTY` (defaults `0` except TTY when stdin/stdout are TTYs) |
+| **Flag wiring** | `app_main`: `--quiet`/`-q` → `QUIET=1`; `--json` → `JSON=1` and `QUIET=1`; `--debug` → `DEBUG=1` |
+| **Color** | ANSI only when `TTY=1` and quiet/json off, inside `out_text` |
+| **Domain** | No separate product logger; lifecycle commands use the same `out_*` |
+
+#### Live `out_*` inventory
+
+| Function | Role in `./tmpl-to-prj` |
+|----------|-------------------------|
+| `out_text` | Human SSOT; JSON short-circuit; quiet filter; channel by level |
+| `out_success` / `out_info` / `out_warn` / `out_error` | Level wrappers |
+| `out_die` | `out_json_error` then `out_error` then `exit 1` |
+| `out_plain` / `out_msg_n` | Plain / prompt fragment |
+| `out_empty_line` / `out_double_line` | Separators |
+| `out_json` | Structured success/status when `JSON=1` |
+| `out_json_error` | Structured error object (`type` + `message` + `code`) |
+
+#### Channel map (this project, current `out_text`)
+
+| Level | fd | Prefix |
+|-------|-----|--------|
+| `out_error` | stderr | `[ERROR]` |
+| `out_warn` | stderr | `[WARN]` |
+| `out_info` | stdout | `[INFO]` |
+| `out_success` | stdout | `[OK]` |
+| `plain` / `plain_n` | stdout | (none) |
+
+#### JSON object shape (this project)
+
+`out_json` optional **raw nested JSON**: key prefixed with `@` (e.g. `@items`) inserts the value unquoted as JSON array/object. Default keys remain string-escaped.
+
+**Specializee note:** domain arrays/objects **MUST** use `@key` raw insertion (caller builds valid JSON). Stringifying a JSON array into a normal string field is an anti-pattern for machine consumers.
+
+```sh
+# Example — domain list as JSON array (specializee), not a quoted string:
+# out_json "success" "" "count" "2" "@domains" '["a.example","b.example"]'
+```
+
+`out_json` emits a single-line object:
+
+- Required: `"type":"<type>"`  
+- Optional: `"message":"..."` (escaped)  
+- Optional key/value pairs: alternating arguments after type/message  
+
+`out_json_error` uses `type=out_error`, message, and `code` (default `unknown`).
+
+#### Normative acceptance behaviors (this project)
+
+1. With `--json`, human install/about banners **must not** appear on stdout.  
+2. With `--json`, successful `version` / `about` / `version-check` / install success paths emit structured JSON via `out_json`.  
+3. Fatal unknown command uses `out_die` (structured error in JSON mode).  
+4. Quiet mode suppresses info/success/plain; errors still visible on stderr.  
+5. No new command may introduce raw `echo`/`printf` for **product user/machine messages** outside `out_*` (exceptions §2.1.1 only: SSOT internals, return-via-stdout, file I/O, tool pipes, command-sub fallbacks).
+
+#### Compliance notes (implementation status)
+
+| Item | Status |
 |------|--------|
-| **Product** | `tmpl-to-prj` |
-| **Ship unit** | `src/tmpl-to-prj` |
-| **Human prefixes** | `[INFO]`, `[OK]`, `[WARN]`, `[ERROR]` (or equivalent consistent set) |
-| **Domain messages** | None (Type 0 only) |
-| **Bootstrap role** | This product is hop 0; `out_*` is this origin’s family |
+| Quiet keeps `out_warn` + `out_error` on stderr | **Implemented** in `out_text` (2026-07-12) |
+| JSON errors on stderr via `out_json_error` | **Implemented** (stdout remains success/status JSON only) |
+| `out_debug` on stderr when `DEBUG=1`, suppressed under JSON | **Implemented** |
+| Command paths use human **or** JSON via mode flags | **Enforced** (`out_text` no-ops when `JSON=1`) |
 
-### 2.6 Why This Requirement Exists (CIAO)
+### 2.7 Why This Requirement Exists (Direct CIAO Alignment)
 
-- **Principle 5 – Single Source of Output**  
-- **Principle 14 – Security & Traceability** (stdout vs stderr)  
-- **Principle 1 – Caution** (fail loud, never silent corruption of JSON pipes)
+- **CIAO Principle 1 – Caution** (https://github.com/cloudgen/ciao): Prevent output pollution that breaks pipes, CI, and automation.  
+- **CIAO Principle 2 – Intentional** (https://github.com/cloudgen/ciao): Explicit split of human vs JSON and stdout vs stderr.  
+- **CIAO Principle 3 – Anti-fragile** (https://github.com/cloudgen/ciao): Works in TTY, `curl \| sh`, quiet, and JSON environments.  
+- **CIAO Principle 5 – Single Source of Output** (https://github.com/cloudgen/ciao): One `out_text` / `out_json` authority.  
+- **CIAO Principle 14 – Security & Traceability** (https://github.com/cloudgen/ciao): Separate user-facing payload from diagnostics; support ERROR/WARN/INFO/DEBUG discipline.  
+- **CIAO Principle 4 (O) / Principle 20 – Over-protect / Protect Against AI & Human Modification** (https://github.com/cloudgen/ciao): JSON-forces-quiet and no-raw-print rules are sacred.
 
 ---
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution:** Never hide fatal errors under quiet.  
-- **Intentional:** One emitter family.  
-- **Anti-fragile:** JSON/human/quiet all work offline.  
-- **Over-protect:** Do not “simplify” by scattering echo.
+- **Caution:** Never assume raw prints are “just temporary.”  
+- **Intentional:** Level name documents severity; channel documents consumer.  
+- **Anti-fragile:** Mode flags at top; every message path respects them.  
+- **Over-protect:** Do not “simplify” by inlining product `printf` in install/update helpers; keep legitimate return/file/pipe uses clearly scoped.  
+- **SSOT:** Human → `out_text`; machine → `out_json*`; dispatch sets flags once in `app_main`.  
+- **Pair with modular design:** Only `out_*` prefix owns emission (`requirement-shell-modular-function-design.md`).  
+- **Pair with CLI interface:** Flag meanings stay aligned with `requirement-shell-cli-interface.md`.
 
 ---
 
@@ -122,46 +235,60 @@ Rules:
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Introduce a second product messaging stack beside `out_*`.  
-2. Print user-facing banners with raw `echo` outside allowed exceptions.  
-3. Mix human text into JSON stdout success paths.  
-4. Log secrets or private key material.  
-5. Remove quiet/json contracts for “simplicity.”
+1. Add raw `echo`, `printf`, or direct fd writes for **product** user/machine messages outside the central output functions (do not “ban” legitimate §2.1.1 exceptions).  
+2. Misuse return-via-stdout, file redirects, or tool pipes as cover for user-facing banners without `out_*`.  
+3. Cite `template-*.md` or `skill-*.md` in **product source** (`./tmpl-to-prj`) as output authority — cite this requirement file only.  
+4. Bypass `out_*` for “quick debug” on stdout.  
+5. Remove or weaken **`--json` forces quiet** / human-suppression in `out_text`.  
+6. Emit human banners on stdout while claiming JSON mode.  
+7. Put errors on stdout as the success channel in a way that breaks `cmd --json > out.json`.  
+8. Remove TTY detection / color gating without strong justification and requirement update.  
+9. Dump secrets, tokens, or private keys into any output channel.  
+10. Simplify away `out_json` escaping or the central quiet/json guards “for cleanliness.”  
+11. Create a second logging framework that competes with `out_*`.
 
-**Violating this rule is a critical output SSOT regression.**
-
----
-
-## 5. Acceptance criteria
-
-| ID | Criterion |
-|----|-----------|
-| AC-1 | All product messages route through `out_*` |
-| AC-2 | JSON mode produces structured success/error without human interleave |
-| AC-3 | Quiet still surfaces errors |
-| AC-4 | Lifecycle messaging uses the same SSOT |
+**Single Source of Output is non-negotiable for CIAO compliance on this shell CLI.**  
+**Not every `printf` is forbidden — only product messaging that bypasses the SSOT (see §2.1.1).**
 
 ---
 
-## 6. Related requirements (peer keys only)
+## 5. Definition of done (shell output requirements)
 
-| Key | Relationship |
-|-----|--------------|
-| `requirement-shell-cli-interface` | Modes and flags |
-| `requirement-shell-interactive-vs-noninteractive` | Prompt vs auto |
-| `docs/requirements/index.md` | Registry |
+Output-related work for tmpl-to-prj is **not done** if any of the following fail:
+
+1. All new **product** user-facing messages use `out_*` only (exceptions limited to §2.1.1).  
+2. Non-product `printf`/`echo` sites document their exception class in the function comment block when they are intentional helpers.  
+3. `--json` implies quiet human suppression and structured JSON for supported commands.  
+4. Errors remain usable under quiet (stderr).  
+5. JSON success path does not mix human lines on stdout.  
+6. Colors only when TTY and not quiet/json.  
+7. Fatal paths use `out_die` / structured JSON error when JSON mode is on.  
+8. Known channel/quiet gaps above are fixed or explicitly re-justified in this requirement.  
+9. Changes cite `requirement-shell-output-requirements`.  
+10. **TP-JSON-RAW-01:** `out_json` `@key` inserts caller JSON unquoted (array/object); ordinary keys stay string-escaped.
+
+### Design-time verification
+
+| TP family / ID | Suite | Status |
+|----------------|-------|--------|
+| **TP-JSON-RAW-01** / **TP-CLI-12** | `tests/test_cli.sh` | have |
+
+**Map:** `reviews/test-plan.md`
 
 ---
 
-## 7. Status history
+## 6. Related artifacts
 
-| Date | Status | Note |
-|------|--------|------|
-| 2026-08-03 | Active | Output SSOT for folder-backup |
-| 2026-08-13 | Active | Retarget to cli-template; drop domain message law |
+| Artifact | Role |
+|----------|------|
+| `docs/requirements/requirement-shell-cli-interface.md` | Flag wiring and command surface |
+| `docs/requirements/requirement-shell-modular-function-design.md` | `out_*` prefix ownership |
+| `docs/requirements/requirement-shell-interactive-vs-noninteractive.md` | Mode interaction with quiet/json |
+| `docs/requirements/index.md` | Registry SSOT |
+| `./tmpl-to-prj` | Implementation under test |
 
 ---
 
-**Last Updated**: 2026-08-13  
-**Owner**: project maintainers  
-**Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
+**Last Updated**: 2026-09-06 (TP-JSON-RAW-01 DTV)  
+**Owner**: tmpl-to-prj project maintainers  
+**Alignment**: Registry `docs/requirements/index.md`; CIAO Principles 1, 2, 3, 5, 14, 4, 20 (v2.10.2) (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

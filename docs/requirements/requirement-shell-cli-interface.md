@@ -8,11 +8,11 @@
 
 This requirement is the **project Single Source of Truth** for the **POSIX shell CLI interface** of tmpl-to-prj: command surface, privilege typing, global flags, dispatcher behavior, help/about contracts, and mode rules.
 
-Domain verb catalog ownership is `requirement-domain-tmpl-to-prj` (dual mention). Full lifecycle rules live in `requirement-shell-local-self-management.md`.
+Domain verb catalog ownership is `requirement-domain-tmpl-to-prj` (dual mention). Full lifecycle rules live in `requirement-shell-self-management.md`.
 
 ### 1.1 Human-facing
 
-**In one sentence:** You type `tmpl-to-prj` plus a command; unknown words fail closed; empty argv is a menu on a terminal and help in a script.
+**In one sentence:** You type `tmpl-to-prj` plus a command; unknown words fail closed; empty argv is a menu on a terminal and install-ensure under a pipe.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -38,7 +38,7 @@ Every command **MUST** map to exactly one privilege type. Unclassified commands 
 
 | Category | Privilege | Meaning |
 |----------|-----------|---------|
-| **Type 0 – CLI lifecycle + diagnostics** | Invoking user | `install`, `uninstall`, `where-is-me`, `version`, `about`, `help`, `menu`, `main` |
+| **Type 0 – CLI lifecycle + diagnostics** | Invoking user | `install`, `version-check`, `self-update`, `self-uninstall`, `version`, `about`, `help`, `menu`, `main` |
 | **Type 0 – Domain** | Invoking user | `plan`, `apply` (in-tool sudo of sibling `folder-backup` only) |
 | **Type 1 – Narrow elevated host ops** | Controlled sudo | **Not this product’s emit** — sibling `folder-backup` |
 | **Type 2 – Dedicated system user app ops** | Dedicated app user | **Not in scope** |
@@ -64,7 +64,7 @@ Additional flags **MAY** be added only when documented here (or a superseding re
 
 1. **Single entry:** `app_main` **MUST** parse global flags and route commands.  
 2. **Unknown command:** **MUST** fail loudly with pointer to `help` (via output SSOT).  
-3. **Empty argv:** TTY → main menu; off-TTY → help (`requirement-shell-cli-zero-arguments.md` · `requirement-shell-cli-default-interaction.md`).  
+3. **Empty argv:** TTY → main menu; off-TTY → Type O install-ensure (`requirement-shell-cli-zero-arguments.md` · `requirement-shell-cli-default-interaction.md`).  
 4. **No raw user I/O:** User-facing messages **MUST** go through `out_*`.  
 5. Script end **MUST** call `app_main "$@"` (no basename gate that blocks dispatch).  
 6. This product’s tokens **MUST NOT** include `backup`, `restore`, `print-sudoers`, `print-sudoers-install-script`, `remove-project-sudoers` — those **MUST** fail as unknown.
@@ -76,7 +76,7 @@ Additional flags **MAY** be added only when documented here (or a superseding re
 - Usage line  
 - Every supported Type 0 command with one-line purpose  
 - Global flags  
-- Honest note that this product is local-only (no curl\|sh)
+- Honest note of the install channel (`SCRIPT_URL`); **MUST NOT** list `CHECKSUM`
 
 In JSON mode, help **MUST NOT** dump long human text; return a short structured success/note object.
 
@@ -90,10 +90,10 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | **Primary executable** | `src/tmpl-to-prj` (POSIX `/bin/sh`, single-file ship unit) |
 | **Dispatcher** | `app_main` |
 | **Output SSOT** | `out_text` + wrappers (`out_info`, `out_success`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_json`, …) |
-| **Version SSOT** | `VERSION="1.2.1"` hard-assign in ship unit |
+| **Version SSOT** | `VERSION="1.3.0"` hard-assign in ship unit |
 | **Install paths** | Global: `GLOBAL_BIN` default `/usr/local/bin`; User: `USER_BIN` default `${HOME}/.local/bin` |
-| **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` |
-| **Online channel env** | **Not product UX** (trimmed) |
+| **Primary install story** | `curl -fsSL https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/tmpl-to-prj \| sh` |
+| **Online channel env** | `REPO_USER` / `REPO_NAME` / `SCRIPT_URL` (help lists these; **not** `CHECKSUM`) |
 | **Type 1 / Type 2 commands** | None |
 | **Dedicated system user** | Not required |
 | **About** | Type 0 plus RAM/projects roots (`requirement-domain-tmpl-to-prj`) |
@@ -102,12 +102,13 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 
 | Command | Type | Handler family | Required behavior |
 |---------|------|----------------|-------------------|
-| *(no args — empty argv)* | Type 0 | `app_main` → `app_default` or `app_help` | TTY menu; off-TTY help — not install |
-| `install` | Type 0 | `inst_local_install` | Copy running ship unit to privilege-correct bin; idempotent unless `--force` |
-| `uninstall` | Type 0 | `inst_local_uninstall` | Remove managed binary; confirm unless `--force` |
-| `where-is-me` | Type 0 | `app_where_is_me` | Running + install paths + installed flag |
-| `version` | Type 0 | `app_version` | Local `VERSION` only; no network |
-| `about` | Type 0 | `app_about` | Diagnostics plus RAM/projects roots |
+| *(no args — empty argv)* | Type 0 | `app_main` → `app_default` or Type O install | TTY menu; off-TTY install-ensure |
+| `install` | Type 0 | `inst_perform_install` | Channel download to privilege-correct bin; idempotent unless `--force` |
+| `version-check` | Type 0 | `ver_check` | Compare local vs remote `VERSION` from `SCRIPT_URL` |
+| `self-update` | Type 0 | `inst_self_update` | Fetch remote; reinstall when policy allows |
+| `self-uninstall` | Type 0 | `inst_self_uninstall` | Remove managed binary; confirm unless `--force` |
+| `version` | Type 0 | `app_version` | Local `VERSION` |
+| `about` | Type 0 | `app_about` | Diagnostics plus RAM/projects roots; **no** `CHECKSUM` field |
 | `help` | Type 0 | `app_help` | Full usage in human mode; short JSON note in JSON mode |
 | `plan` | Type 0 | `t2p_plan` | Dual mention: domain SSOT |
 | `apply` | Type 0 | `t2p_apply` | Dual mention: domain SSOT |
@@ -131,14 +132,14 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 #### Dispatcher acceptance criteria
 
 1. Unknown token after flag parse → `out_die` with pointer to `tmpl-to-prj help`.  
-2. Zero-arg → TTY menu / off-TTY help (not install).  
+2. Zero-arg → TTY menu / off-TTY Type O install-ensure.  
 3. Command routing table in `app_main` **must** include every row above and **no** trimmed parent verbs.  
 4. Help text **must** stay aligned with that table.
 
 #### Explicitly out of scope
 
-- Online: `version-check`, `self-update`, `self-uninstall`, channel `install` via URL  
 - Domain: `backup`, `restore`  
+- Local-only verbs: bare `uninstall`, `where-is-me`  
 - Sudoers-file: `print-sudoers`, `print-sudoers-install-script`, `remove-project-sudoers`  
 - Type 1 host-mutating setup  
 - Type 2 app runtime under a dedicated system user  
@@ -177,7 +178,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 - **Caution**: Fail closed on unknown verbs, including trimmed parent verbs.  
 - **Intentional**: Type 0 catalog is the whole product surface.  
 - **Anti-fragile**: Same dispatcher contract as parent.  
-- **Over-protect**: Do not silently restore domain verbs “because the name is cli-template.”
+- **Over-protect**: Do not silently restore domain verbs “because the name is tmpl-to-prj.”
 
 ---
 
@@ -211,7 +212,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Key | Relationship |
 |-----|--------------|
 | `requirement-shell-cli-zero-arguments` | Empty argv |
-| `requirement-shell-local-self-management` | install / uninstall / where-is-me |
+| `requirement-shell-self-management` | install / self-update / self-uninstall |
 | `requirement-shell-output-requirements` | `out_*` |
 | `requirement-bootstrap-chain` | Trimmed surfaces |
 | `requirement-shell-termux-ish` | Termux target |
@@ -226,7 +227,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 |----------------|-------|--------|------|
 | **TP-CLI-01..13** | `tests/test_cli.sh` | have | includes stripped-verb fail-closed |
 | **TP-CLI-17** | `tests/test_cli.sh` | have | TTY menu header APP_NAME(VERSION) |
-| **TP-LC-*** | `tests/test_local_lifecycle.sh` | have | lifecycle |
+| **TP-LC-*** | `tests/test_install_lifecycle.sh` | have | online lifecycle |
 | **TP-TMPL-TO-PRJ-11** | `tests/test_domain_tmpl_to_prj.sh` | have | help lists testers apart |
 
 **Matrix:** `reviews/requirement-test-matrix.md`  

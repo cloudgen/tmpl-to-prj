@@ -10,13 +10,13 @@ Define **project folder structure** and path ownership for the tmpl-to-prj CLI: 
 
 ### 1.1 Human-facing
 
-**In one sentence:** The program lives at `src/tmpl-to-prj`; day-to-day install is your `~/.local/bin/tmpl-to-prj`.
+**In one sentence:** The program lives at `src/tmpl-to-prj` (published copy `./tmpl-to-prj`); day-to-day install is your `~/.local/bin/tmpl-to-prj`.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
 | You / this login | Checkout + user bin | `src/tmpl-to-prj` → `${USER_BIN}/tmpl-to-prj` |
 | The other role | Multi-user POSIX global bin | `/usr/local/bin/tmpl-to-prj` |
-| Not this file | How install copies bytes | `requirement-shell-local-self-management` |
+| Not this file | How install copies bytes | `requirement-shell-self-management` |
 
 | Includes | Excludes |
 |----------|----------|
@@ -35,13 +35,15 @@ Define **project folder structure** and path ownership for the tmpl-to-prj CLI: 
 | Path | Role |
 |------|------|
 | `src/tmpl-to-prj` | **Ship unit** — single POSIX shell executable source |
+| `./tmpl-to-prj` | Published channel copy (same bytes; Config `SCRIPT_URL` default) |
+| `tmpl-to-prj.sha256` | Companion digest of the published ship unit |
 | `tests/` | CLI tests when present |
 | `docs/requirements/` | Product law (this surface) |
 | Product root README / CHANGELOG / LICENSE / SECURITY | Product user docs when specialized |
 
-1. **MUST** keep the installable CLI under **`src/`** (not only repo root).  
+1. **MUST** keep the installable CLI under **`src/`** and a same-bytes published copy at repo root for `curl \| sh`.  
 2. **MUST** install the binary under a privilege-correct bin path (see §2.2).  
-3. **MUST NOT** require online channel files (companion digest) for local install.  
+3. **MUST** ship companion `tmpl-to-prj.sha256` next to the published ship unit.  
 4. **MUST NOT** own `/var/backup` or any durable archive deposit tree.
 
 ### 2.2 CLI tool install locations
@@ -57,7 +59,7 @@ Rules:
 2. Root **install** **MAY** target global bin.  
 3. **Primary product story:** **user bin** (`~/.local/bin`) for Type 0 day-to-day; **global bin** for multi-user hosts.  
 4. Uninstall **MUST** remove only the managed binary path for the install mode used.  
-5. Managed binary mode **MUST** be **`0755`** after install (see `requirement-shell-local-self-management` §2.3.1).
+5. Managed binary mode **MUST** be **`0755`** after install (see `requirement-shell-self-management`).
 
 ### 2.3 Scratch / cache (CLI own volatile)
 
@@ -77,7 +79,7 @@ Rules:
 | Item | Value |
 |------|--------|
 | **APP_NAME** | `tmpl-to-prj` |
-| **Ship unit path** | `src/tmpl-to-prj` |
+| **Ship unit path** | `src/tmpl-to-prj` (published `./tmpl-to-prj`) |
 | **USER_BIN default** | `${HOME}/.local/bin` |
 | **GLOBAL_BIN default** | `/usr/local/bin` |
 | **Config dir (optional)** | `${HOME}/.config/tmpl-to-prj/` if needed later |
@@ -129,7 +131,7 @@ Rules:
 
 | Key | Relationship |
 |-----|--------------|
-| `requirement-shell-local-self-management` | Place/remove binary |
+| `requirement-shell-self-management` | Place/remove binary |
 | `requirement-shell-cli-storage` | Scratch resolve |
 | `requirement-shell-cli-interface` | Commands |
 | `docs/requirements/index.md` | Registry |

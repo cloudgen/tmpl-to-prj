@@ -1,32 +1,37 @@
 **file**: docs/requirements/requirement-shell-cli-storage.md  
-**Status**: Active (Version 1.1.0)  
-**Area**: shell  
-**Key**: `requirement-shell-cli-storage`  
-**Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
+**Status**: Active (Version 1.0.1 – tmpl-to-prj storage wire)  
+**Philosophy**: CIAO / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **shell CLI storage resolution** of tmpl-to-prj: volatile scratch and app-scoped cache path selection, per-user isolation, central resolver ownership, `app_main` wire, and about diagnostics.
+This requirement is the **project Single Source of Truth** for **shell CLI storage resolution** of the tmpl-to-prj POSIX `/bin/sh` Type 0 bootstrap CLI: volatile scratch and app-scoped cache path selection, per-user isolation, central resolver ownership, `app_main` wire, and about diagnostics.
 
-Used for **install staging** (`mktemp` under the isolated root). Not a durable backup deposit.
+**Scope:** Resolve priority chain; isolation; `util_resolve_storage` contract; `EFFECTIVE_STORAGE_DIR` / `TMPDIR` export; about human + JSON fields.  
+**Out of scope (cited, not re-owned):** Binary install paths (`USER_BIN` / `GLOBAL_BIN`); domain project trees (none on this bootstrap product); companion checksum; PATH shell-rc.
 
 ### 1.1 Human-facing
 
-**In one sentence:** Scratch files go under a per-login folder (`/dev/shm` when it exists, else `/tmp` or cache).
+**In one sentence:** Scratch and cache for this run live in **one per-user folder** the tool picks (RAM disk if it can, then `/tmp`, then a cache under your home) — not a shared dump that mixes you with someone else.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Isolated scratch | `/dev/shm/tmpl-to-prj-<you>` |
-| The other role | Dest project tree | Not scratch |
-| Not this file | Dest overlay | `requirement-domain-tmpl-to-prj` |
+| You / this login | The Unix login running the CLI | `tmpl-to-prj about` shows the chosen folder |
+| The other role | Another login on the same host | Their cache **must not** be this login’s folder |
+| Not this file | Where the **program binary** is installed (`~/.local/bin` vs `/usr/local/bin`) | Install-path law on zero-arguments / self-management |
 
 | Includes | Excludes |
 |----------|----------|
-| `util_resolve_storage` | `/var/backup` as this product’s path |
+| One resolver; `about` fields for the chosen path | Domain project trees (this bootstrap has none) |
+| Temp downloads under that root | Hard-coded `/tmp/tmpl-to-prj` dumps |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `tmpl-to-prj about` | Command | Human + JSON storage fields |
+| `./tmpl-to-prj` | Program file | `util_resolve_storage` |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Run apply | Staging uses the isolated root | `tmpl-to-prj apply --force kit dest` |
+| See where scratch went | About names the effective folder and the persistent cache fallback. Two logins must not share one directory. | `tmpl-to-prj about` · `tmpl-to-prj --json about` |
 
 ---
 
@@ -35,11 +40,11 @@ Used for **install staging** (`mktemp` under the isolated root). Not a durable b
 ### 2.1 Single resolver SSOT
 
 1. **MUST** keep **one** authoritative storage-resolve helper: **`util_resolve_storage`**.  
-2. New code that needs a product scratch/cache **root** **MUST** call `util_resolve_storage` (or `mktemp` under a path it returned).  
-3. Resolver **MUST** print the chosen directory path on **stdout** for `$(util_resolve_storage)` capture.  
-4. User-visible failure about storage **MUST** use Output SSOT.
+2. New code that needs a product scratch/cache **root** **MUST** call `util_resolve_storage` (or `mktemp` under a path it returned) — **MUST NOT** introduce parallel hard-coded `/tmp/tmpl-to-prj` dumps.  
+3. Resolver **MUST** print the chosen directory path on **stdout** for `$(util_resolve_storage)` capture (data return — not product UI).  
+4. User-visible failure about storage **MUST** use Output SSOT (`out_die` / structured error as mode requires).
 
-### 2.2 Live resolve priority
+### 2.2 Live resolve priority (normative for this product)
 
 First match that is available and writable:
 
@@ -47,62 +52,49 @@ First match that is available and writable:
 |-------|-----------|------------|
 | 1 | `/dev/shm` exists and is writable | `/dev/shm/${APP_NAME}-${USERNAME}` |
 | 2 | `/tmp` is writable | `/tmp/${APP_NAME}-${USERNAME}` |
-| 3 | Fallback | `STORAGE_DIR` (`${XDG_CACHE_HOME:-${HOME}/.cache}/${APP_NAME}-${USERNAME}`, env-overridable) |
+| 3 | Fallback | `STORAGE_DIR` (`${XDG_CACHE_HOME}/${APP_NAME}-${USERNAME}`, env-overridable) |
 
-**Create before return:** for the **chosen** tier, the resolver **MUST** `mkdir -p` the root, then print the path. If create fails → **MUST** fail closed. **MUST NOT** return a path without creating it.
+**Create before return:** for the **chosen** tier, the resolver **MUST** `mkdir -p` the root (all tiers), then print the path. If create fails → **MUST** fail closed via `out_die`. **MUST NOT** return a path without creating it.
 
 ### 2.3 Isolation
 
-1. Paths **MUST** include **`${APP_NAME}`** and **`${USERNAME}`**.  
-2. **MUST NOT** use a single shared world-writable directory for all users.  
-3. Live product **MUST** export `TMPDIR=${EFFECTIVE_STORAGE_DIR}` so `mktemp` inherits the isolated root.
+1. Paths **MUST** include **`${APP_NAME}`** and **`${USERNAME}`** (with safe defaults when unset).  
+2. **MUST NOT** rewrite the resolver to a single shared world-writable directory for all users.  
+3. Live product **MUST** export `TMPDIR=${EFFECTIVE_STORAGE_DIR}` so `mktemp -t` install staging inherits the isolated root.
 
 ### 2.4 Wire and diagnostics
 
 | Surface | Requirement |
 |---------|-------------|
 | `app_main` | Resolve once early: `EFFECTIVE_STORAGE_DIR=$(util_resolve_storage)`; export `EFFECTIVE_STORAGE_DIR`, `STORAGE_DIR`, `TMPDIR` |
-| `app_about` | Include effective storage fields (human + JSON) |
-| `install` | Stage the ship-unit copy under the isolated root when using `mktemp` |
+| `app_about` JSON | Include `effective_storage` and `storage_dir` (no CHECKSUM) |
+| `app_about` human | Show effective storage (and config fallback field) |
 
 ### 2.5 Implementation Notes (this project)
 
 | Item | Live value |
 |------|------------|
 | **Product / binary** | `tmpl-to-prj` |
-| **Resolver** | `util_resolve_storage` in `src/tmpl-to-prj` |
-| **Call sites** | `app_main`, `app_about`, install staging |
-| **Not used for** | Durable `/var/backup` (not a product path) |
+| **Resolver** | `util_resolve_storage` in `./tmpl-to-prj` |
+| **Config fallback** | `: "${STORAGE_DIR:=${XDG_CACHE_HOME}/${APP_NAME}-${USERNAME}}"` |
+| **Call sites** | `app_main` (resolve + TMPDIR); `app_about` (human + JSON) |
+| **Not used for** | Domain project trees (bootstrap has none) |
+| **Tests** | `tests/test_cli.sh` — about storage fields, isolation, dir exists, STORAGE_DIR override on fallback field |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
-- **Caution:** Multi-user isolation.  
-- **Intentional:** One resolver.  
-- **Anti-fragile:** Missing `/dev/shm` still works.  
-- **Principle 11 – Temps:** Cleanup, not museum copies of staging.
-
----
-
-## Under command line for normal user only
-
-When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
-
-| MUST | MUST NOT |
-|------|----------|
-| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Same resolver; missing `/dev/shm` on Termux is expected | Write `/etc`; treat `/dev/shm` as required |
-
-**This requirement:** `/dev/shm` absence is a normal Termux skip to `/tmp` or cache.
-
-Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
+- **Caution:** Multi-user / sudo / containers — never mix users’ scratch.  
+- **Intentional:** One resolver; explicit tiers; wired from main.  
+- **Anti-fragile:** Missing `/dev/shm` still works via `/tmp` or cache.  
+- **Over-protect:** Forbid “simplify” to shared dumps; create fail-closed.
 
 ---
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- Volatile first, user cache last for scratch.  
+- Volatile first, user cache last for **scratch**.  
 - Isolation before convenience.  
-- Create fail-closed in the resolver.
+- Soft-`mkdir` of the effective root is forbidden; create is fail-closed in the resolver.
 
 ---
 
@@ -110,48 +102,58 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Remove `${APP_NAME}` / `${USERNAME}` isolation.  
-2. Replace the fallback chain with a shared world-writable dump.  
-3. Scatter hard-coded `/tmp/tmpl-to-prj` roots outside the resolver.  
-4. Leave the resolver dead with no call sites while claiming storage is product law.  
-5. Echo a tier path without creating it.  
-6. Treat `/var/backup` as a product storage path.
+1. Remove `${APP_NAME}` / `${USERNAME}` isolation from `util_resolve_storage`.  
+2. Replace the fallback chain with a single shared world-writable path.  
+3. Scatter new hard-coded `/tmp/${APP_NAME}` roots outside the resolver.  
+4. Leave the resolver as dead code with no call sites while claiming storage is product law.  
+5. Echo a tier path **without** creating it (or without fail-closed create).  
+6. Bypass Output SSOT for storage failure messages.  
+7. Put CHECKSUM in about storage diagnostics.  
 
 **Violating this rule is a critical storage isolation regression.**
 
 ---
 
-## 5. Acceptance criteria
+## 5. Definition of done (shell CLI storage)
 
-| ID | Criterion |
-|----|-----------|
-| AC-1 | Exactly one authoritative resolver creates and returns the root |
-| AC-2 | Priority matches §2.2 |
-| AC-3 | `app_main` sets `EFFECTIVE_STORAGE_DIR` / `TMPDIR` early |
-| AC-4 | About JSON includes `effective_storage` |
+Storage resolve work for tmpl-to-prj is **not done** if any of the following fail:
 
----
-
-## 6. Related requirements (peer keys only)
-
-| Key | Relationship |
-|-----|--------------|
-| `requirement-project-folder` | Path classes |
-| `requirement-shell-cli-interface` | About fields |
-| `requirement-shell-local-self-management` | Install staging |
-| `docs/requirements/index.md` | Registry |
+1. Exactly one authoritative resolver (`util_resolve_storage`) returns the chosen path on stdout after `mkdir -p` of that root.  
+2. Resolve priority matches this requirement (writable `/dev/shm` → `/tmp` → `STORAGE_DIR` fallback).  
+3. Paths include `${APP_NAME}` and `${USERNAME}` isolation; no shared world-writable single dump for all users.  
+4. `app_main` sets `EFFECTIVE_STORAGE_DIR` / exports `TMPDIR` from the resolver once early.  
+5. `app_about` human + JSON expose effective storage fields and **omit** `CHECKSUM`.  
+6. User-visible storage failures use Output SSOT (`out_die` / structured error).  
+7. Tests cover about storage fields / isolation / override as designed (`tests/test_cli.sh`).  
+8. Implementation changes cite this requirement key `requirement-shell-cli-storage`.
 
 ---
 
-## 7. Status history
+## Under command line for normal user only
 
-| Date | Status | Note |
-|------|--------|------|
-| 2026-08-03 | Active 1.0.0 | folder-backup staging |
-| 2026-08-13 | Active 1.1.0 | cli-template: scratch only |
+This product may run on Termux, Git Bash, Windows cmd, or the same class (this login only).
+
+**This requirement:** scratch roots stay **per this login** (`APP_NAME` + username). **MUST NOT** create world-writable shared dumps or `/etc` dests because storage failed. Git Bash and Windows cmd **MUST NOT** invoke Termux `pkg`.
+
+| MUST | MUST NOT |
+|------|----------|
+| Isolated scratch under this login | Elevate to “fix” a missing `/dev/shm` or `/tmp` |
 
 ---
 
-**Last Updated**: 2026-08-13  
-**Owner**: project maintainers  
-**Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
+## 6. Related artifacts
+
+| Artifact | Role |
+|----------|------|
+| `docs/requirements/index.md` | Registry SSOT |
+| `docs/requirements/requirement-shell-modular-function-design.md` | `util_*` ownership |
+| `docs/requirements/requirement-shell-output-requirements.md` | about JSON via `out_json` |
+| `docs/requirements/requirement-shell-self-management.md` | about lifecycle |
+| `./tmpl-to-prj` | Implementation under test |
+| `tests/test_cli.sh` | Storage diagnostics tests |
+
+---
+
+**Last Updated**: 2026-09-06  
+**Owner**: tmpl-to-prj project maintainers  
+**Alignment**: Registry `docs/requirements/index.md`; CIAO Principles 1, 2, 3, 4, 5, 11, 19, 20 (v2.10.2) (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

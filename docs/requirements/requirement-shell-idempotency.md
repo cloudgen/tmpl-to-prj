@@ -1,32 +1,42 @@
 **file**: docs/requirements/requirement-shell-idempotency.md  
-**Status**: Active (Version 1.1.0)  
-**Area**: shell  
-**Key**: `requirement-shell-idempotency`  
-**Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
+**Status**: Active (Version 1.0.1)  
+**Philosophy**: CIAO / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered)
 
 ## 1. Purpose
 
-This requirement is the **project Single Source of Truth** for **idempotency (re-run safety)** of state-changing operations in the tmpl-to-prj POSIX shell CLI.
+This requirement is the **project Single Source of Truth** for **idempotency (re-run safety)** of state-changing operations in the **POSIX shell CLI** for tmpl-to-prj.
+
+It defines re-run safety for ensure-style shell lifecycle commands (install, PATH integration, self-update, self-uninstall, and related helpers). Read-only commands remain outside the “ensure-X” contract except where they must stay safe under repeat invocation.
+
+**Scope:** Detect → ensure → success-if-done semantics; force/reinstall overrides; partial-failure re-entry; PATH and shell-config re-entry; output behavior on no-op.  
+**Out of scope (cited, not re-owned):** Full CLI command table (`requirement-shell-cli-interface.md`); online-install digest algorithm detail; FSM continuous-tick design (no product FSM today).
 
 **Informal formula:** for ensure-style operation *f* and system state *x*, **f(f(x)) ≈ f(x)** for the **desired outcome** (logs and timestamps may differ).
 
 ### 1.1 Human-facing
 
-**In one sentence:** Running `install` or `uninstall` twice is safe: already done is success, not an error.
+**In one sentence:** Running install / update / PATH-ensure **again** must leave you in the **same good state** (already installed, already latest) — it must not pile up copies, require `--force` for a healthy re-run, or pretend uninstall deleted something that is still there.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Repeat a command | `tmpl-to-prj install` then again |
-| The other role | Dest hop | `apply --force` is documented force, not silent duplicate overlay |
-| Not this file | Confirm policy | `requirement-shell-interactive-vs-noninteractive` |
+| You / this login | Re-running the one-liner or `install` after success | Second `tmpl-to-prj` with no args |
+| The other role | Deliberate replace (`--force`) or a real failure that must stay loud | `tmpl-to-prj install --force` |
+| Not this file | Empty-argv Case A/B/C wording (peer); checksum algorithm | `requirement-shell-cli-zero-arguments.md` |
 
 | Includes | Excludes |
 |----------|----------|
-| Re-install no-op; uninstall absent no-op | Fail because “already installed” |
+| Success no-op when the desired state is already true | Blind re-download on every empty-argv run |
+| Clean temps after a failed download so the next run can start | Silent “already ok” when the remote version cannot be read |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `tmpl-to-prj` (no args) | Command | Second run = already installed |
+| `tmpl-to-prj self-update` | Command | Second run = already latest |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Re-run install | Success; mode still healed to 0755 | `tmpl-to-prj install` |
+| Re-run the one-liner | If the program is already in user or system bin, you get **already installed**, not help and not a second download. | `tmpl-to-prj` |
+| Force a replace | Only `--force` means “download again on purpose.” | `tmpl-to-prj install --force` |
 
 ---
 
@@ -38,58 +48,106 @@ Every **state-changing** shell operation that **ensures** a desired configuratio
 
 1. **Detect** whether the desired state already holds.  
 2. **Skip or no-op** unsafe work when it does.  
-3. **Succeed** when already achieved — **MUST NOT** fail solely because state “already exists.”  
-4. **Avoid duplicates** (binary installs, PATH lines).  
+3. **Succeed** (exit 0 / non-error path) when already achieved — **MUST NOT** fail solely because state “already exists.”  
+4. **Avoid duplicates** (binary installs, PATH lines, config blocks, resources).  
 5. **Leave the system consistent** on every run (including partial prior installs).  
-6. **Communicate** clearly when already done in human mode; respect quiet/json via output SSOT.
+6. **Communicate** clearly when already done in human mode; still respect quiet/json via output SSOT.
 
 ### 2.2 What a second run must not do
 
 | Forbidden when desired state already holds | Prefer |
 |--------------------------------------------|--------|
-| Fail solely because state exists | Success + “already installed / nothing to uninstall” |
-| Create duplicate managed binaries | Existence check first |
-| Overwrite a correct install without force | No-op unless force |
-| Leave half-applied worse state | Atomic steps; cleanup temps; fail loud |
+| Fail with error solely because state exists | Success + “already installed / already latest / nothing to uninstall” |
+| Create duplicate binaries, PATH lines, or config blocks | Existence / content checks first |
+| Overwrite a correct install without force/reinstall intent | No-op unless force policy or newer version policy requires replace |
+| Thrash network downloads on every “already good” re-run | Skip download when no-op path taken |
+| Leave half-applied state worse than start | Atomic install steps; cleanup temps; fail loud with recovery path |
 
-### 2.3 Force override
+### 2.3 Already-achieved behavior (mandatory pattern)
 
-Force policy (`--force` / `FORCE=1`) **MAY** re-apply ensure steps that would otherwise no-op **only** when documented. Force **MUST NOT** silently skip path validation.
+When the desired state is already true:
 
-### 2.4 Implementation Notes — command matrix (this project)
+| Requirement | Detail |
+|-------------|--------|
+| **Success** | Treat as success (CLI exit 0) |
+| **Communicate** | State the current condition in non-quiet human mode |
+| **Minimize work** | No unnecessary download, rewrite, or PATH append |
+| **Output SSOT** | Use central `out_*` / `out_json`; respect quiet/json |
+
+Illegal inputs, missing remote channel when required, checksum failure, and permission errors **MUST** still fail closed. Idempotency does **not** mean “never error.”
+
+### 2.4 Force / reinstall override (portable)
+
+Force policy (e.g. `--force` / `FORCE_REINSTALL=1`) **MAY** re-apply ensure steps that would otherwise no-op **only** when:
+
+- Documented on the command, and  
+- Security checks (e.g. digest when downloading) still apply, and  
+- Downgrade / destructive reinstall policy is explicit (not silent).
+
+Force **MUST NOT** be used as a silent way to skip integrity verification.
+
+### 2.5 Implementation Notes (this project)
+
+| Item | Value for tmpl-to-prj |
+|------|------------------------|
+| **Product / binary** | `tmpl-to-prj` (`APP_NAME`) |
+| **Implementation file** | Repo root `./tmpl-to-prj` |
+| **Install detect SSOT** | `inst_is_installed` / `inst_get_version` |
+| **Install ensure SSOT** | `inst_perform_install` (+ download/atomic helpers) |
+| **Force reinstall var** | `FORCE_REINSTALL` (default `0`); CLI `--force` must set this per `requirement-shell-cli-interface.md` |
+| **Remote channel** | `SCRIPT_URL` (required for version-check / self-update network steps) |
+| **User PATH integration** | `path_add_*` / `path_add_shell` — append only if marker/line absent |
+| **Uninstall PATH cleanup** | `inst_self_uninstall_cleanup_path` — only if `~/.local/bin` empty |
+
+#### Command-level idempotency matrix (normative)
 
 | Command / path | Desired state | Re-run when already good | Force / special |
 |----------------|---------------|--------------------------|-----------------|
-| `install` | Managed binary present at privilege-correct path | Success no-op (mode heal still runs) | `--force` replaces from running ship unit |
-| `uninstall` | Managed binary absent | Success no-op | `--force` skips confirm |
-| `where-is-me` / `version` / `about` / `help` | Read-only | Always safe | N/A |
+| `install` | Binary present at privilege-correct path | **Success no-op**; human: already installed; JSON success | `FORCE_REINSTALL=1` re-downloads/replaces |
+| Zero-arg install-ensure (**Type O**) | Binary present (local or global) | Second zero-arg when installed: **success no-op** “already installed” (not help, not reinstall) without force | Same force rules as install; see `requirement-shell-cli-zero-arguments.md` |
+| `inst_maybe_install` | Installed, user declined, **or** quiet/json Case A placed | Already installed → return success without re-prompt storm. Quiet/json when **not** installed **MUST** place (not a success skip). | — |
+| `self-update` | Local version equals remote (or newer under project policy) | **Success no-op** “already latest” when versions equal and force off | When versions differ, reinstall via install path; force may force reinstall; **must not silent-downgrade** without explicit force policy (see self-management term) |
+| `self-uninstall` | Binary absent | **Success no-op** “not installed / nothing to uninstall” | Force may skip interactive confirm only; still no over-delete |
+| `version-check` | N/A (read/compare) | Safe to re-run; network fetch each time is allowed; must not mutate install state | — |
+| `version`, `about`, `help` | N/A (read-only) | Safe to re-run; no install mutation | — |
+| PATH add (`path_add_bashrc` / zsh / fish) | PATH line already present | No second identical append | — |
+| PATH cleanup on uninstall | `~/.local/bin` empty **or** PATH lines already removed | No thrash; if bin dir still has files, **keep** PATH (do not strip shared dir) | — |
 
-### 2.5 Why This Requirement Exists (CIAO)
+#### Concrete detect → act expectations (this project)
 
-- **Principle 1 – Caution**: Re-runs must not corrupt installs.  
-- **Principle 3 – Anti-fragile**: Safe to re-invoke.
+1. **Install:** If `inst_is_installed` and `FORCE_REINSTALL=0` → return 0 without download/move.  
+2. **Self-update:** Fetch remote `VERSION` from `SCRIPT_URL`; if equal to local and force off → return 0 without reinstall; if remote unreadable → fail loud (not a silent “already ok”).  
+3. **Self-uninstall:** If no managed binary path resolved → return 0 (not installed).  
+4. **PATH ensure:** Grep/marker check before append; already present is success for the ensure intent.  
+5. **Atomic install temps:** Failed download paths **MUST** remove temp files; re-run starts clean.  
+6. **Partial install:** Re-run of install after partial failure **MUST** attempt to converge (re-prepare target, re-download, atomic replace) or fail loud — not leave a second half-broken binary without error.
 
----
+#### Explicitly out of scope until specialized elsewhere
 
-## Under command line for normal user only
+- Type 1 prerequisites / package ensure loops  
+- Type 2 system-user / app service ensure  
+- Continuous FSM `update*` tick thrash (no product FSM in current shell surface)
 
-When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+### 2.6 Why This Requirement Exists (Direct CIAO Alignment)
 
-| MUST | MUST NOT |
-|------|----------|
-| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Same re-run safety for `install` / `uninstall` | Use `sudo` to “heal” a second run |
-
-**This requirement:** re-run safety stays user-bin on Termux.
-
-Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
+- **CIAO Principle 1 – Caution** (https://github.com/cloudgen/ciao): Assume re-runs, CI, scripts, and `curl | sh` retries; never fail “already exists” as if it were corruption.  
+- **CIAO Principle 2 – Intentional** (https://github.com/cloudgen/ciao): Clear detect vs act vs force override; no accidental reinstall.  
+- **CIAO Principle 3 – Anti-fragile** (https://github.com/cloudgen/ciao): Converge from partial installs; tolerate second run after success.  
+- **CIAO Principle 11 – Safe Temporary File Handling** (https://github.com/cloudgen/ciao): Temps cleaned so re-entry does not pile up or race on fixed names.  
+- **CIAO Principle 12 – Right Backup & Restore Strategy** (https://github.com/cloudgen/ciao): When future ensure steps edit existing configs, backup-before-write remains required (PATH edits today use append/check patterns).  
+- **CIAO Principle 4 (O) / Principle 20 – Over-protect / Protect Against AI & Human Modification** (https://github.com/cloudgen/ciao): Existence checks and no-op success paths are Protection Zone material — not “simplify away.”
 
 ---
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- Detect → ensure → success-if-done for lifecycle.  
-- Fail closed on permission and path errors (idempotency ≠ never error).
+- **Caution:** Prefer detect-before-create; fail closed on integrity and network when action is required.  
+- **Intentional:** Separate already-done success from forced reinstall and from real failure.  
+- **Anti-fragile:** Re-run after success is safe; re-run after partial failure converges or errors clearly.  
+- **Over-protect:** Do not remove `inst_is_installed` early-exit, PATH duplicate guards, or empty-dir PATH cleanup safety.  
+- **SSOT:** Installation detect via `inst_is_installed` / `inst_get_version`; output via `out_*`.  
+- **Output modes:** No-op success still honors quiet/json (structured success in JSON when the command supports it).  
+- **Respect old working logic:** Preserve battle-tested ensure guards; surgical fixes only when proven bugs.
 
 ---
 
@@ -97,52 +155,59 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Make `install` fail when already installed (force off).  
-2. Treat idempotency as permission to ignore validation failures.  
-3. Remove atomic install/stage patterns for “speed.”  
-4. Reintroduce archive next-N overwrite rules as if backup were still product law.
+1. Remove or weaken “already installed / already latest / nothing to uninstall” success paths so that re-runs fail when healthy.  
+2. Make `install` always re-download when the binary is already present without force/reinstall policy.  
+3. Append duplicate PATH export blocks on every re-run.  
+4. Strip `~/.local/bin` from PATH when other tools still use that directory.  
+5. Treat force as a way to skip checksum/digest verification.  
+6. Fail uninstall solely because the tool is already absent (must be success no-op).  
+7. Paper over missing remote version as “already latest.”  
+8. Weaken this requirement’s re-run safety rules without explicit project approval.
 
-**Violating this rule is a critical re-run safety regression.**
-
----
-
-## 5. Acceptance criteria
-
-| ID | Criterion |
-|----|-----------|
-| AC-1 | Second `install` without force is success no-op |
-| AC-2 | Second `uninstall` when absent is success no-op |
+**Violating this rule is a critical re-run-safety regression.**
 
 ---
 
-## 6. Related requirements (peer keys only)
+## 5. Definition of done (shell idempotency)
 
-| Key | Relationship |
-|-----|--------------|
-| `requirement-shell-local-self-management` | Install/uninstall ensure |
-| `requirement-shell-cli-interface` | Force flag wiring |
-| `docs/requirements/index.md` | Registry |
+A state-changing shell change for tmpl-to-prj is **not done** if any of the following fail:
 
----
-
-## Design-time verification
-
-| TP family / ID | Suite | Status |
-|----------------|-------|--------|
-| **TP-LC-03,07** | `tests/test_local_lifecycle.sh` | have |
-
-**Matrix:** `reviews/requirement-test-matrix.md`  
-**Map:** `reviews/test-plan.md`
-
-## 7. Status history
-
-| Date | Status | Note |
-|------|--------|------|
-| 2026-08-03 | Active 1.0.0 | folder-backup lifecycle + archive numbering |
-| 2026-08-13 | Active 1.1.0 | cli-template: lifecycle only |
+1. Second `install` with healthy install and force off exits success without reinstall.  
+2. Second `self-update` when local equals remote and force off exits success without reinstall.  
+3. Second `self-uninstall` when not installed exits success.  
+4. PATH ensure does not duplicate lines when re-run.  
+5. PATH cleanup does not remove shared `~/.local/bin` entries while other files remain.  
+6. Force/reinstall paths remain explicit and do not skip integrity checks.  
+7. Messages for already-done paths use output SSOT and respect quiet/json.  
+8. Implementation changes cite this requirement key `requirement-shell-idempotency`.
 
 ---
 
-**Last Updated**: 2026-08-13  
-**Owner**: project maintainers  
-**Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
+## Under command line for normal user only
+
+This product may run on Termux, Git Bash, Windows cmd, or the same class (this login only).
+
+**This requirement:** re-run safety stays **normal user privilege**. Already-installed / already-latest no-ops **MUST NOT** grow an elevation branch on that class. Git Bash and Windows cmd **MUST NOT** invoke Termux `pkg`.
+
+| MUST | MUST NOT |
+|------|----------|
+| Second run still this-login ensure | Re-run that wraps `sudo` / `apt` “to make sure” |
+
+---
+
+## 6. Related artifacts
+
+| Artifact | Role |
+|----------|------|
+| `docs/requirements/requirement-shell-cli-interface.md` | Command surface, flags, force wiring |
+| `docs/requirements/requirement-shell-cli-zero-arguments.md` | Empty argv ensure for not-installed / local / global |
+| `docs/requirements/requirement-shell-self-management.md` | Lifecycle commands; integrity + downgrade policy |
+| `docs/requirements/requirement-shell-output-requirements.md` | Messages on no-op / already-done paths |
+| `docs/requirements/index.md` | Registry SSOT |
+| `./tmpl-to-prj` | Implementation under test |
+
+---
+
+**Last Updated**: 2026-09-06  
+**Owner**: tmpl-to-prj project maintainers  
+**Alignment**: Registry `docs/requirements/index.md`; related `requirement-shell-cli-interface.md`; CIAO Principles 1, 2, 3, 11, 12, 4, 20 (v2.10.2) (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

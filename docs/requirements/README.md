@@ -2,17 +2,17 @@
 
 Authoritative specialized product law for **tmpl-to-prj** lives here.
 
-**Current state (2026-09-06):** Specialized **software-development** product. Left genesis. Bootstrap **cli-template → tmpl-to-prj**. Termux is a named target. Registry is populated — see `index.md`.
+**Current state (2026-09-16):** Specialized **software-development** product. Left genesis. Bootstrap **selfmanaged → tmpl-to-prj**. Online Type 0 + domain hop. Termux is a named target. Registry is populated — see `index.md`.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
 | Product / `APP_NAME` | `tmpl-to-prj` |
-| Version SSOT | `1.1.0` (ship unit hard-assign) |
-| Ship unit | `src/tmpl-to-prj` |
-| Default install | `~/.local/bin/tmpl-to-prj` |
-| Install mode | **Local-only** |
+| Version SSOT | `1.3.0` (ship unit hard-assign) |
+| Ship unit | `src/tmpl-to-prj` (published `./tmpl-to-prj`) |
+| Default install | `curl -fsSL https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/tmpl-to-prj \| sh` |
+| Install mode | **online-installable** |
 | Domain surface | **Active** — `requirement-domain-tmpl-to-prj` |
 
 ## Class requirement gate

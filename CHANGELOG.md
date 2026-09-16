@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-09-16
+
+### Changed
+
+- **Bootstrap origin is sibling `selfmanaged`** (A → B only). Inherited Type 0 online self-management: `install`, `version-check`, `self-update`, `self-uninstall`, automatic companion `tmpl-to-prj.sha256`, and Config `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/tmpl-to-prj`.
+- Empty argv: **TTY** still shows the numbered plan/apply menu; **off-TTY** / pipe is Type O install-ensure (`curl | sh`).
+- Ship unit published at repo root `./tmpl-to-prj` (same bytes as `src/tmpl-to-prj`) for the channel URL.
+- Retired local-only verbs `uninstall` / `where-is-me` and requirement `requirement-shell-local-self-management`.
+
+### Added
+
+- Requirements: `requirement-shell-self-management`, `requirement-shell-automatic-checksum`.
+- Tests: local HTTP channel lifecycle suite (`tests/test_install_lifecycle.sh`) plus companion digest check.
+
+### Tests
+
+- Suite **PASS=254 FAIL=0 SKIP=0** (`./tests/run.sh`). Domain hop **TP-TMPL-TO-PRJ-01..23** unchanged.
+
 ## [1.2.1] - 2026-09-13
 
 ### Fixed

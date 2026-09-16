@@ -84,21 +84,60 @@ _trunc() {
     printf '%s' "$1" | tr '\n' ' ' | cut -c1-160
 }
 
+# Start a local HTTP channel serving the ship unit (+ .sha256). No public network.
+# Sets: CI_HTTP_PID, CI_SCRIPT_URL, CI_CHANNEL_DIR, CI_PORT
+ci_start_channel() {
+    : "${APP_NAME:=tmpl-to-prj}"
+    CI_CHANNEL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/t2p-channel.XXXXXX")
+    cp "${SCRIPT}" "${CI_CHANNEL_DIR}/${APP_NAME}"
+    sha256sum "${CI_CHANNEL_DIR}/${APP_NAME}" | awk '{print $1}' > "${CI_CHANNEL_DIR}/${APP_NAME}.sha256"
+
+    CI_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')
+    (
+        cd "${CI_CHANNEL_DIR}" || exit 1
+        exec python3 -m http.server "${CI_PORT}" --bind 127.0.0.1
+    ) >/dev/null 2>&1 &
+    CI_HTTP_PID=$!
+    CI_SCRIPT_URL="http://127.0.0.1:${CI_PORT}/${APP_NAME}"
+
+    _i=0
+    while [ "$_i" -lt 50 ]; do
+        if curl -fsS "${CI_SCRIPT_URL}" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 0.1
+        _i=$((_i + 1))
+    done
+    t_fail "local channel failed to start on port ${CI_PORT}"
+    return 1
+}
+
+ci_stop_channel() {
+    if [ -n "${CI_HTTP_PID:-}" ]; then
+        kill "${CI_HTTP_PID}" 2>/dev/null || true
+        wait "${CI_HTTP_PID}" 2>/dev/null || true
+        CI_HTTP_PID=
+    fi
+    if [ -n "${CI_CHANNEL_DIR:-}" ] && [ -d "${CI_CHANNEL_DIR}" ]; then
+        rm -rf "${CI_CHANNEL_DIR}"
+        CI_CHANNEL_DIR=
+    fi
+}
+
 # Isolated HOME + USER_BIN + GLOBAL_BIN for install tests.
-# GLOBAL_BIN is redirected so a host /usr/local/bin install cannot pollute
-# uninstall target selection.
-# Sets CI_HOME, CI_USER_BIN, CI_GLOBAL_BIN.
+# GLOBAL_BIN isolation is required so a host /usr/local/bin install cannot pollute
+# inst_is_installed() during CI.
 ci_isolated_env() {
-    CI_HOME=$(mktemp -d "${TMPDIR:-/tmp}/hm-home.XXXXXX")
+    CI_HOME=$(mktemp -d "${TMPDIR:-/tmp}/t2p-home.XXXXXX")
     CI_USER_BIN="${CI_HOME}/.local/bin"
-    CI_GLOBAL_BIN="${CI_HOME}/.global-bin"
+    CI_GLOBAL_BIN="${CI_HOME}/global-bin"
     mkdir -p "${CI_USER_BIN}" "${CI_GLOBAL_BIN}"
     export HOME="${CI_HOME}"
     export USER_BIN="${CI_USER_BIN}"
     export GLOBAL_BIN="${CI_GLOBAL_BIN}"
-    # Local-only product: ensure no channel env is required
-    unset SCRIPT_URL 2>/dev/null || true
     unset CHECKSUM 2>/dev/null || true
+    unset FORCE_GLOBAL 2>/dev/null || true
+    unset FORCE_USER 2>/dev/null || true
 }
 
 ci_cleanup_env() {
@@ -109,6 +148,23 @@ ci_cleanup_env() {
         CI_GLOBAL_BIN=
     fi
     unset GLOBAL_BIN 2>/dev/null || true
+    JSON=0
+    QUIET=0
+    TTY=0
+    FORCE_REINSTALL=0
+}
+
+# Source the ship unit without running app_main (helper tests).
+ci_source_ship_unit() {
+    : "${CI_HOME:?ci_source_ship_unit requires ci_isolated_env}"
+    : "${SCRIPT:?}"
+    _lib="${CI_HOME}/ship-as-lib.sh"
+    awk '
+        /^app_main "\$@"$/ { print "# app_main \"$@\"  # stripped for helper tests"; next }
+        { print }
+    ' "${SCRIPT}" > "${_lib}"
+    # shellcheck disable=SC1090
+    . "${_lib}"
 }
 
 ci_run() {

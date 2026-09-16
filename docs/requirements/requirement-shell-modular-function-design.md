@@ -1,124 +1,235 @@
 **file**: docs/requirements/requirement-shell-modular-function-design.md  
-**Status**: Active (Version 2.1.0)  
-**Area**: shell  
-**Key**: `requirement-shell-modular-function-design`  
-**Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
+**Status**: Active (Version 1.0.1)  
+**Philosophy**: CIAO / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered)
 
 ## 1. Purpose
 
 This requirement is the **project Single Source of Truth** for **modular function organization** of the tmpl-to-prj POSIX shell CLI.
 
-**Core idea:** Modularity is achieved through **clear function boundaries, consistent prefixes, and full CIAO documentation** — **not** by splitting the installable CLI into multiple shipped files.
+It defines modular function organization for a **monolithic yet modular** single-file shell tool that remains `curl | sh` compatible.
 
-Ship unit remains a **single executable** at `src/tmpl-to-prj`.
+**Scope:** Function prefixes, documentation headers, Protection Zones, single-file modularity, SSOT ownership by prefix, surgical change rules.  
+**Out of scope (cited, not re-owned):** Command surface (`requirement-shell-cli-interface.md`); self-management behavior (`requirement-shell-self-management.md`); idempotency matrix (`requirement-shell-idempotency.md`); full POSIX coding style beyond modular structure.
+
+**Core idea:** Modularity is achieved through **clear function boundaries, consistent prefixes, and full CIAO documentation** — **not** by splitting the main CLI into multiple shipped files.
 
 ### 1.1 Human-facing
 
-**In one sentence:** One file, with prefixes: `out_*` prints, `inst_*` installs, `t2p_*` does the docs hop.
+**In one sentence:** People still install **one file** (`./tmpl-to-prj`); inside that file, functions stay in labeled families (`out_` print, `inst_` install, `app_` menu, `prompt_` questions) so a change to help does not rewrite download.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Editor of `src/tmpl-to-prj` | Add `t2p_*` not a bare `apply()` |
-| The other role | Coding-style REQ | specialize-in home |
-| Not this file | Overlay semantics | `requirement-domain-tmpl-to-prj` |
+| You / this login | Maintainer editing one family | Change `app_help`, leave `inst_perform_install` |
+| The other role | The `curl \| sh` user who needs a **single** downloadable file | One ship unit at repo root |
+| Not this file | What each command **does** (CLI / lifecycle / output peers) | Prefix table here; behavior tables elsewhere |
 
 | Includes | Excludes |
 |----------|----------|
-| Prefix table; single file | Split into many shipped binaries |
+| Prefixes, headers, “do not simplify” zones, surgical edits | Splitting the shipped CLI into many files |
+| `inst_maybe_install` as an `inst_` helper | Re-owning Case A quiet/json law (zero-arguments + interactive peers) |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `./tmpl-to-prj` | The one program file | Function families |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Add a helper | Use a defined prefix | Open `src/tmpl-to-prj` |
+| Change a message | Edit an `out_*` helper, not a raw `echo` in install. | Open `./tmpl-to-prj`, find `out_` |
+| Change first-install ask | Edit `inst_maybe_install` / `prompt_yes_no`, not `app_help`. | Same file; different prefix |
 
 ---
 
 ## 2. Core Rules / Requirements (Mandatory)
 
-### 2.1 Overall architecture
+### 2.1 Overall architecture (portable)
+
+CIAO-Lite shell CLIs distributed as one-liners **MUST** use:
 
 | Rule | Meaning |
 |------|---------|
-| **Single executable** | One primary script file for the installable CLI |
-| **Logical modules** | Functions grouped by **strict prefixes** |
-| **Documented units** | Public helpers carry defensive headers and safe defaults |
+| **Single executable** | One primary script file for the installable CLI (required for `curl \| sh`) |
+| **Logical modules** | Functions grouped by **strict prefixes**, not by separate runtime files |
+| **Documented units** | Every public helper carries a defensive header and safe defaults |
 | **Requirements extract policy** | Durable rules live in `requirement-*.md`; code comments encode intent and Protection Zones |
 
-### 2.2 Official function prefix table
+Optional multi-file layout under `src/` for future authoring **MAY** exist only if a build or pack step still produces **one** installable artifact and this requirement is updated. Until then, `./tmpl-to-prj` remains the single shipped script.
 
-**All functions MUST use a defined prefix.** Bare names (`main`, `install`, `help`) as function names are forbidden.
+### 2.2 Official function prefix table (mandatory)
+
+**All functions MUST use a defined prefix.** Bare names (`main`, `install`, `help`, `about`, `helper`) are forbidden.
 
 | Prefix | Category | Purpose | Example functions |
 |--------|----------|---------|-------------------|
-| `out_` | Output system | All user-facing and machine-readable output | `out_text`, `out_info`, `out_json`, `out_die` |
-| `inst_` | Installation lifecycle | Local install/uninstall detect and place/remove | `inst_local_install`, `inst_local_uninstall`, `inst_is_installed` |
-| `util_` | General utilities | Path resolve, storage, identity nametag, Termux / Git Bash / Windows cmd detect | `util_resolve_storage`, `util_app_ident`, `util_is_termux`, `util_is_normal_user_only_cli` |
-| `app_` | Cross-cutting CLI surface | Entry, dispatch, about/help/version/where-is-me | `app_main`, `app_about`, `app_help`, `app_version`, `app_where_is_me` |
-| `path_` | Shell PATH & environment | Optional PATH ensure after user install | `path_add_shell` |
-| `prompt_` | Interactive prompts | TTY-safe confirmations | `prompt_yes_no` |
-| `t2p_` | Domain (harness-docs hop) | Resolve, gate, overlay, empty Termux `pkg` companion | `t2p_plan`, `t2p_apply`, `t2p_resolve_root`, `t2p_termux_pkg_ensure` |
+| `out_` | Output system | All user-facing and machine-readable output | `out_text`, `out_info`, `out_success`, `out_json`, `out_die` |
+| `inst_` | Installation & self-management | Install, self-update, self-uninstall, install detect | `inst_perform_install`, `inst_self_update`, `inst_is_installed` |
+| `util_` | General utilities | Reusable helpers (backup, path resolve, storage) | `util_backup`, `util_resolve_storage`, `util_get_install_bin_path` |
+| `app_` | General app CLI surface (product-neutral) | Entry, dispatch, about/help/version presentation | `app_main`, `app_about`, `app_help`, `app_version` |
+| `ver_` | Version comparison | Semantic version handling | `ver_gt`, `ver_check` |
+| `path_` | Shell PATH & environment | PATH manipulation and shell config | `path_add_shell`, `path_add_bashrc` |
+| `prompt_` | Interactive prompts | TTY-safe confirmations and questions | `prompt_yes_no`, `prompt_ask` |
+| `t2p_` | Domain / product business logic | Harness-docs hop (`plan` / `apply`) | `t2p_plan`, `t2p_apply`, `t2p_folder_backup_gate` |
 
-**Notes:**
+**`app_*` vs domain prefix:**
 
-- Domain prefix **`t2p_`** is required.  
-- **Do not** put generic about/help/main under a domain prefix.  
-- Parent `fb_*` **MUST NOT** be reintroduced.  
-- Online-only prefixes from grandparent (`ver_check` remote network path, download install family) **MUST NOT** be reintroduced unless product mode changes.  
-- `util_backup` is the CIAO pre-change sibling `.bak` helper — **not** a folder-archive backup verb.
+- **`app_*`** — cross-cutting CLI surface every shell CLI needs (main, help, about, version routing).  
+- **`{{APP_NAME}}_*`** (or a short domain stem, e.g. `gln_`, `gs_`, `timer_`) — domain business logic only.  
+- Do **not** put domain ops under `app_*`.  
+- Do **not** put generic about/help/main under the domain prefix unless a specialized requirement explicitly requires product-prefixed aliases.
 
-### 2.3 Function documentation standards
+**Specializee note:** When grafting legacy domain DNA onto this bootstrap, prefer a domain prefix for new handlers. Temporary **output shims** (`info` → `out_info`, …) are allowed only as bridges to `out_*` SSOT (`requirement-shell-output-requirements.md`) — do not invent a durable second output family.
 
-Every non-trivial function **MUST** include a defensive header with:
+**Strict naming rules:**
 
-- One-line purpose  
-- **GENERAL PURPOSE** paragraph  
-- CIAO principles applied (as relevant)  
-- Protection / DO NOT SIMPLIFY note for critical helpers  
-- Last reviewed date when modified  
+1. Every new function **must** use one of the defined prefixes (or extend this table in the same change).  
+2. Internal helpers **must** still carry the correct category prefix.  
+3. Names **must** be descriptive but concise.  
+4. Adding a new category **must** update this requirement (and any related live shell requirements) in the same work item.  
+5. Prefer small, single-purpose functions over mega-functions that mix output, install, and domain logic.
 
-Product-source `ALIGNMENT` / “see” comments **MUST** cite only live `docs/requirements/requirement-*.md` paths registered in `index.md`.
+### 2.3 Function documentation standards (mandatory)
 
-### 2.4 Protection Zones
+Every non-trivial function **MUST** include a defensive header of this shape (trivial one-line wrappers may inherit documentation from their parent SSOT function, but still require the correct prefix).
 
-Critical sections (output SSOT, install place/remove, storage resolve) **MUST** remain CIAO-Lite Protection Zones and **MUST NOT** be simplified away without explicit user redesign order.
+#### 2.3.1 Product-source documentation authority
 
-### 2.5 Implementation Notes (this project)
+Optional `ALIGNMENT` / `See` / “fully synchronized with” lines in **product source** (`./tmpl-to-prj`) **MUST** cite only **live** `docs/requirements/requirement-*.md` paths that exist on disk and appear in `docs/requirements/index.md`.
 
-| Item | Value |
-|------|--------|
-| **Ship unit** | `src/tmpl-to-prj` |
-| **Domain prefix** | `t2p_` |
-| **Bootstrap role** | Specialized from cli-template; keep Type 0 prefixes plus `t2p_` |
-| **Multi-file authoring** | Optional later only if pack still yields one installable artifact and this requirement is updated |
+| Allowed in product source comments | Forbidden in product source comments |
+|------------------------------------|--------------------------------------|
+| Live `requirement-shell-*.md` (and other live `requirement-*.md` registered in `index.md`) | Non-requirement paths under `docs/` as product-law authority |
+| Short incident IDs for lessons (optional; no required path) | Invented or stale `requirement-*.md` names |
+| | Harness / template / skill filenames as ALIGNMENT targets |
 
-### 2.6 Why This Requirement Exists (CIAO)
+Product-source law is only the live registry under `docs/requirements/`. Local workspace material outside this folder is not product-source authority (see INC-20260712-002).
 
-- **Principle 2 – Intentional**: Prefixes encode ownership.  
-- **Principle 6 – Single Point of Entry**: `app_main` stays the dispatcher.  
-- **Principle 7 – Reusable function protection**: DO NOT MODIFY markers on critical helpers.  
-- **Principle 20 – Protect against AI & human modification**: Visible zones.
+```sh
+# =============================================================================
+# function_name() - Short one-line purpose
+# =============================================================================
+#
+# GENERAL PURPOSE:
+# Clear explanation of what this function does and why it exists.
+#
+# CIAO PRINCIPLES APPLIED:
+# - Caution (Principle 1): ...
+# - Intentional (Principle 2): ...
+# - Anti-fragile (Principle 3): ...
+# - Over-protect (Principle 4 O + Principle 20): ...
+#
+# !!! DO NOT MODIFY OR SIMPLIFY THIS FUNCTION !!!
+# Designed to be reusable in other CIAO-Lite projects.
+#
+# Lessons Learned (CIAO Reflection):
+# [Date]: [Short note when fixing regressions or improving defensive comments]
+#
+# Last reviewed: YYYY-MM-DD
+# =============================================================================
 
----
+function_name() {
+    # --- Safe Variable Defaults ---
+    : "${VAR:=default}"
 
-## Under command line for normal user only
+    # Main logic...
+}
+```
 
-When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
+**Mandatory elements for critical / reusable helpers:**
 
-| MUST | MUST NOT |
-|------|----------|
-| Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Detect helpers stay `util_is_*`; `pkg` companion stays `t2p_termux_pkg_ensure` | Scatter `sudo` outside `util_sudo` |
+| Element | Rule |
+|---------|------|
+| GENERAL PURPOSE | States objective and why the function exists |
+| CIAO principles | Filled meaningfully for non-trivial logic |
+| DO NOT MODIFY / Protection intent | Present on reusable and security-sensitive helpers |
+| Safe variable defaults | `: "${VAR:=default}"` at top of body for globals the function relies on |
+| Lessons Learned | Add when fixing regressions; do not delete history |
 
-**This requirement:** prefix table for detect / skip.
+### 2.4 Ownership and SSOT by prefix (portable)
 
-Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
+| Concern | Owning prefix / entry | Rule |
+|---------|----------------------|------|
+| User-facing output | `out_*` | No raw user messages outside `out_*` |
+| Install + CLI lifecycle | `inst_*` | One install orchestrator; self-update reuses it |
+| Version compare / remote check | `ver_*` | Pure compare helpers stay portable |
+| PATH / shell profile | `path_*` | Duplicate-safe append; safe cleanup helpers elsewhere call these carefully |
+| CLI entry / dispatch | `app_*` | Single dispatcher; no second parallel main |
+| Interactive confirm | `prompt_*` | Single source for yes/no; non-interactive safe behavior |
+| Backup / storage resolve | `util_*` | Reusable; no domain-specific hardcodes as universal law |
+| Domain product ops | `{{APP_NAME}}_*` | Only when product ops exist |
+
+### 2.5 Surgical change and reuse rules (portable)
+
+1. **Respect existing working functions** — high bar before rewriting protected helpers.  
+2. **Surgical edits** — change the smallest function that fulfills the request; do not rewrite the whole script.  
+3. **No merge for “cleanliness”** — do not collapse prefix boundaries or remove Protection Zones.  
+4. **Reusable helpers** marked DO NOT MODIFY remain sacred unless the user explicitly redesigns them.  
+5. **Duplicates** — if two functions with the same name exist, that is a defect; keep one authoritative definition.
+
+### 2.6 Implementation Notes (this project)
+
+| Item | Value for tmpl-to-prj |
+|------|------------------------|
+| **Product / binary** | `tmpl-to-prj` (`APP_NAME`) |
+| **Single shipped script** | Repo root `./tmpl-to-prj` (~2k lines, `#!/bin/sh`) |
+| **`src/` directory** | Present but empty — **not** a multi-file runtime layout yet |
+| **Domain prefix `tmpl-to-prj_*`** | **Not used** today (Type 0 lifecycle only; no product domain ops) |
+| **Bootstrap** | Direct execution when `${0##*/}` is `tmpl-to-prj` or `tmpl-to-prj.sh` → `app_main "$@"` |
+
+#### Live prefix inventory (authoritative categories)
+
+| Prefix | Live examples in `./tmpl-to-prj` |
+|--------|----------------------------------|
+| `out_` | `out_text`, `out_success`, `out_info`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_msg_n`, `out_empty_line`, `out_double_line`, `out_json`, `out_json_error` |
+| `inst_` | `inst_perform_install`, `inst_perform_install_prepare_target`, `inst_perform_install_download_with_checksum`, `inst_perform_install_download_without_checksum`, `inst_perform_install_atomic_install`, `inst_maybe_install`, `inst_self_update`, `inst_self_uninstall` (+ determine_bin / confirm_and_remove / cleanup_path), `inst_is_installed`, `inst_get_version` |
+| `ver_` | `ver_gt`, `ver_check` |
+| `path_` | `path_add_bashrc`, `path_add_zshrc`, `path_add_fish`, `path_add_shell` |
+| `util_` | `util_json_escape`, `util_sha256_file`, `util_fetch_remote_version`, `util_get_install_bin_path`, `util_backup`, `util_resolve_storage` (**wired** from `app_main` / `app_about`; SSOT: `requirement-shell-cli-storage.md`), `util_get_current_shell` |
+| `prompt_` | `prompt_ask`, `prompt_yes_no` |
+| `app_` | `app_about`, `app_version` (dispatcher routes `version` here), `app_help`, `app_main`, `app_default` |
+| `t2p_` | `t2p_plan`, `t2p_apply`, `t2p_folder_backup_gate`, `t2p_cmd_list_templates`, `t2p_cmd_list_projects` |
+| `util_` extra | `util_sudo`, `util_is_termux`, `util_is_git_bash`, `util_app_ident` |
+
+#### Structural notes (implementation status)
+
+| Issue | Status |
+|-------|--------|
+| Duplicate `inst_perform_install_prepare_target` | **Fixed** — single definition (2026-07-12) |
+| Nested `get_current_shell` | **Fixed** — top-level `util_get_current_shell` |
+| Thin wrappers (`out_success`, …) | **Allowed** — delegate to `out_text` SSOT |
+| Partial headers on some helpers | Improve when those helpers are touched (ongoing surgical standard) |
+
+#### New function checklist (this project)
+
+When adding a function to `./tmpl-to-prj`:
+
+1. Choose the correct prefix from §2.2 / this inventory.  
+2. Add the defensive header (full for non-trivial logic).  
+3. Add safe variable defaults.  
+4. Route user messages only through `out_*`.  
+5. Do not introduce a second install or update path.  
+6. Update this requirement’s inventory table if a **new** prefix category is introduced.  
+7. Cite `requirement-shell-modular-function-design` in the change summary.
+
+### 2.7 Why This Requirement Exists (Direct CIAO Alignment)
+
+- **CIAO Principle 1 – Caution** (https://github.com/cloudgen/ciao): Small, prefixed units with safe defaults reduce accidental cross-cutting edits.  
+- **CIAO Principle 2 – Intentional** (https://github.com/cloudgen/ciao): Prefixes encode ownership; GENERAL PURPOSE encodes why.  
+- **CIAO Principle 3 – Anti-fragile** (https://github.com/cloudgen/ciao): Focused functions can be reviewed and reused; single file survives minimal environments.  
+- **CIAO Principle 6 – Single Point of Entry** (https://github.com/cloudgen/ciao): `app_main` is the dispatcher SSOT.  
+- **CIAO Principle 7 – General Purpose Requirement** (https://github.com/cloudgen/ciao): Public helpers document GENERAL PURPOSE.  
+- **CIAO Principle 8 – Reusable Function Protection** (https://github.com/cloudgen/ciao): DO NOT MODIFY on reusable helpers.  
+- **CIAO Principle 4 (O) / Principle 20 – Over-protect / Protect Against AI & Human Modification** (https://github.com/cloudgen/ciao): Protection Zones and prefix table defend against AI “cleanup” regressions.
 
 ---
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- Single file; logical modules via prefixes.  
-- Keep `out_*` intact.  
-- Domain prefix is `t2p_`.
+- **Caution:** Prefer additive helpers over rewriting protected orchestrators.  
+- **Intentional:** Prefix = category; headers = intent; no mystery bare functions.  
+- **Anti-fragile:** Monolithic ship unit + modular internals; works under `curl | sh`.  
+- **Over-protect:** Never strip Protection Zones or merge categories for aesthetics.  
+- **Simplicity but Safety:** Simplify only non-protected, non-security paths; keep intentional verbosity in headers.  
+- **Surgical changes:** Edit the owning function; do not reformat the whole file casually.  
+- **SSOT:** Output, install, version compare, and dispatch each have one owning family.
 
 ---
 
@@ -126,45 +237,62 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Reintroduce `fb_*` or parent sudoers/backup helpers.  
-2. Flatten prefixes into bare `main` / `install` function names.  
-3. Strip Protection Zones from `out_*` or install helpers.  
-4. Cite templates or skills as product-source authority.
+1. Merge functions or remove the prefix-based grouping system.  
+2. Delete or weaken Protection Zones and `!!! DO NOT MODIFY OR SIMPLIFY THIS FUNCTION !!!` comments.  
+3. Remove or hollow out GENERAL PURPOSE / CIAO PRINCIPLES APPLIED sections on protected helpers.  
+4. Refactor the shipped CLI into multiple runtime files in a way that breaks `curl | sh` single-artifact install without an explicit redesign requirement.  
+5. Violate the official function prefix table (including inventing bare `main`/`install`/`help`).  
+6. Put domain product logic under `app_*`, or generic CLI surface under a domain-only prefix without an explicit requirement change.  
+7. Remove or weaken safe variable defaults at the top of functions.  
+8. Introduce a second parallel dispatcher or a second install/update orchestrator “for clarity.”  
+9. Leave duplicate function definitions with the same name as intentional design.  
+10. Cite `template-*.md` or `skill-*.md` in product source as behavioral authority, or invent missing `requirement-*.md` paths in headers (§2.3.1).
 
-**Violating this rule is a critical modular-design regression.**
-
----
-
-## 5. Acceptance criteria
-
-| ID | Criterion |
-|----|-----------|
-| AC-1 | Ship unit is a single file at `src/tmpl-to-prj` |
-| AC-2 | No `fb_` functions exist |
-| AC-3 | Dispatcher is `app_main` |
+**Modularity is prefixes + documentation + boundaries — not multi-file sprawl for the installable artifact.**
 
 ---
 
-## 6. Related requirements (peer keys only)
+## 5. Definition of done (shell modular function design)
 
-| Key | Relationship |
-|-----|--------------|
-| `requirement-shell-cli-interface` | Dispatch |
-| `requirement-shell-output-requirements` | `out_*` |
-| `requirement-shell-local-self-management` | `inst_*` |
-| `docs/requirements/index.md` | Registry |
+A modular-structure change for tmpl-to-prj is **not done** if any of the following fail:
 
----
-
-## 7. Status history
-
-| Date | Status | Note |
-|------|--------|------|
-| 2026-08-03 | Active 1.0.0 | folder-backup prefixes including `fb_*` |
-| 2026-08-13 | Active 2.0.0 | cli-template: no domain prefix |
+1. Every new function uses an approved prefix from this requirement.  
+2. Critical helpers retain defensive headers and Protection intent.  
+3. The ship unit remains a single `curl | sh`-compatible script unless redesign is approved.  
+4. Output remains under `out_*`; install lifecycle under `inst_*`; dispatch under `app_*`.  
+5. No bare unprefixed public functions introduced.  
+6. Inventory / this requirement updated when a new prefix category is added.  
+7. Duplicate same-name function definitions are not introduced (and known duplicates are scheduled for removal when touched).  
+8. Changes cite `requirement-shell-modular-function-design`.  
+9. Product source headers do not cite non-requirement docs as authority; any ALIGNMENT paths resolve under `docs/requirements/`.
 
 ---
 
-**Last Updated**: 2026-08-13  
-**Owner**: project maintainers  
-**Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
+## Under command line for normal user only
+
+This product may run on Termux, Git Bash, Windows cmd, or the same class (this login only).
+
+**This requirement:** prefixes stay `out_` / `inst_` / `app_` / `util_` / `prompt_` for this-login self-care. **MUST NOT** add an elevation prefix or `util_sudo` family on that class. Git Bash and Windows cmd **MUST NOT** invoke Termux `pkg`.
+
+| MUST | MUST NOT |
+|------|----------|
+| Keep helper families Type-0 self-care | Add Type 1/2 helper families while this product has no such verbs |
+
+---
+
+## 6. Related artifacts
+
+| Artifact | Role |
+|----------|------|
+| `docs/requirements/requirement-shell-cli-interface.md` | Command surface owned by `app_*` dispatch |
+| `docs/requirements/requirement-shell-self-management.md` | Lifecycle owned by `inst_*` / `ver_*` |
+| `docs/requirements/requirement-shell-idempotency.md` | Re-run safety inside ensure helpers |
+| `docs/requirements/requirement-shell-output-requirements.md` | `out_*` ownership |
+| `docs/requirements/index.md` | Registry SSOT |
+| `./tmpl-to-prj` | Implementation under modular design rules |
+
+---
+
+**Last Updated**: 2026-09-06  
+**Owner**: tmpl-to-prj project maintainers  
+**Alignment**: Registry `docs/requirements/index.md`; CIAO Principles 1, 2, 3, 6, 7, 8, 4, 20 (v2.10.2) (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

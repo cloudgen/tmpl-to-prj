@@ -12,28 +12,29 @@ This requirement is the **project Single Source of Truth** for **zero-argument (
 
 | Field | Value for tmpl-to-prj |
 |-------|-------------------------|
-| **Empty-argv type** | **Type N — Non-online-install** |
-| **Rationale** | Product is **local-only**; no `curl \| sh` channel; **TTY** empty argv shows the **main menu**; **off-TTY** empty argv shows **help**, not install-ensure |
+| **Empty-argv type** | **Hybrid** — TTY numbered menu; off-TTY Type O install-ensure |
+| **Rationale** | Origin A (`selfmanaged`) is Type O (`curl \| sh`). Domain B claims a numbered menu. **TTY** empty argv shows the **main menu**; **off-TTY** / JSON / QUIET empty argv is **install-ensure**. |
 
-Type O (online-install empty-argv = install-ensure) does **not** apply.
+Type N (off-TTY help) does **not** apply to off-TTY empty argv.
 
 ### 1.1 Human-facing
 
-**In one sentence:** On a terminal, running `tmpl-to-prj` with no words shows the numbered list; in a script it prints help.
+**In one sentence:** On a terminal, running `tmpl-to-prj` with no words shows the numbered list; under a pipe (`curl | sh`) it installs or confirms it is already installed.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
 | You / this login | Operator at a terminal | `tmpl-to-prj` then `9` |
-| The other role | Automation / pipe | `tmpl-to-prj` prints help; does not hang |
+| The other role | One-liner / automation | `curl -fsSL …/tmpl-to-prj \| sh` |
 | Not this file | What the numbered rows are | `requirement-shell-cli-default-interaction` |
 
 | Includes | Excludes |
 |----------|----------|
-| TTY menu; off-TTY help | Empty argv as install |
+| TTY menu; off-TTY Type O | Off-TTY empty argv as help |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
 | Open the menu | Empty argv on a TTY | `tmpl-to-prj` |
+| First install from the internet | Empty argv off-TTY | `curl -fsSL https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/tmpl-to-prj \| sh` |
 
 ---
 
@@ -41,31 +42,31 @@ Type O (online-install empty-argv = install-ensure) does **not** apply.
 
 ### 2.1 Single meaning of empty argv
 
-1. When **argv is empty** (`$# -eq 0` at entry to `app_main`) **and** `TTY=1`, the dispatcher **MUST** route to the main menu (`app_default`) — `requirement-shell-cli-default-interaction`.  
-2. When argv is empty **and** `TTY=0`, the dispatcher **MUST** route to **`help`** (`app_help`).  
-3. Empty argv **MUST NOT** perform install or any state-changing ensure.  
-4. Explicit `tmpl-to-prj help` remains a valid full-usage path.  
-5. Explicit `tmpl-to-prj install` remains the only first-time local install path (plus documented force refresh).  
-6. Script entry **MUST** always call `app_main "$@"` (no basename product-name gate that blocks dispatch).
+1. When **argv is empty** (`$# -eq 0` at entry to `app_main`) **and** `TTY=1` **and** not JSON/quiet, the dispatcher **MUST** route to the main menu (`app_default`) — `requirement-shell-cli-default-interaction`.  
+2. When argv is empty **and** (`TTY=0` **or** JSON **or** quiet), the dispatcher **MUST** perform **Type O install-ensure** (`inst_perform_install` / `inst_maybe_install`): not installed → install; already installed → success no-op; failure **MUST** be non-zero.  
+3. Explicit `tmpl-to-prj help` remains a valid full-usage path.  
+4. Explicit `tmpl-to-prj install` remains a valid install path.  
+5. Script entry **MUST** always call `app_main "$@"` (no basename product-name gate that blocks dispatch).
 
 ### 2.2 Normative matrix
 
 | Invocation | Behavior |
 |------------|----------|
-| `tmpl-to-prj` (no args, TTY) | Main menu; exit 0 after pick or Exit |
-| `tmpl-to-prj` (no args, off-TTY) | Show help; exit 0 |
+| `tmpl-to-prj` (no args, TTY, not JSON/quiet) | Main menu; exit 0 after pick or Exit |
+| `tmpl-to-prj` (no args, off-TTY) | Type O install-ensure |
+| `curl … \| sh` | Type O install-ensure (off-TTY) |
 | `tmpl-to-prj help` | Show help; exit 0 |
-| `tmpl-to-prj install` | Local install ensure |
-| Flags only (e.g. `--json` with no command) | **MUST** still resolve to help (or fail with clear usage if product chooses fail-closed) — default: **help** after flag parse with no command token |
+| `tmpl-to-prj install` | Install ensure (download channel) |
+| Flags only (e.g. `--json` with no command) | After flag parse with no command token: **help** (not empty argv) |
 
 ### 2.3 Implementation Notes (this project)
 
 | Item | Value |
 |------|--------|
 | **Product** | `tmpl-to-prj` |
-| **Type** | **Type N** (local-only; TTY menu is still not install-ensure) |
-| **Default COMMAND** | TTY: menu handler; off-TTY: `help` |
-| **Contrast Type O** | Type O install-ensure is **not** this origin’s empty-argv law |
+| **Type** | Hybrid: TTY menu; off-TTY Type O |
+| **Default COMMAND** | TTY: menu handler; off-TTY: install-ensure |
+| **Channel** | Config `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/tmpl-to-prj` |
 
 ### 2.4 Why This Requirement Exists (CIAO)
 
@@ -82,9 +83,9 @@ When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
 | MUST | MUST NOT |
 |------|----------|
 | Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Same empty-argv split (TTY menu / off-TTY help) | Treat empty argv as `sudo` install or `pkg` ensure |
+| Same empty-argv split (TTY menu / off-TTY Type O) | Treat empty argv as `sudo` install or `pkg` ensure |
 
-**This requirement:** empty argv still is not install-ensure on Termux.
+**This requirement:** off-TTY empty argv still installs to **user bin** on Termux (no `sudo`).
 
 Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
@@ -92,10 +93,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution**: No silent ensure on empty argv.  
-- **Intentional**: Type N declared in law.  
-- **Anti-fragile**: Help works offline.  
-- **Over-protect**: Do not reintroduce Type O without reclassifying product install mode.
+- **Caution**: Off-TTY empty argv is install-ensure; TTY empty argv is the menu.  
+- **Intentional**: Hybrid declared in law (A Type O + B menu).  
+- **Anti-fragile**: `curl \| sh` still works.  
+- **Over-protect**: Do not drop Type O off-TTY while claiming the same architecture as selfmanaged.
 
 ---
 
@@ -103,8 +104,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Change empty argv to install-ensure while the product remains local-only.  
-2. Copy Type O empty-argv law wholesale without updating this file and install mode.  
+1. Change off-TTY empty argv to help while the product remains online-installable.  
+2. Replace TTY empty argv with install-ensure (drop the numbered menu) without updating default-interaction law.  
 3. Make bare invocation run domain `backup`.
 
 **Violating this rule is a critical dispatcher regression.**
@@ -126,8 +127,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Key | Relationship |
 |-----|--------------|
 | `requirement-shell-cli-interface` | Dispatcher command table |
-| `requirement-shell-local-self-management` | Explicit install |
-| `requirement-bootstrap-chain` | Trim of Type O from parent |
+| `requirement-shell-self-management` | Explicit install |
+| `requirement-bootstrap-chain` | Inherit Type O off-TTY from selfmanaged |
 | `docs/requirements/index.md` | Registry |
 
 ---
@@ -136,7 +137,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-CLI-07** | `tests/test_cli.sh` | have |
+| **TP-CLI-07 / Type O empty argv** | `tests/test_cli.sh` · `tests/test_install_lifecycle.sh` | have |
 
 **Matrix:** `reviews/requirement-test-matrix.md`  
 **Map:** `reviews/test-plan.md`

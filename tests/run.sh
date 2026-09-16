@@ -27,8 +27,8 @@ export APP_NAME
 . "${TESTS_ROOT}/helpers.sh"
 # shellcheck source=test_cli.sh
 . "${TESTS_ROOT}/test_cli.sh"
-# shellcheck source=test_local_lifecycle.sh
-. "${TESTS_ROOT}/test_local_lifecycle.sh"
+# shellcheck source=test_install_lifecycle.sh
+. "${TESTS_ROOT}/test_install_lifecycle.sh"
 # shellcheck source=test_domain_tmpl_to_prj.sh
 . "${TESTS_ROOT}/test_domain_tmpl_to_prj.sh"
 # shellcheck source=test_termux.sh
@@ -39,6 +39,7 @@ FAIL=0
 SKIP=0
 
 _cleanup() {
+    ci_stop_channel 2>/dev/null || true
     ci_cleanup_env 2>/dev/null || true
 }
 trap _cleanup EXIT INT HUP TERM
@@ -55,7 +56,7 @@ if [ ! -x "${SCRIPT}" ]; then
 fi
 
 run_test_cli
-run_test_local_lifecycle
+run_test_install_lifecycle
 run_test_domain_tmpl_to_prj
 run_test_termux
 
