@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-interface.md  
-**Status**: Active (Version 2.1.0)  
+**Status**: Active (Version 2.3.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -38,7 +38,7 @@ Every command **MUST** map to exactly one privilege type. Unclassified commands 
 
 | Category | Privilege | Meaning |
 |----------|-----------|---------|
-| **Type 0 – CLI lifecycle + diagnostics** | Invoking user | `install`, `uninstall`, `where-is-me`, `version`, `about`, `help`, `menu`, `main` |
+| **Type 0 – CLI lifecycle + diagnostics** | Invoking user | `install`, `uninstall`, `where-is-me`, `version`, `about`, `help`, `menu`, `main`, `self-install`, `version-check`, `self-update`, `self-uninstall` |
 | **Type 0 – Domain** | Invoking user | `plan`, `apply` (in-tool sudo of sibling `folder-backup` only) |
 | **Type 1 – Narrow elevated host ops** | Controlled sudo | **Not this product’s emit** — sibling `folder-backup` |
 | **Type 2 – Dedicated system user app ops** | Dedicated app user | **Not in scope** |
@@ -76,7 +76,7 @@ Additional flags **MAY** be added only when documented here (or a superseding re
 - Usage line  
 - Every supported Type 0 command with one-line purpose  
 - Global flags  
-- Honest note that this product is local-only (no curl\|sh)
+- Local `install` (mode 0755, no network) and channel self-management (`SCRIPT_URL`). **MUST NOT** name `CHECKSUM`
 
 In JSON mode, help **MUST NOT** dump long human text; return a short structured success/note object.
 
@@ -90,10 +90,10 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | **Primary executable** | `src/tmpl-to-prj` (POSIX `/bin/sh`, single-file ship unit) |
 | **Dispatcher** | `app_main` |
 | **Output SSOT** | `out_text` + wrappers (`out_info`, `out_success`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_json`, …) |
-| **Version SSOT** | `VERSION="1.2.0"` hard-assign in ship unit |
+| **Version SSOT** | `VERSION="1.5.1"` hard-assign in ship unit |
 | **Install paths** | Global: `GLOBAL_BIN` default `/usr/local/bin`; User: `USER_BIN` default `${HOME}/.local/bin` |
-| **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` |
-| **Online channel env** | **Not product UX** (trimmed) |
+| **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` via `install` (0755) or `self-install` (0700 unless root) |
+| **Online channel** | `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` |
 | **Type 1 / Type 2 commands** | None |
 | **Dedicated system user** | Not required |
 | **About** | Type 0 plus RAM/projects roots (`requirement-domain-tmpl-to-prj`) |
@@ -107,13 +107,17 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | `uninstall` | Type 0 | `inst_local_uninstall` | Remove managed binary; confirm unless `--force` |
 | `where-is-me` | Type 0 | `app_where_is_me` | Running + install paths + installed flag |
 | `version` | Type 0 | `app_version` | Local `VERSION` only; no network |
-| `about` | Type 0 | `app_about` | Diagnostics plus RAM/projects roots |
+| `about` | Type 0 | `app_about` | Diagnostics, cache folder lines and persistence (`requirement-shell-cli-storage` 1.2.0), plus RAM/projects roots |
 | `help` | Type 0 | `app_help` | Full usage in human mode; short JSON note in JSON mode |
 | `plan` | Type 0 | `t2p_plan` | Dual mention: domain SSOT |
 | `apply` | Type 0 | `t2p_apply` | Dual mention: domain SSOT |
 | `menu` / `main` | Type 0 | `app_default` | Dual mention: default-interaction |
 | `list-templates` | Type 0 test-purpose | `t2p_cmd_list_templates` | Dual mention: domain SSOT; help lists apart |
 | `list-projects` | Type 0 test-purpose | `t2p_cmd_list_projects` | Dual mention: domain SSOT; help lists apart |
+| `self-install` | Type 0 | `inst_self_install` | Copy when `$0` is the script; download when `$0` is a shell. Not an alias of `install` |
+| `version-check` | Type 0 | `ver_check` | Local vs `SCRIPT_URL`. Fail loud if the channel is unreachable |
+| `self-update` | Type 0 | `inst_self_update` | Newer channel replaces. No silent downgrade |
+| `self-uninstall` | Type 0 | `inst_self_uninstall` | Remove managed binary; confirm unless `--force` |
 
 #### Global flags (normative wiring)
 
@@ -137,7 +141,6 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 
 #### Explicitly out of scope
 
-- Online: `version-check`, `self-update`, `self-uninstall`, channel `install` via URL  
 - Domain: `backup`, `restore`  
 - Sudoers-file: `print-sudoers`, `print-sudoers-install-script`, `remove-project-sudoers`  
 - Type 1 host-mutating setup  
@@ -163,7 +166,7 @@ When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
 | MUST | MUST NOT |
 |------|----------|
 | Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Same command table (`plan` / `apply` / `install`) | In-tool `sudo`; wrap `apt`; recommend `sudo curl \| sh`; Type 1 host setup |
+| Same command table (`plan` / `apply` / `install` / channel self-management) | In-tool `sudo`; wrap `apt`; recommend `sudo curl \| sh`; Type 1 host setup |
 | Git Bash / Windows cmd: same ceiling | Invoke Termux `pkg` because Git Bash or Windows cmd was detected |
 
 **This requirement:** owns the verb catalog. Detect helpers live on the ship unit; Termux `pkg` is `requirement-shell-termux-ish`.
@@ -188,7 +191,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 1. Add domain or sudoers verbs without a new Active requirement and explicit user order.  
 2. Change empty argv from Type N help to install-ensure.  
 3. Bypass `out_*` for user-facing messages.  
-4. Advertise an online install channel in help/about.  
+4. Hide the channel from help, or print the token `CHECKSUM` in help or about.  
 5. Collapse Type 1/2 into “just run as root.”
 
 **Violating this rule is a critical CLI-surface regression.**
@@ -215,6 +218,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | `requirement-shell-output-requirements` | `out_*` |
 | `requirement-bootstrap-chain` | Trimmed surfaces |
 | `requirement-shell-termux-ish` | Termux target |
+| `requirement-shell-cli-storage` | About cache folder and persistence lines |
 | `docs/requirements/index.md` | Registry |
 
 ---
@@ -236,9 +240,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | 2026-08-03 | Active 1.0.0 | folder-backup Type 0 + domain verbs |
 | 2026-08-13 | Active 2.0.0 | cli-template Type 0 only |
 | 2026-09-06 | Active 2.1.0 | Termux target; human-facing; empty argv AC is TTY menu / off-TTY help |
+| 2026-09-27 | Active 2.2.0 | `about` cache lines follow `requirement-shell-cli-storage` 1.2.0 (used / preferred / 1st / 2nd) |
 
 ---
 
-**Last Updated**: 2026-09-06  
+**Last Updated**: 2026-09-27  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

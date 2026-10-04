@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-zero-arguments.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-zero-arguments`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -12,8 +12,8 @@ This requirement is the **project Single Source of Truth** for **zero-argument (
 
 | Field | Value for tmpl-to-prj |
 |-------|-------------------------|
-| **Empty-argv type** | **Type N — Non-online-install** |
-| **Rationale** | Product is **local-only**; no `curl \| sh` channel; **TTY** empty argv shows the **main menu**; **off-TTY** empty argv shows **help**, not install-ensure |
+| **Empty-argv type** | **Type N — kept** |
+| **Rationale** | User order 2026-10-04: add selfmanaged self-management and **keep** tmpl-to-prj empty argv. **TTY** empty argv shows the **main menu**. **Off-TTY** empty argv shows **help**, not `inst_self_install`. Channel place is the explicit `self-install` verb |
 
 Type O (online-install empty-argv = install-ensure) does **not** apply.
 
@@ -63,7 +63,7 @@ Type O (online-install empty-argv = install-ensure) does **not** apply.
 | Item | Value |
 |------|--------|
 | **Product** | `tmpl-to-prj` |
-| **Type** | **Type N** (local-only; TTY menu is still not install-ensure) |
+| **Type** | **Type N** (TTY menu; off-TTY help; empty argv is not install-ensure) |
 | **Default COMMAND** | TTY: menu handler; off-TTY: `help` |
 | **Contrast Type O** | Type O install-ensure is **not** this origin’s empty-argv law |
 
@@ -103,7 +103,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Change empty argv to install-ensure while the product remains local-only.  
+1. Change empty argv to install-ensure. Channel place stays the explicit `self-install` verb.  
 2. Copy Type O empty-argv law wholesale without updating this file and install mode.  
 3. Make bare invocation run domain `backup`.
 

@@ -1,4 +1,4 @@
-# Review reports index — cli-template
+# Review reports index — tmpl-to-prj
 
 | Date | Report | Scope | Verdict | Suite |
 |------|--------|-------|---------|-------|

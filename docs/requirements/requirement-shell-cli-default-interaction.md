@@ -1,16 +1,16 @@
 **file**: docs/requirements/requirement-shell-cli-default-interaction.md  
-**Status**: Active (Version 1.3.0)  
+**Status**: Active (Version 1.5.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-default-interaction`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan` and `apply`. `requirement-shell-cli-zero-arguments` exists (not online-installable). **Interactive** empty argv **MUST** show this menu. **Non-interactive** empty argv **MUST** stay help. Command **`menu`** (alias **`main`**) uses the same handler.
+tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan`, `apply`, and **8** self-management. The self-management board lists **82–87**. This file merges the tmpl-to-prj domain rows with the selfmanaged menu law (2026-10-04). **Interactive** empty argv **MUST** show this menu. **Non-interactive** empty argv **MUST** stay help (Type N). Command **`menu`** (alias **`main`**) uses the same handler.
 
 ### 1.1 Human-facing
 
-**In one sentence:** At a real terminal, typing only `tmpl-to-prj` shows numbered plan/apply; in a script it prints help.
+**In one sentence:** At a real terminal, typing only `tmpl-to-prj` shows plan, apply, and self-management; in a script it prints help.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -20,7 +20,7 @@ tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan` an
 
 | Includes | Excludes |
 |----------|----------|
-| Rows `plan` and `apply`; Exit **9** | `help`, install, uninstall, where-is-me, version, about, `menu` itself |
+| Rows `plan`, `apply`, **8** self-management; Exit **9**; under **8** the rows **82–87** and **0** Back | Front-board `install`, `version`, `about`, `help`, or `menu` |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
@@ -33,7 +33,7 @@ tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan` an
 
 ### 2.1 Claim and case
 
-Claimed **yes**. Zero-argument REQ exists; product is **non-online-installable**. TTY empty argv **MUST** use this menu. Off-TTY empty argv **MUST** be help (zero-arguments).
+Claimed **yes**. Zero-argument REQ exists. Product is **dual-mode** and empty argv stays **Type N**. TTY empty argv **MUST** use this menu. Off-TTY empty argv **MUST** be help (zero-arguments). JSON or quiet empty argv **MUST NOT** open this menu and **MUST NOT** self-install.
 
 ### 2.2 `menu` / `main`
 
@@ -52,11 +52,39 @@ Header **MUST** print **`${APP_NAME}`**(*`${VERSION}`*) (app-name-version-displa
 |---|-------|-------|
 | 1 | `plan` | `plan: Show template and project roots (no writes)` |
 | 2 | `apply` | `apply: Copy harness docs from the template into the project` |
+| **8** | `self-management` | `self-management: this CLI install, version, update, uninstall` |
 | 9 | Exit | `Exit` (not a routed-verb) |
 
-N = 2 → Exit **9**. Accept number or verb. After `plan`/`apply`, when names are missing on TTY, **MUST** show a numbered **template** list then a numbered **project** list (current folder if it is a project, then `PROJECTS_ROOT`). Template rows **MUST** be unspecialized kits only (domain SSOT). Each of those pickers **MUST** print **0. Back to main menu** as the only numbered back row. **MUST NOT** print a second Back row (**9** / **99**). Choosing **0** (or the all-nines number when it is not an item) **MUST** return to this main menu and **MUST NOT** exit the process. **MUST NOT** list install/setup, self-managed, version, about, help, or test-purpose verbs (`list-templates` / `list-projects` stay off this main list).
+1. **9**, **99**, `exit`, `quit`, or an empty line on the front board **MUST** return 0.  
+2. **8** or `self-management` **MUST** open the self-management board.  
+3. A typed leaf listed under **8** (`version`, `about`, `version-check`, `self-update`, `self-uninstall`, `self-install`) **MAY** run from the front prompt, then the front board **MUST** show again.  
+4. `install` is not a listed row (**81** is reserved). Typing it on the menu is a bad pick. The CLI verb `install` stays outside the menu. `help`, `menu`, and `main` **MUST NOT** be rows.  
+5. Each command row **MUST** be `N. short: explain` via `out_menu_choice`. On a TTY the short name is bold (SGR **1**) and the explain is italic light gray (SGR **3** + **37**). Exit has no explain.  
+6. A bad pick **MUST** `out_error`, name the pick, reprint **this** layer, and read again. **MUST NOT** `out_die`.  
+7. A finished `plan`, `apply`, or self-management leaf **MUST** show the front board again. **MUST NOT** leave the program only because the command finished. Picker cancel still returns here.  
+8. After `plan`/`apply`, when names are missing on TTY, **MUST** show a numbered **template** list then a numbered **project** list (current folder if it is a project, then `PROJECTS_ROOT`). Template rows **MUST** be unspecialized kits only (domain SSOT). Each of those pickers **MUST** print **0. Back to main menu** as the only numbered back row. **MUST NOT** print a second Back row (**9** / **99**). Choosing **0** (or the all-nines number when it is not an item) **MUST** return to this main menu and **MUST NOT** exit the process.  
+9. **MUST NOT** list test-purpose verbs (`list-templates` / `list-projects`) on this main list. **MUST NOT** put `sudo` or `pkg` on the list.
 
-Handler: `app_default` / `app_default_print_menu` / `app_default_run_pick` / `util_app_ident`.
+### 2.3.1 Self-management board (parent 8)
+
+**81** `install` stays reserved and **MUST NOT** be printed. Do not renumber **82–87**.
+
+| # | Token | Label |
+|---|-------|-------|
+| **82** | `version` | `version: show current version` |
+| **83** | `about` | `about: show detailed diagnostics` |
+| **84** | `version-check` | `version-check: compare local vs remote version` |
+| **85** | `self-update` | `self-update: update tmpl-to-prj to a newer remote version` |
+| **86** | `self-uninstall` | `self-uninstall: remove tmpl-to-prj` |
+| **87** | `self-install` | `self-install: place this CLI only (copy when $0 is a script; download when piped)` |
+| **0** | Back | return to the front board |
+
+1. **0**, `back`, or an empty line **MUST** return to the front board and **MUST NOT** run a verb.  
+2. A listed number or its token **MUST** run that handler, then the **front** board **MUST** show again.  
+3. **9** is not a row on this board. It is a bad pick here.  
+4. Header **MUST** be `util_app_ident` plus `— self-management`, via `out_info`.
+
+Handler: `app_default` / `app_default_print_menu` / `app_default_print_self_menu` / `app_default_self_loop` / `app_default_run_self_leaf` / `app_default_run_pick` / `out_menu_choice` / `util_app_ident`.
 
 ### 2.4 Implementation Notes (this project)
 
@@ -82,7 +110,7 @@ When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
 | MUST | MUST NOT |
 |------|----------|
 | Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Same numbered list (`plan` / `apply` / Exit 9) | Put `install` / `sudo` / `pkg` on the menu |
+| Same numbered list (`plan` / `apply` / **8** / Exit 9, and **82–87** under **8**) | Put `install`, `sudo`, or `pkg` on the menu |
 
 **This requirement:** menu membership is unchanged on Termux.
 
@@ -101,7 +129,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 4. Protection Rule (Sacred)
 
-**MUST NOT** put install/version/about/help on the numbered list, number Exit as 3, hang CI on empty argv, print a bare `${APP_NAME}` (no parenthesized `${VERSION}`, unstyled on TTY) on the main-menu header, omit **0. Back to main menu** on TTY name pickers, print a second all-nines Back row, or treat picker **0** as process Exit.
+**MUST NOT** put `install`, `version`, `about`, `help`, or `menu` on the **front** board, print **81**, renumber **82–87**, number Exit as 3, `out_die` on a bad pick, hang CI on empty argv, print a bare `${APP_NAME}` on the main-menu header, omit **0. Back to main menu** on TTY name pickers, print a second all-nines Back row, or treat picker **0** as process Exit.
 
 ---
 
@@ -121,9 +149,12 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 |----------------|-------|--------|
 | **TP-TMPL-TO-PRJ-10** | `tests/test_domain_tmpl_to_prj.sh` | have |
 | **TP-CLI-07** | `tests/test_cli.sh` | have (off-TTY empty argv = help) |
-| **TP-CLI-17** | `tests/test_cli.sh` | have (menu header `${APP_NAME}(${VERSION})` bold/italic on TTY) |
+| **TP-CLI-17** | `tests/test_cli.sh` | have (menu header `${APP_NAME}(${VERSION})` bold/italic on TTY; row 8) |
+| **TP-CLI-26** | `tests/test_cli.sh` | have (board 82–87, 0 Back, no 81) |
+| **TP-CLI-27** | `tests/test_cli.sh` | have (finished 82 redisplays the front board) |
+| **TP-CLI-28** | `tests/test_cli.sh` | have (bad pick reprints; process stays up) |
 | **TP-TMPL-TO-PRJ-19** | `tests/test_domain_tmpl_to_prj.sh` | have (TTY picker **0** returns to main menu; no duplicate 9 Back row) |
 
-**Last Updated**: 2026-09-03  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

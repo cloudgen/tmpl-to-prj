@@ -4,6 +4,42 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] - 2026-10-04
+
+### Fixed
+
+- **INC-20261004-002**: After the folder-backup gate passed, a non-zero `folder-backup backup` was reported as “check sudoers argv (backup *)”. The gate had already proved that argv. Apply still stops before overlay. The Next line points at the folder-backup error already printed. The 1421 != 1418 count on a tree with symlinks stays a sibling folder-backup comparison (`find -type f` versus non-directory tar members) and is not changed here. Law: `requirement-domain-tmpl-to-prj` **1.7.1**. Suite **TP-TMPL-TO-PRJ-26**.
+
+## [1.5.0] - 2026-10-04
+
+### Added
+
+- Self-management from sibling **selfmanaged** (bootstrap A → this product, A stays unchanged): `self-install`, `version-check`, `self-update`, `self-uninstall`, and companion `${SCRIPT_URL}.sha256`. Channel default: `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj`.
+- Main menu merge: front rows **1** plan, **2** apply, **8** self-management, **9** Exit. Under **8**: **82** version, **83** about, **84** version-check, **85** self-update, **86** self-uninstall, **87** self-install, **0** Back. **81** stays hidden. A finished command returns to the front board. A bad pick reprints that board.
+
+### Kept
+
+- Off-TTY empty argv is still help (Type N). `install` / `uninstall` / `where-is-me` stay the local copy at mode **0755** and are not aliases of `self-install` (non-root self-install is mode **0700**).
+- `plan` / `apply`, dest specialized-docs preserve, folder-backup gate (root or NOPASSWD `backup *` only; no password sudo), Termux / Git Bash / Windows cmd privilege freeze, and template/project picker **0** back.
+
+## [1.4.0] - 2026-10-04
+
+### Fixed
+
+- **INC-20261004-001**: `apply` asked for a sudo password when `folder-backup` was installed and this login had no proven backup right. The gate now tests that the `folder-backup` binary exists and otherwise skips it (local dest-docs snapshot). When the binary exists, dest backup runs only if this login is root or a sudoers fragment (or `sudo -n -l`) grants NOPASSWD `folder-backup backup *` (`sudo -n` only). Otherwise apply stops before overlay and tells the operator to use `folder-backup` to submit a request and create a sudoer file fragment for a later backup (`print-sudoers`, then `generate-sudoer-request`, then `submit-sudoer-request`). A terminal is not a grant. Law: `requirement-domain-tmpl-to-prj` **1.7.0**, `requirement-shell-sudo-command` **1.4.0**. Suite **TP-TMPL-TO-PRJ-24..25**.
+
+## [1.3.0] - 2026-09-27
+
+### Changed
+
+- Cache folder is per login and per process. Linux: `/dev/shm/cache/cache-${APP_NAME}-${login}-$$`, then `/tmp/cache/...`, then `${HOME}/.cache/cache-${APP_NAME}-$$`. Git Bash: `/tmp/cache/...`, then `${HOME}/AppData/Local/Temp/cache-${APP_NAME}-$$` (no 2nd fallback). Mac: `/tmp/cache/...`, then `~/Library/Caches/...`, then `~/cache/cache-${APP_NAME}-$$`. A skipped tier is silent. Persistence is `${HOME}/.local/tmpl-to-prj`. `about` prints Cache folder used, preferred, 1st fallback, 2nd fallback when that host has one, and Persistence storage. Law: `requirement-shell-cli-storage` **1.2.0**.
+
+## [1.2.1] - 2026-09-10
+
+### Fixed
+
+- **Apply wiped dest specialized `docs/` folders** other than requirements. Overlay now `mv`s dest `docs/incidents/`, `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, and dest `docs/reviews/` aside with `docs/requirements/`, then restores each folder dest **had**. Kit placeholders stay only when dest lacked that directory. Portable folders (skills, terms, templates, policies, human-intro, dest `docs/README.md`) still come from the kit. Law: `requirement-domain-tmpl-to-prj` **1.6.0**. Suite **TP-TMPL-TO-PRJ-20..23**. Incident class **INC-20260910-001**.
+
 ## [1.2.0] - 2026-09-06
 
 ### Added

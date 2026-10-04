@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-sudo-command.md  
-**Status**: Active (Version 1.3.0)  
+**Status**: Active (Version 1.4.0)  
 **Area**: shell  
 **Key**: `requirement-shell-sudo-command`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -10,11 +10,11 @@ This requirement is the **product Single Source of Truth** for **in-tool sudo** 
 
 ### 1.1 Human-facing
 
-**In one sentence:** When dest backup needs root, this CLI calls `sudo folder-backup backup <project-root>` after proving the matching sudoers line — it never `sudo cp`s docs itself.
+**In one sentence:** When dest backup needs root, this CLI runs `folder-backup backup <project-root>` as root, or `sudo -n folder-backup backup <project-root>` after a NOPASSWD `backup *` line — it never asks for a sudo password and it never `sudo cp`s docs itself.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Operator | Matching NOPASSWD or a terminal password |
+| You / this login | Operator | Already root, or a matching NOPASSWD fragment |
 | The other role | Sibling `folder-backup` | The elevated program |
 | Not this file | Overlay of docs | `requirement-domain-tmpl-to-prj` |
 
@@ -37,7 +37,7 @@ C0–C6 (check before sudo + wrap):
 | **C0** | Every in-tool `sudo` is this wrap. chmod is **not** this product’s elev case. |
 | **C1** | Probe is **already-root** (`id -u` = 0). **MUST NOT** use `[ -O dest]` to skip `folder-backup backup` (deposit still needs root). |
 | **C2** | Probe match → **MUST NOT** `sudo`. |
-| **C3** | Probe miss → `util_sudo` may run the allow-table argv. `sudo -n` **only** when that row is NOPASSWD and matches the full argv. Else TTY password `sudo`. |
+| **C3** | Probe miss and not root → `util_sudo` may run the allow-table argv **only** when that row is NOPASSWD and matches the full argv, via `sudo -n`. A TTY password `sudo` is forbidden (**INC-20261004-001**). No matching NOPASSWD → fail closed. Next: use sibling `folder-backup` to submit a request and create a sudoer file fragment for a later backup. |
 | **C4** | **MUST NOT** probe `sudo true` / `sudo mkdir` / `sudo cp` / `sudo ls` / `sudo stat`. |
 | **C5** | Already-root **MUST** run the argv without `sudo`. |
 | **C6** | Exactly one wrap (`util_sudo`). **MUST NOT** scatter `sudo`. |
@@ -46,12 +46,12 @@ Also:
 
 1. **MUST** publish a **sudo allow table** from a **studied** fragment (`print-sudoers` dest, readable file, or `sudo -n -l`). **MUST NOT** guess dest or argv.  
 2. This wrap **MUST** pass only the allow-table row with **This wrap? = yes**.  
-3. **MUST NOT** hang on a password under `--json` / non-TTY when no matching NOPASSWD exists — fail closed with Next.  
+3. **MUST NOT** ask for a sudo password in any mode, including a TTY. No matching NOPASSWD and not root → fail closed with Next (submit a request and create the sudoer file fragment). Missing `folder-backup` skips the wrap (local dest-docs snapshot).  
 4. Fixture `T2P_BACKUP_NOSUDO=1` **MAY** skip sudo (CI stub). Production apply **MUST NOT** set that flag.  
 5. This CLI **MUST NOT** emit sudoers. Sibling `print-sudoers` is the emit path. Create-sudoers / sudoers-content checklists are **N/A**.  
 6. On a **command line for normal user only** (Termux, Git Bash, Windows cmd), `util_sudo` **MUST** return non-zero **without** invoking `sudo`. Folder-backup gate **MUST** be **missing** (local dest-docs snapshot). **MUST NOT** recommend `sudo` as Next on that class.
 
-Worked wrap (C5 then password `sudo`; NOPASSWD uses `sudo -n` only for the allow-table row):
+Worked wrap (C5 when already root; otherwise `sudo -n` only for the NOPASSWD allow-table row):
 
 ```sh
 util_sudo() {
@@ -60,7 +60,7 @@ util_sudo() {
         return $?
     fi
     command -v sudo >/dev/null 2>&1 || return 1
-    sudo "$@"
+    sudo -n "$@"
 }
 ```
 
@@ -86,7 +86,7 @@ Sibling fragment **also** lists `restore *`. That is **not** this wrap. `print-s
 - **Principle 10 – Least privilege**: One sibling argv, not OS tools.  
 - **Principle 1 – Caution**: Check before sudo (C0–C6).  
 - **Principle 9**: Elevation is the sibling’s Type 1 surface, not this product’s emit.  
-- **Principle 16**: Off-TTY / `--json` must not hang on a password.
+- **Principle 16**: No mode, including a TTY, may hang on a sudo password.
 
 ---
 
@@ -117,7 +117,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 4. Protection Rule (Sacred)
 
-**MUST NOT** emit sudoers, wrap `cp`/`rm`/`tar`/`restore`/`--json` with sudo, guess fragment dest or argv, treat a missing `/etc/{{username}}/folder-backup` as verb-only, skip detect of `/etc/sudoers.d/folder-backup-{{username}}` when the global binary exists on a POSIX host, or invoke `sudo` when Termux / Git Bash / Windows cmd is detected.
+**MUST NOT** emit sudoers, wrap `cp`/`rm`/`tar`/`restore`/`--json` with sudo, guess fragment dest or argv, treat a missing `/etc/{{username}}/folder-backup` as verb-only, skip detect of `/etc/sudoers.d/folder-backup-{{username}}` when the global binary exists on a POSIX host, invoke `sudo` when Termux / Git Bash / Windows cmd is detected, or run password `sudo` (no `-n`) for dest backup. A TTY is not a grant.
 
 ---
 
@@ -137,6 +137,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 |----------------|-------|--------|
 | **TP-TMPL-TO-PRJ-07** | `tests/test_domain_tmpl_to_prj.sh` | have (observed verb-only fail) |
 | **TP-TMPL-TO-PRJ-14..16** | `tests/test_domain_tmpl_to_prj.sh` | have (star dest / unproven ≠ verb-only) |
+| **TP-TMPL-TO-PRJ-24..25** | `tests/test_domain_tmpl_to_prj.sh` | have (TTY and password grant do not invoke `sudo`; NOPASSWD uses `sudo -n`. **INC-20261004-001**) |
 | **TP-TX-06** / **TP-TX-07** | `tests/test_termux.sh` | have (Termux / Git Bash: stub `sudo` not invoked) |
 
 Checklist gates (IDs; filled basenames, no harness folder prefix):
@@ -148,6 +149,6 @@ Checklist gates (IDs; filled basenames, no harness folder prefix):
 | **CL-CREATE-SUDOERS-SECURITY** | n/a — this CLI does not emit sudoers |
 | **CL-SUDOERS-FILE-CONTENT** | n/a — this CLI does not emit sudoers |
 
-**Last Updated**: 2026-09-06  
+**Last Updated**: 2026-10-04 (1.4.0 no sudo password; root or NOPASSWD `backup *`. **INC-20261004-001**)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

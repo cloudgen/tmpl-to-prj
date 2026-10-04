@@ -1,16 +1,16 @@
 **file**: docs/requirements/requirement-domain-tmpl-to-prj.md  
-**Status**: Active (Version 1.4.0)  
+**Status**: Active (Version 1.7.1)  
 **Area**: domain  
 **Key**: `requirement-domain-tmpl-to-prj`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable harness docs** from a **genesis-template or subclass** (template-name) into a **named dest project** (project-name), **preserving dest `docs/requirements/`**.
+This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable harness docs** from a **genesis-template or subclass** (template-name) into a **named dest project** (project-name), **preserving dest specialized `docs/` folders**.
 
 ### 1.1 Human-facing
 
-**In one sentence:** You name a template kit and a project; this CLI copies the kit’s `docs/` onto the project and puts the project’s own requirements folder back.
+**In one sentence:** You name a template kit and a project; this CLI copies the kit’s `docs/` onto the project and puts the project’s own specialized docs folders back.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -21,7 +21,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | Includes | Excludes |
 |----------|----------|
 | RAM-first resolve of both names | Overlay of dest `src/`, tests, root README, `AGENTS.md` |
-| `mv` dest `docs/requirements/` aside before copy | Emptying dest product law to match genesis |
+| `mv` dest specialized `docs/` folders aside before copy | Emptying dest product law, postmortems, filled checklists, live grants, or housekeeping summaries to match genesis |
 | folder-backup dest backup when the gate passes | This product emitting its own sudoers |
 
 | Surface | What you open | What for |
@@ -32,7 +32,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
 | Preview roots | No writes | `tmpl-to-prj plan sh-cli-template grok-cli` |
-| Apply the hop | Dest docs replaced; dest requirements kept | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
+| Apply the hop | Dest docs replaced; dest specialized docs folders kept | `tmpl-to-prj apply --force sh-cli-template grok-cli` |
 | Pick from lists | Terminal shows unspecialized kits, then current folder / `~/prjs`; **0** returns to the main menu | `tmpl-to-prj` then `2` then `0` |
 
 ---
@@ -44,7 +44,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | Command | Handler | Type | Behavior |
 |---------|---------|------|----------|
 | `plan` | `t2p_plan` | Type 0 | Resolve names, detect hosts, folder-backup gate, counts. **No** `mv` / `rm` / copy |
-| `apply` | `t2p_apply` | Type 0 | Confirm (unless `--force`) → backup dest → overlay docs → restore requirements |
+| `apply` | `t2p_apply` | Type 0 | Confirm (unless `--force`) → backup dest → overlay docs → restore dest specialized docs folders |
 | `menu` / `main` | `app_default` | Type 0 | Numbered list; then TTY template list and project list |
 | `list-templates` | `t2p_cmd_list_templates` | Type 0 test-purpose | Print genesis-shaped kits; no writes |
 | `list-projects` | `t2p_cmd_list_projects` | Type 0 test-purpose | Print current folder (if a project) and `PROJECTS_ROOT` children |
@@ -108,12 +108,14 @@ Sibling binary `{{GLOBAL_BIN}}/folder-backup` (override `T2P_FOLDER_BACKUP`). Co
 | `sudo -n -l` listing `folder-backup backup *` | skipped when `T2P_SUDOERS_FILE` or `T2P_SUDOERS_D_DIR` is set |
 | Explicit file | `T2P_SUDOERS_FILE` (tests; exclusive) |
 
+Check order on apply and plan: **existence of** `folder-backup` **first**. If the global binary is missing or `version` fails, **skip** folder-backup (local dest-docs snapshot). If it exists, backup runs only when this login **is root** or **has the sudoers file** (or `sudo -n -l`) with the corresponding right: NOPASSWD `folder-backup backup *`. This product **MUST NOT** ask for a sudo password.
+
 | Gate | Meaning | apply |
 |------|---------|-------|
-| **missing** | Global binary not executable / version fails | Local dest-docs snapshot under dest `.t2p-docs-backup-<stamp>`; honest that it dies with `$HOME` wipe |
-| **narrow** | Binary exists; a readable fragment or `sudo -l` listing **shows** verb-only `backup` (no `*`) | **Fail closed**. Next: sibling `folder-backup print-sudoers` |
-| **unproven** | Binary exists; no `backup *` and no observed verb-only; off-TTY / `--json` | **Fail closed**. Honest Next: TTY `sudo folder-backup backup {{DEST_ROOT}}`. **MUST NOT** call this verb-only. **MUST NOT** treat a missing `/etc/{{username}}/folder-backup` as narrow |
-| **pass** | Fragment or `sudo -n -l` allows `folder-backup backup *`, **or** TTY (not JSON) and not observed verb-only | `sudo {{GLOBAL_BIN}}/folder-backup backup {{DEST_ROOT}}`; require success. Matching NOPASSWD → `sudo -n` allowed. **MUST NOT** also create `.t2p-docs-backup-*` |
+| **missing** | Global binary not executable / version fails | **Skip** folder-backup. Local dest-docs snapshot under dest `.t2p-docs-backup-<stamp>`; honest that it dies with `$HOME` wipe. **MUST NOT** invoke `sudo` |
+| **narrow** | Binary exists; a readable fragment or `sudo -n -l` listing **shows** verb-only `backup` (no `*`) | **Fail closed**. Next: sibling `folder-backup print-sudoers` |
+| **unproven** | Binary exists; this login is not root; no NOPASSWD `backup *` (no fragment, unreadable fragment, or a password-only grant). A TTY does not change this | **Fail closed** before overlay. **MUST NOT** run password `sudo`. Next: use `folder-backup` to submit a request and create a sudoer file fragment for a later backup (`print-sudoers`, then `generate-sudoer-request`, then `submit-sudoer-request`). **MUST NOT** call this verb-only. **MUST NOT** treat a missing `/etc/{{username}}/folder-backup` as narrow |
+| **pass** | This login is root (`id -u` = 0), **or** a fragment or `sudo -n -l` allows NOPASSWD `folder-backup backup *` | Root: `folder-backup backup {{DEST_ROOT}}` with no `sudo`. Else: `sudo -n {{GLOBAL_BIN}}/folder-backup backup {{DEST_ROOT}}`. Require success. **MUST NOT** also create `.t2p-docs-backup-*`. If that command exits non-zero, fail closed before overlay. **MUST NOT** name sudoers argv as the next step (the gate already proved the right). Next: read the folder-backup error already printed and re-run apply after that backup succeeds (**INC-20261004-002**) |
 
 **MUST NOT** auto-write `/etc`. **MUST NOT** invent `sudo cp` / `mkdir` / `tar`. **MUST NOT** use host `(ALL:ALL) ALL` from a non-TTY session. Another user’s sudoers file is **not** sufficient.
 
@@ -123,14 +125,33 @@ v1 backs up **dest** (the mutated tree). Help **MAY** mention optional source ba
 
 #### Overlay (sacred preserve)
 
-1. `mv` dest `docs/requirements/` aside (storage tmp).  
-2. Remove dest `docs/`.  
-3. Copy template `docs/` to dest `docs/`.  
-4. Remove the **copied** `docs/requirements/` (template registry **MUST NOT** remain).  
-5. `mv` dest requirements back.  
-6. On failure after aside: restore requirements; fail closed.
+Specialized dest `docs/` folders (keep when dest **had** that directory):
 
-**MUST NOT** copy dest `AGENTS.md`, `src/`, `tests/`, `reviews/`, root README/CHANGELOG/LICENSE/SECURITY.
+| Dest folder | Why keep |
+|-------------|----------|
+| `docs/requirements/` | Product law |
+| `docs/incidents/` | Postmortems (`INC-20260910-001`) |
+| `docs/checklists/` | Filled audit runs (not blank `docs/templates/checklists/`) |
+| `docs/whitelists/` | Live exception grants |
+| `docs/housekeeping/` | Local cadence summaries |
+| `docs/reviews/` | Dest TP map when it lives under `docs/` (product-root `reviews/` is already outside overlay) |
+
+Recipe:
+
+1. `mv` dest `docs/requirements/` aside (storage tmp) when that directory exists.  
+2. For each other specialized dest folder in the table: `mv` dest `docs/<name>/` aside when that directory exists.  
+3. Remove dest `docs/`.  
+4. Copy template `docs/` to dest `docs/`.  
+5. Remove the **copied** `docs/requirements/` (template registry **MUST NOT** remain).  
+6. `mv` dest requirements back when dest had that directory.  
+7. For each other specialized folder dest **had**: remove the **copied** `docs/<name>/` (kit placeholder **MUST NOT** replace dest bodies) and `mv` dest folder back. If dest had **no** such directory, keep the copied template placeholder.  
+8. On failure after aside: restore every asided dest folder; fail closed.
+
+Portable dest folders **MUST** be replaced from the kit: `docs/skills/`, `docs/terminologies/`, `docs/templates/`, `docs/policies/`, `docs/human-intro/`, dest `docs/README.md` (then warn: rebind maps).
+
+**MUST NOT** copy dest `AGENTS.md`, `src/`, `tests/`, product-root `reviews/`, root README/CHANGELOG/LICENSE/SECURITY.
+
+**MUST NOT** wipe dest `incident-*.md` bodies (or dest `docs/incidents/README.md`) while leaving dest `AGENTS.md` (which may list those IDs). That split is the INC-20260910-001 class (grok-cli dest map vs disk). The same class applies to dest filled checklists, live whitelist grants, housekeeping summaries, and dest `docs/reviews/` when dest had those directories.
 
 After apply, dest `docs/README.md` **MAY** still describe the source kit. **MUST** warn: rebind dest maps in an agent session. This CLI **MUST NOT** impersonate that rebind.
 
@@ -167,10 +188,10 @@ tmpl-to-prj menu
 ### 2.6 Why This Requirement Exists (CIAO)
 
 - **Principle 1 – Caution**: Detect existence; sudoers exact argv; refuse home/root.  
-- **Principle 2 – Intentional**: Two names; mv requirements so genesis overlay cannot own dest law.  
+- **Principle 2 – Intentional**: Two names; mv dest specialized docs folders so genesis overlay cannot own dest law, postmortems, filled audits, live grants, or housekeeping summaries.  
 - **Principle 5 – Output SSOT**: `out_*`.  
 - **Principle 12 – Backup**: Prefer sibling global backup of dest.  
-- **Principle 16 – Interactive**: Guided names; no hang under JSON.
+- **Principle 16 – Interactive**: Guided names; no hang under JSON; no sudo password prompt on a TTY.
 
 ---
 
@@ -192,10 +213,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution:** Fail closed on missing names, refused paths, grant-too-narrow.  
-- **Intentional:** Recipe is dest-docs replace + restore requirements.  
-- **Anti-fragile:** Restore requirements if copy fails; local snapshot only when binary missing.  
-- **Over-protect:** Never delete dest project root; never emit sudoers.
+- **Caution:** Fail closed on missing names, refused paths, grant-too-narrow, and an unproven backup right (including on a TTY).  
+- **Intentional:** Recipe is dest-docs replace + restore dest specialized docs folders. Folder-backup runs only for root or a NOPASSWD `backup *` fragment.  
+- **Anti-fragile:** Restore those dest folders if copy fails; local snapshot only when the folder-backup binary is missing.  
+- **Over-protect:** Never delete dest project root; never emit sudoers; never ask for a sudo password.
 
 ---
 
@@ -205,16 +226,19 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 1. Default dest to `$PWD` instead of **project-name**.  
 2. Overlay dest `docs/requirements/` with the template registry.  
+2a. Overlay dest `docs/incidents/` (bodies or dest README) with the template genesis incidents placeholder when dest had that directory.  
+2b. Overlay dest `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, or dest `docs/reviews/` with the kit placeholder when dest had that directory.  
 3. Skip the folder-backup gate when the global binary exists.  
 4. Treat verb-only sudoers `backup` as authorizing `backup <folder>`.  
 5. Treat a missing `/etc/{{username}}/folder-backup` as verb-only / grant-too-narrow when sibling dest is `/etc/sudoers.d/folder-backup-<user>`.  
-6. Skip TTY `sudo folder-backup backup <dest>` after a grep miss at a guessed path.  
+6. Ask for a sudo password, or treat a TTY as a grant, when this login is not root and NOPASSWD `backup *` is not proven. A missing fragment stays **unproven** and stops apply. Next names sibling `folder-backup` submit-a-request and creating the sudoer file fragment (`print-sudoers`, `generate-sudoer-request`, `submit-sudoer-request`).  
 7. Dual-write RAM and hard-disk for the same basename.  
 8. Copy dest `AGENTS.md` / ship unit from the template.  
 9. Invent OS-tool sudo or this product’s `print-sudoers`.  
 10. Archive the template and call that the apply dest backup.  
 11. List a specialized product as a template because `docs/README.md` still says Template name / genesis-template.  
-12. Omit **0. Back to main menu** on TTY template or project pickers, print a second all-nines Back row, or treat that choice as Exit of the process.
+12. Omit **0. Back to main menu** on TTY template or project pickers, print a second all-nines Back row, or treat that choice as Exit of the process.  
+13. After gate **pass**, tell the operator to check sudoers argv because `folder-backup backup` exited non-zero. Overlay stays forbidden. The Next step is the folder-backup error already printed (**INC-20261004-002**).
 
 ---
 
@@ -234,9 +258,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-TMPL-TO-PRJ-01..19** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back) |
+| **TP-TMPL-TO-PRJ-01..26** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo`; NOPASSWD uses `sudo -n`. **INC-20261004-001**; **26**: pass gate and a failed backup do not say to check sudoers. **INC-20261004-002**) |
 | **TP-TX-06** | `tests/test_termux.sh` | have (Termux apply: no `sudo`; local snapshot) |
 
-**Last Updated**: 2026-09-06  
+**Last Updated**: 2026-10-04 (1.7.1 pass-gate backup failure is not a sudoers miss. **INC-20261004-002**)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

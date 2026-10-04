@@ -3,9 +3,9 @@
 Maps **TP-*** coverage to `tests/`.  
 **Suite entry:** `./tests/run.sh`  
 **Ship unit:** `src/tmpl-to-prj`  
-**Product VERSION:** 1.2.0  
-**Last plan update:** 2026-09-06  
-**Last suite run:** PASS=175 FAIL=0 SKIP=0 (2026-09-06)
+**Product VERSION:** 1.5.1  
+**Last plan update:** 2026-10-04  
+**Last suite run:** PASS=291 FAIL=0 SKIP=0 (2026-10-04)
 
 Status: **have** = automated today · **todo** = needed · **optional** · **n/a** · **skip** (environment)
 
@@ -19,14 +19,14 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | version / help / about human + JSON | have | TP-CLI-02..06 |
 | Off-TTY empty argv = help | have | TP-CLI-07 |
 | Unknown + quiet + set -u HOME | have | TP-CLI-08..11 |
-| Storage isolation | have | TP-CLI-12 |
-| No online verbs / no SCRIPT_URL UX | have | TP-CLI-04, TP-CLI-10 |
+| Cache folder isolation (login + process; silent fallback; persistence) | have | TP-CLI-06, TP-CLI-12 |
+| Channel verbs; unreachable channel fails loud | have | TP-CLI-04, TP-CLI-10 |
 | Trimmed parent verbs fail closed | have | TP-CLI-13 |
 | Main-menu header APP_NAME(VERSION) bold/italic | have | TP-CLI-17 |
 | Local install / idempotent / uninstall / mode 0755 | have | TP-LC-01..10 |
 | Backup / restore / sudoers emit | n/a | Absent by design (Type 0 template; not a backup product) |
-| Online curl / companion checksum | n/a | Local-only product |
-| Domain harness-docs hop | have | TP-TMPL-TO-PRJ-01..19 |
+| Channel place, self-update, companion name absent from help | have | TP-CLI-04, TP-CLI-10, TP-CLI-29, TP-CLI-30 |
+| Domain harness-docs hop | have | TP-TMPL-TO-PRJ-01..23 |
 | Termux target / normal-user-only | have | TP-TX-01,02,06,07,08 |
 
 ### TP-TMPL-TO-PRJ (domain)
@@ -37,7 +37,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-02 | missing template fails | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-03 | RAM-drive wins over hard-disk | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-04 | plan does not mutate dest | test_domain | requirement-domain-tmpl-to-prj | **have** |
-| TP-TMPL-TO-PRJ-05 | apply keeps dest requirements and root README | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-05 | apply keeps dest specialized docs folders and root README | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-06 | template requirements do not remain | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-07 | observed verb-only fails closed | test_domain | requirement-shell-sudo-command | **have** |
 | TP-TMPL-TO-PRJ-08 | missing folder-backup uses local snapshot | test_domain | requirement-domain-tmpl-to-prj | **have** |
@@ -48,10 +48,17 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-13 | list-projects current folder + PROJECTS_ROOT | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-14 | `backup *` at `T2P_SUDOERS_FILE` is pass | test_domain | requirement-domain-tmpl-to-prj · INC-20260902-001 | **have** |
 | TP-TMPL-TO-PRJ-15 | `backup *` at sudoers.d `folder-backup-<user>` is pass | test_domain | requirement-shell-sudo-command · INC-20260902-001 | **have** |
-| TP-TMPL-TO-PRJ-16 | missing dest is unproven, not verb-only | test_domain | requirement-domain-tmpl-to-prj · INC-20260902-001 | **have** |
+| TP-TMPL-TO-PRJ-16 | missing dest is unproven, not verb-only; Next is submit a request and create the fragment | test_domain | requirement-domain-tmpl-to-prj · INC-20261004-001 | **have** |
 | TP-TMPL-TO-PRJ-17 | specialized product / incidents / tests are not templates | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-18 | list-templates has no Back row | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-19 | TTY picker 0 returns to main menu (no duplicate 9 Back row) | test_domain | requirement-shell-cli-default-interaction | **have** |
+| TP-TMPL-TO-PRJ-20 | dest incident bodies survive apply; kit incidents README is not dest SSOT | test_domain | requirement-domain-tmpl-to-prj · INC-20260910-001 | **have** |
+| TP-TMPL-TO-PRJ-21 | dest with no incidents dir keeps template incidents placeholder | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-22 | dest filled checklists / whitelists / housekeeping / docs/reviews survive apply | test_domain | requirement-domain-tmpl-to-prj · INC-20260910-001 | **have** |
+| TP-TMPL-TO-PRJ-23 | dest without those dirs keeps kit placeholders | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-24 | TTY and a password `backup *` grant do not invoke `sudo`; plan stays unproven | test_domain | requirement-domain-tmpl-to-prj · requirement-shell-sudo-command · INC-20261004-001 | **have** |
+| TP-TMPL-TO-PRJ-25 | NOPASSWD `backup *` apply uses `sudo -n` | test_domain | requirement-shell-sudo-command · INC-20261004-001 | **have** |
+| TP-TMPL-TO-PRJ-26 | Pass gate and a failed backup do not say to check sudoers; dest is not overlaid | test_domain | requirement-domain-tmpl-to-prj · INC-20261004-002 | **have** |
 
 ---
 
@@ -64,17 +71,22 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-CLI-01 | `sh -n` ship unit | `tests/test_cli.sh` | requirement-shell-cli-interface | **have** |
 | TP-CLI-02 | version human | test_cli | requirement-shell-cli-interface | **have** |
 | TP-CLI-03 | version JSON | test_cli | requirement-shell-output-requirements | **have** |
-| TP-CLI-04 | help local verbs; no online; no backup/restore/sudoers | test_cli | requirement-shell-cli-interface · bootstrap-chain | **have** |
+| TP-CLI-04 | help lists local and channel verbs; no `CHECKSUM`; no backup/restore/sudoers | test_cli | requirement-shell-cli-interface · requirement-shell-automatic-checksum | **have** |
 | TP-CLI-05 | help JSON short | test_cli | requirement-shell-output-requirements | **have** |
-| TP-CLI-06 | about JSON storage; no domain fields | test_cli | requirement-shell-cli-storage | **have** |
+| TP-CLI-06 | about JSON cache + persistence; human Cache folder labels; no domain fields | test_cli | requirement-shell-cli-storage | **have** |
 | TP-CLI-07 | off-TTY empty argv help | test_cli | requirement-shell-cli-zero-arguments | **have** |
 | TP-CLI-08 | unknown fail-closed | test_cli | requirement-shell-cli-interface | **have** |
 | TP-CLI-09 | quiet suppresses version | test_cli | requirement-shell-output-requirements | **have** |
-| TP-CLI-10 | online verbs rejected | test_cli | requirement-bootstrap-chain | **have** |
+| TP-CLI-10 | unreachable `SCRIPT_URL` on self-update and version-check fails loud | test_cli | requirement-shell-self-management | **have** |
 | TP-CLI-11 | env -u HOME version | test_cli | class / defensive | **have** |
-| TP-CLI-12 | storage isolation | test_cli | requirement-shell-cli-storage | **have** |
+| TP-CLI-12 | cache leaves (Linux / Git Bash / Mac), silent skip, persistence, mode 0700 | test_cli | requirement-shell-cli-storage | **have** |
 | TP-CLI-13 | backup/restore/sudoers verbs unknown | test_cli | requirement-bootstrap-chain · interface | **have** |
 | TP-CLI-17 | TTY menu header `${APP_NAME}(${VERSION})` bold/italic | test_cli | requirement-shell-cli-default-interaction | **have** |
+| TP-CLI-26 | Self-management board 82–87 and 0 Back; 81 hidden | test_cli | requirement-shell-cli-default-interaction | **have** |
+| TP-CLI-27 | Finished leaf redisplays the front board | test_cli | requirement-shell-cli-default-interaction | **have** |
+| TP-CLI-28 | Bad pick reprints this layer | test_cli | requirement-shell-cli-default-interaction | **have** |
+| TP-CLI-29 | `self-install` copies `$0` at mode 0700; `install` stays 0755 | test_cli | requirement-shell-cli-self-install | **have** |
+| TP-CLI-30 | Downgrade refused; newer channel replaces; JSON uninstall needs `--force` | test_cli | requirement-shell-self-management · requirement-shell-cli-self-install | **have** |
 
 ### TP-LC (local lifecycle)
 
@@ -109,5 +121,5 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 
 1. Closing a **bug** finding updates the matching TP to **have**.  
 2. Do not mark TP **have** without a suite assertion (or honest skip/n/a).  
-3. Do not reintroduce online TP-CURL/TP-CSUM or TP-FOLDER-BACKUP as Core without product-mode change.  
-4. Do not add domain TP families or a `setup` verb — this product is Type 0 only.
+3. Channel coverage stays on TP-CLI-04, TP-CLI-10, TP-CLI-29, and TP-CLI-30. Do not add this product’s backup, restore, or print-sudoers as Core.  
+4. Do not add a `setup` verb — empty argv stays the numbered list or help.

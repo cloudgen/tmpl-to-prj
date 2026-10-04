@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-project-folder.md  
-**Status**: Active (Version 2.1.0)  
+**Status**: Active (Version 2.2.0)  
 **Area**: architecture  
 **Key**: `requirement-project-folder`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -63,14 +63,16 @@ Rules:
 
 | Purpose | Pattern |
 |---------|---------|
-| Effective storage root | From `util_resolve_storage` (see `requirement-shell-cli-storage`) |
-| Install staging | `mktemp` under the effective storage root |
+| Preferred cache | Linux `/dev/shm/cache/cache-${APP_NAME}-${login}-$$`; Git Bash and Mac `/tmp/cache/cache-${APP_NAME}-${login}-$$` (`requirement-shell-cli-storage`) |
+| Fallback cache | Host chain in `requirement-shell-cli-storage` (silent when a higher tier is skipped) |
+| Persistence | `${HOME}/.local/${APP_NAME}` (not a cache tier; no login suffix; no `$$`) |
+| Install staging | `util_mktemp` under the effective cache root |
 
 Rules:
 
-1. Scratch **MUST** be per-user isolated (`APP_NAME` + `USERNAME`).  
+1. Preferred cache **MUST** follow `requirement-shell-cli-storage` — **MUST NOT** `/dev/shm/${APP_NAME}` or `/dev/shm/${APP_NAME}-${USERNAME}` (those look like ram-drive project folders).  
 2. Temps **MUST** clean up after success/failure of install staging.  
-3. Scratch is **not** a durable backup deposit.
+3. Scratch is **not** a durable backup deposit. Persistence is **not** `~/.local/bin`.
 
 ### 2.4 Implementation Notes (this project)
 
@@ -109,7 +111,7 @@ Rules:
 2. Make online channel paths required for install.  
 3. Grant the product unrestricted write under `/var` or `/etc`.  
 4. Reintroduce a durable backup deposit as if it were still product law.  
-5. Rename protected temp isolation away from per-user roots.
+5. Restore `/dev/shm/${APP_NAME}` or `/dev/shm/${APP_NAME}-${USERNAME}` as the preferred cache. Cache leaves follow `requirement-shell-cli-storage`.
 
 **Violating this rule is a critical path/privilege regression.**
 
@@ -142,9 +144,10 @@ Rules:
 |------|--------|------|
 | 2026-08-03 | Active 1.0.0 | folder-backup layout + `/var/backup` deposit |
 | 2026-08-13 | Active 2.0.0 | cli-template: retarget; remove deposit |
+| 2026-09-27 | Active 2.2.0 | Cache leaves point at `requirement-shell-cli-storage` 1.2.0; persistence `${HOME}/.local/${APP_NAME}` |
 
 ---
 
-**Last Updated**: 2026-08-13  
+**Last Updated**: 2026-09-27  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

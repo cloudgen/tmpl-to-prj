@@ -9,19 +9,35 @@
 
 t2p_mk_kit() {
     _root="$1"
-    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements"
+    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements" "${_root}/docs/incidents" \
+        "${_root}/docs/checklists" "${_root}/docs/whitelists" "${_root}/docs/housekeeping"
     printf '# kit\n\n**Template name** | genesis-template\n' >"${_root}/docs/README.md"
     printf 'FROM-KIT\n' >"${_root}/docs/skills/from-kit.md"
     printf '# genesis empty\n' >"${_root}/docs/requirements/README.md"
+    printf 'FROM-KIT-INC-README\n' >"${_root}/docs/incidents/README.md"
+    printf 'FROM-KIT-CL-README\n' >"${_root}/docs/checklists/README.md"
+    printf 'FROM-KIT-WL-README\n' >"${_root}/docs/whitelists/README.md"
+    printf 'FROM-KIT-HK-README\n' >"${_root}/docs/housekeeping/README.md"
 }
 
 t2p_mk_proj() {
     _root="$1"
-    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements" "${_root}/src"
+    mkdir -p "${_root}/docs/skills" "${_root}/docs/requirements" "${_root}/docs/incidents" \
+        "${_root}/docs/checklists" "${_root}/docs/whitelists/external-access/grants" \
+        "${_root}/docs/housekeeping" "${_root}/docs/reviews" "${_root}/src"
     printf 'PRODUCT-README-KEEP\n' >"${_root}/README.md"
     printf 'AGENTS-KEEP\n' >"${_root}/AGENTS.md"
     printf 'OLD-SKILL\n' >"${_root}/docs/skills/old.md"
     printf 'KEEP-ME\n' >"${_root}/docs/requirements/requirement-keep.md"
+    printf 'DEST-INC-README\n' >"${_root}/docs/incidents/README.md"
+    printf 'KEEP-INC\n' >"${_root}/docs/incidents/incident-20260910-001-keep.md"
+    printf 'DEST-CL-README\n' >"${_root}/docs/checklists/README.md"
+    printf 'KEEP-CL\n' >"${_root}/docs/checklists/2026-09-10-checklist-code-review.md"
+    printf 'DEST-WL-README\n' >"${_root}/docs/whitelists/README.md"
+    printf 'KEEP-WL\n' >"${_root}/docs/whitelists/external-access/grants/WA-KEEP.md"
+    printf 'DEST-HK-README\n' >"${_root}/docs/housekeeping/README.md"
+    printf 'KEEP-HK\n' >"${_root}/docs/housekeeping/2026-09-10-housekeeping-summary.md"
+    printf 'KEEP-DREV\n' >"${_root}/docs/reviews/test-plan.md"
     printf 'SHIP-KEEP\n' >"${_root}/src/not-the-cli"
 }
 
@@ -70,6 +86,12 @@ run_test_domain_tmpl_to_prj() {
     _ec=$?
     assert_eq "TP-TMPL-TO-PRJ-05 apply exit 0" 0 "$_ec"
     assert_contains "TP-TMPL-TO-PRJ-05 dest req kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/requirements/requirement-keep.md")" "KEEP-ME"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest incident body kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/incident-20260910-001-keep.md")" "KEEP-INC"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest incidents README kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/README.md")" "DEST-INC-README"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest checklist body kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/checklists/2026-09-10-checklist-code-review.md")" "KEEP-CL"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest whitelist grant kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/whitelists/external-access/grants/WA-KEEP.md")" "KEEP-WL"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest housekeeping summary kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/housekeeping/2026-09-10-housekeeping-summary.md")" "KEEP-HK"
+    assert_contains "TP-TMPL-TO-PRJ-05 dest docs/reviews kept" "$(cat "${PROJECTS_ROOT}/proj-a/docs/reviews/test-plan.md")" "KEEP-DREV"
     assert_contains "TP-TMPL-TO-PRJ-05 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-a/docs/skills/from-kit.md")" "RAM-HOST"
     assert_file_missing "TP-TMPL-TO-PRJ-05 old dest skill gone" "${PROJECTS_ROOT}/proj-a/docs/skills/old.md"
     assert_contains "TP-TMPL-TO-PRJ-05 root README kept" "$(cat "${PROJECTS_ROOT}/proj-a/README.md")" "PRODUCT-README-KEEP"
@@ -117,7 +139,10 @@ run_test_domain_tmpl_to_prj() {
         sh "${SCRIPT}" apply --force kit-a proj-u 2>&1 >/dev/null)
     assert_eq "TP-TMPL-TO-PRJ-16 unproven exit 1" 1 "$?"
     assert_contains "TP-TMPL-TO-PRJ-16 unproven text" "$_err" "not proven"
+    assert_contains "TP-TMPL-TO-PRJ-16 names submit" "$_err" "submit a request"
+    assert_contains "TP-TMPL-TO-PRJ-16 names fragment" "$_err" "sudoer file fragment"
     assert_not_contains "TP-TMPL-TO-PRJ-16 not claiming is verb-only" "$_err" "sudoers is verb-only"
+    assert_not_contains "TP-TMPL-TO-PRJ-16 no password sudo next" "$_err" "from a terminal run sudo"
     assert_file_exists "TP-TMPL-TO-PRJ-16 dest not overlaid" "${PROJECTS_ROOT}/proj-u/docs/skills/old.md"
 
     # TP-TMPL-TO-PRJ-08 missing folder-backup → local snapshot + apply
@@ -204,6 +229,127 @@ run_test_domain_tmpl_to_prj() {
     _human=$(sh "${SCRIPT}" list-projects 2>/dev/null)
     assert_contains "TP-TMPL-TO-PRJ-13 current-folder row" "$_human" "current-folder"
     assert_contains "TP-TMPL-TO-PRJ-13 prjs child" "$_human" "proj-a"
+
+    # TP-TMPL-TO-PRJ-20 kit incidents README must not replace dest bodies (INC-20260910-001)
+    assert_not_contains "TP-TMPL-TO-PRJ-20 kit incidents README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/README.md")" "FROM-KIT-INC-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-20 dest incident file" \
+        "${PROJECTS_ROOT}/proj-a/docs/incidents/incident-20260910-001-keep.md"
+
+    # TP-TMPL-TO-PRJ-21 dest with no incidents dir keeps template placeholder
+    mkdir -p "${PROJECTS_ROOT}/proj-noinc/docs/skills" "${PROJECTS_ROOT}/proj-noinc/docs/requirements"
+    printf 'AGENTS-KEEP\n' >"${PROJECTS_ROOT}/proj-noinc/AGENTS.md"
+    printf 'KEEP-ME\n' >"${PROJECTS_ROOT}/proj-noinc/docs/requirements/requirement-keep.md"
+    printf 'OLD-SKILL\n' >"${PROJECTS_ROOT}/proj-noinc/docs/skills/old.md"
+    _out=$(sh "${SCRIPT}" apply --force kit-a proj-noinc 2>&1)
+    assert_eq "TP-TMPL-TO-PRJ-21 apply dest without incidents exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-21 kit incidents placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/incidents/README.md")" "FROM-KIT-INC-README"
+    assert_contains "TP-TMPL-TO-PRJ-21 dest req still kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/requirements/requirement-keep.md")" "KEEP-ME"
+
+    # TP-TMPL-TO-PRJ-22 dest specialized folders survive; kit placeholders are not dest SSOT
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit checklists README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/checklists/README.md")" "FROM-KIT-CL-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-22 dest checklist file" \
+        "${PROJECTS_ROOT}/proj-a/docs/checklists/2026-09-10-checklist-code-review.md"
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit whitelists README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/whitelists/README.md")" "FROM-KIT-WL-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-22 dest whitelist grant" \
+        "${PROJECTS_ROOT}/proj-a/docs/whitelists/external-access/grants/WA-KEEP.md"
+    assert_not_contains "TP-TMPL-TO-PRJ-22 kit housekeeping README not dest SSOT" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/housekeeping/README.md")" "FROM-KIT-HK-README"
+    assert_file_exists "TP-TMPL-TO-PRJ-22 dest housekeeping summary" \
+        "${PROJECTS_ROOT}/proj-a/docs/housekeeping/2026-09-10-housekeeping-summary.md"
+    assert_contains "TP-TMPL-TO-PRJ-22 dest docs/reviews kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-a/docs/reviews/test-plan.md")" "KEEP-DREV"
+
+    # TP-TMPL-TO-PRJ-23 dest with no checklists/whitelists/housekeeping dirs keeps kit placeholders
+    assert_contains "TP-TMPL-TO-PRJ-23 kit checklists placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/checklists/README.md")" "FROM-KIT-CL-README"
+    assert_contains "TP-TMPL-TO-PRJ-23 kit whitelists placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/whitelists/README.md")" "FROM-KIT-WL-README"
+    assert_contains "TP-TMPL-TO-PRJ-23 kit housekeeping placeholder kept" \
+        "$(cat "${PROJECTS_ROOT}/proj-noinc/docs/housekeeping/README.md")" "FROM-KIT-HK-README"
+
+    # TP-TMPL-TO-PRJ-24 TTY and a password grant do not invoke sudo (INC-20261004-001)
+    _bindir="${CI_HOME}/bin-nopw"
+    _sudolog="${CI_HOME}/sudo-nopw.log"
+    _fblog="${CI_HOME}/fb-nopw.log"
+    mkdir -p "${_bindir}"
+    : >"${_sudolog}"
+    : >"${_fblog}"
+    printf '#!/bin/sh\nprintf "%%s\\n" "$*" >> "%s"\nexit 0\n' "${_fblog}" >"${_stub}"
+    chmod 0755 "${_stub}"
+    printf '#!/bin/sh\nprintf "%%s\\n" "$*" >> "%s"\nif [ "$1" = "-n" ]; then shift; fi\n"$@"\nexit $?\n' "${_sudolog}" >"${_bindir}/sudo"
+    chmod 0755 "${_bindir}/sudo"
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-tty"
+    _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_D_DIR="${_empty_sd}" \
+        sh "${SCRIPT}" apply --force kit-a proj-tty 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-24 TTY no grant exit 1" 1 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-24 submit request" "$_err" "submit a request"
+    assert_contains "TP-TMPL-TO-PRJ-24 sudoer fragment" "$_err" "sudoer file fragment"
+    assert_not_contains "TP-TMPL-TO-PRJ-24 not verb-only" "$_err" "sudoers is verb-only"
+    assert_file_exists "TP-TMPL-TO-PRJ-24 dest not overlaid" "${PROJECTS_ROOT}/proj-tty/docs/skills/old.md"
+    if [ -s "${_sudolog}" ]; then
+        t_fail "TP-TMPL-TO-PRJ-24 sudo not invoked (log=$(cat "${_sudolog}"))"
+    else
+        t_pass "TP-TMPL-TO-PRJ-24 sudo not invoked"
+    fi
+    if grep -q 'backup' "${_fblog}"; then
+        t_fail "TP-TMPL-TO-PRJ-24 folder-backup backup not run (log=$(cat "${_fblog}"))"
+    else
+        t_pass "TP-TMPL-TO-PRJ-24 folder-backup backup not run"
+    fi
+    printf 'user ALL=(root) /usr/local/bin/folder-backup backup *\n' >"${CI_HOME}/password-sudoers"
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-pw"
+    : >"${_sudolog}"
+    : >"${_fblog}"
+    _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/password-sudoers" \
+        sh "${SCRIPT}" apply --force kit-a proj-pw 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-24 password grant exit 1" 1 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-24 password grant names submit" "$_err" "submit-sudoer-request"
+    assert_file_exists "TP-TMPL-TO-PRJ-24 password grant dest not overlaid" "${PROJECTS_ROOT}/proj-pw/docs/skills/old.md"
+    if [ -s "${_sudolog}" ]; then
+        t_fail "TP-TMPL-TO-PRJ-24 password grant does not call sudo (log=$(cat "${_sudolog}"))"
+    else
+        t_pass "TP-TMPL-TO-PRJ-24 password grant does not call sudo"
+    fi
+    _out=$(TTY=1 T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_D_DIR="${_empty_sd}" \
+        sh "${SCRIPT}" --json plan kit-a proj-tty 2>/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-24 TTY plan exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-24 TTY plan stays unproven" "$_out" '"folder_backup_gate":"unproven"'
+
+    # TP-TMPL-TO-PRJ-25 NOPASSWD backup * uses sudo -n (no password prompt)
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-star"
+    : >"${_sudolog}"
+    : >"${_fblog}"
+    _out=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/star-sudoers" \
+        sh "${SCRIPT}" apply --force kit-a proj-star 2>&1)
+    assert_eq "TP-TMPL-TO-PRJ-25 NOPASSWD apply exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-25 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-star/docs/skills/from-kit.md")" "RAM-HOST"
+    assert_contains "TP-TMPL-TO-PRJ-25 sudo -n" "$(cat "${_sudolog}")" "-n"
+    assert_contains "TP-TMPL-TO-PRJ-25 backup argv" "$(cat "${_sudolog}")" "backup"
+    assert_not_contains "TP-TMPL-TO-PRJ-25 no password prompt text" "$_out" "password for"
+
+    # TP-TMPL-TO-PRJ-26 pass gate + backup exit 1 is not a sudoers miss (INC-20261004-002)
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-fb-fail"
+    : >"${_fblog}"
+    : >"${_sudolog}"
+    printf '#!/bin/sh\nprintf "%%s\\n" "$*" >> "%s"\ncase "$1" in version) exit 0 ;; esac\nprintf "%%s\\n" "[ERROR] Verification failed: staged archive file count 4 != expected 1" >&2\nexit 1\n' "${_fblog}" >"${_stub}"
+    chmod 0755 "${_stub}"
+    _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/star-sudoers" \
+        sh "${SCRIPT}" apply --force kit-a proj-fb-fail 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-26 backup fail exit 1" 1 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-26 names backup failed" "$_err" "folder-backup backup failed"
+    assert_not_contains "TP-TMPL-TO-PRJ-26 not a sudoers miss" "$_err" "check sudoers argv"
+    assert_contains "TP-TMPL-TO-PRJ-26 points at child error" "$_err" "folder-backup error above"
+    assert_file_exists "TP-TMPL-TO-PRJ-26 dest not overlaid" "${PROJECTS_ROOT}/proj-fb-fail/docs/skills/old.md"
+    if grep -q 'backup' "${_fblog}"; then
+        t_pass "TP-TMPL-TO-PRJ-26 backup was invoked"
+    else
+        t_fail "TP-TMPL-TO-PRJ-26 backup was invoked (log=$(cat "${_fblog}"))"
+    fi
 
     rm -rf "${T2P_RAM_ROOT}" "${PROJECTS_ROOT}"
     ci_cleanup_env

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-local-self-management.md  
-**Status**: Active (Version 1.4.0)  
+**Status**: Active (Version 1.5.0)  
 **Area**: shell  
 **Key**: `requirement-shell-local-self-management`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,7 +8,7 @@
 
 This requirement is the **project Single Source of Truth** for **local self-managed lifecycle** of the tmpl-to-prj POSIX shell CLI: **`install`**, **`uninstall`**, and **`where-is-me`**, plus the local diagnostics package contract for **`version`**, **`about`**, and **`help`** (wiring owned with CLI interface).
 
-**Install mode:** **local-only**. Online channel install, remote version-check, self-update, and self-uninstall are **out of scope** (intentionally absent).
+**Install mode:** **dual**. This file owns local `install`, `uninstall`, and `where-is-me` (mode **0755**, no network). Channel verbs are owned by `requirement-shell-self-management.md` and `requirement-shell-cli-self-install.md`. `install` is **not** an alias of `self-install`.
 
 ### 1.1 Human-facing
 
@@ -22,7 +22,7 @@ This requirement is the **project Single Source of Truth** for **local self-mana
 
 | Includes | Excludes |
 |----------|----------|
-| Local copy, mode **0755**, `where-is-me` | `curl\|sh`, `self-uninstall` |
+| Local copy, mode **0755**, `where-is-me` | Channel download (peer `self-install`) |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
@@ -42,7 +42,7 @@ This requirement is the **project Single Source of Truth** for **local self-mana
 | Local refresh | **`install --force`** | Replace managed binary from **this** running ship unit |
 | Where-is-me | **`where-is-me`** | Report running path + managed install path + installed flag |
 
-**Forbidden primary verbs for this product:** `self-install`, `self-uninstall`, `self-update`, `version-check`.
+**Not owned here:** `self-install`, `self-uninstall`, `self-update`, `version-check` (peer self-management). This file **MUST NOT** retarget `install` onto those handlers.
 
 ### 2.2 Local diagnostics (required companions)
 
@@ -101,12 +101,12 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 | Variable | Role | Default / note |
 |----------|------|----------------|
 | `APP_NAME` | Binary basename SSOT | hard-assign `tmpl-to-prj` |
-| `VERSION` | Local version SSOT | hard-assign `1.2.0` |
+| `VERSION` | Local version SSOT | hard-assign `1.5.1` |
 | `GLOBAL_BIN` | System-wide bin | `/usr/local/bin` |
 | `USER_BIN` | Per-user bin | `${HOME}/.local/bin` |
 | `FORCE` | Replace / skip confirm | `0` |
 | `FORCE_GLOBAL` | Force install/operate on global path | `0` (`install --global`) |
-| `SCRIPT_URL` / `REPO_*` / `CHECKSUM` | **Not** install source | Must not appear as required install UX |
+| `SCRIPT_URL` / `CHECKSUM` | **Not** the source for `install` | `install` must not fetch. Channel law is the self-management peer |
 
 ### 2.7 Implementation Notes (this project)
 
@@ -117,7 +117,7 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 | **Primary install path story** | Day-to-day: `${HOME}/.local/bin/tmpl-to-prj`; multi-user POSIX: `/usr/local/bin/tmpl-to-prj`; Termux: user bin only |
 | **Handlers** | `inst_local_install`, `inst_local_uninstall`, `app_where_is_me`, `app_version` |
 | **Detect** | `inst_is_installed` / privilege-correct path helpers |
-| **Online package** | **Absent by design** (bootstrap trim) |
+| **Online package** | Peer requirements. This handler stays offline |
 
 ### 2.8 Why This Requirement Exists (CIAO)
 
@@ -146,10 +146,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution**: No network in install path.  
-- **Intentional**: Local verbs only (`install`/`uninstall`).  
+- **Caution**: No network in the `install` path.  
+- **Intentional**: `install` stays the 0755 copy. Channel place is `self-install`.  
 - **Anti-fragile**: Idempotent place/remove.  
-- **Over-protect**: Do not reintroduce online lifecycle under new names.
+- **Over-protect**: Do not alias `install` to `self-install`.
 
 ---
 
@@ -157,9 +157,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Replace local `uninstall` with online `self-uninstall` as the primary remove verb.  
-2. Require `SCRIPT_URL` for install.  
-3. Make empty argv install-ensure while this product remains local-only (Type N owns empty argv).  
+1. Replace local `uninstall` with `self-uninstall` as the only remove verb.  
+2. Require `SCRIPT_URL` for `install`.  
+3. Make empty argv install-ensure (Type N owns empty argv).  
 4. Delete user data or unrelated paths during uninstall.  
 5. Fetch remote version inside `version`.  
 6. Install the managed binary with execute-only group/other bits (`0711` / `chmod +x` after `0600` stage) — **must** keep absolute **`0755`** so global install remains multi-user runnable for a shell ship unit.
@@ -176,7 +176,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | AC-2 | `uninstall` removes managed binary only with confirm/`--force` contract |
 | AC-3 | `where-is-me` reports paths + installed flag |
 | AC-4 | `version` is local-only |
-| AC-5 | No Active online self-management requirement required for lifecycle |
+| AC-5 | `install` does not download and is not `self-install` |
 | AC-6 | Installed managed binary mode is **`0755`** (not `0711` / owner-only) after install |
 | AC-7 | Global install is executable by a non-owner account (shell script remains readable) |
 | AC-8 | Re-running `install` without `--force` heals a broken mode (`0700`/`0711` → `0755`) when writable |

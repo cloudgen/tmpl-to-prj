@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.5.0 – residual points at requirement-shell-termux-ish)  
+**Status**: Active (Version 1.5.1 – residual points at channel self-management and Termux)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -26,7 +26,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Check stack facts | posix-sh, local-only, Linux + Termux | Open this file’s Implementation Notes |
+| Check stack facts | posix-sh, local install and channel self-install, Linux + Termux | Open this file’s Implementation Notes |
 
 ---
 
@@ -102,9 +102,9 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | **Primary runtime / OS family** | POSIX Linux and **Termux** (Android userspace `/bin/sh`); compatible UNIX where `/bin/sh` + `mktemp` + `date` exist |
 | **Architectures supported** | any arch with POSIX sh and the external tools the script invokes |
 | **Git surface** | used when product is published |
-| **Ship unit / install** | yes — `src/tmpl-to-prj` → `${USER_BIN}/tmpl-to-prj`; **local-only** install (no online channel) |
-| **Product version SSOT** | `VERSION="1.2.0"` hard-assign in `src/tmpl-to-prj` |
-| **Bootstrap origin** | `cli-template` (A) → this product (B) |
+| **Ship unit / install** | yes — `src/tmpl-to-prj`. Dual: local `install` (0755) and channel `self-install` / `SCRIPT_URL` |
+| **Product version SSOT** | `VERSION="1.5.1"` hard-assign in `src/tmpl-to-prj` |
+| **Bootstrap origin** | `selfmanaged` (A) → this product (B). Historical hop: `cli-template` |
 
 **Residual ownership table:**
 
@@ -113,12 +113,15 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Project class membership | **this file** | Fixed |
 | Primary language + toolchain policy | **this file** | posix-sh, unconstrained |
 | Package/build tool + lockfile | **this file** | none / not used |
-| Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | A=`cli-template` → B=`tmpl-to-prj` |
+| Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | A=`selfmanaged` → B=`tmpl-to-prj` |
 | Project layout / ship path | `requirement-project-folder` | `src/tmpl-to-prj` |
 | Type 0 CLI surface / flags / dispatch | `requirement-shell-cli-interface` | Dual-mention domain verbs |
 | Empty argv | `requirement-shell-cli-zero-arguments` | TTY menu; off-TTY help |
-| Default interaction | `requirement-shell-cli-default-interaction` | plan / apply menu |
-| Local self-managed lifecycle | `requirement-shell-local-self-management` | install / uninstall / where-is-me |
+| Default interaction | `requirement-shell-cli-default-interaction` | plan / apply / 8 self-management |
+| Local self-managed lifecycle | `requirement-shell-local-self-management` | install / uninstall / where-is-me (0755) |
+| Channel self-management | `requirement-shell-self-management` | version-check / self-update / self-uninstall |
+| Channel place | `requirement-shell-cli-self-install` | self-install; not an alias of install |
+| Companion digest | `requirement-shell-automatic-checksum` | `${SCRIPT_URL}.sha256` |
 | Coding style | `requirement-shell-script-coding` | specialize-in home |
 | In-tool sudo | `requirement-shell-sudo-command` | wrap sibling folder-backup only; skip on Termux / Git Bash / Windows cmd |
 | Termux target / empty `pkg` table | `requirement-shell-termux-ish` | Detect; no extra packages |
@@ -131,7 +134,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Privilege / sudoers-file emit | **intentionally absent** | Compose sibling folder-backup sudoers |
 | Folder archive backup / restore / retention | **intentionally absent as this CLI’s verbs** | Sibling `folder-backup` |
 | Domain surface (`requirement-domain-*`) | `requirement-domain-tmpl-to-prj` | Current domain SSOT |
-| Online install / remote self-management / companion checksum | **intentionally absent** | Local-only |
+| Type O empty argv | **intentionally absent** | Type N kept (menu / help) |
 
 ---
 
@@ -139,7 +142,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 
 - **CIAO Principle 2 – Intentional**: Class and stack choices are explicit, not assumed from folder names.  
 - **CIAO Principle 5 – SSOT**: Residual stack facts have one home until specialized requirements take ownership.  
-- **CIAO Principle 1 – Caution**: Toolchain policies are declared; agents do not invent compilers or online install.  
+- **CIAO Principle 1 – Caution**: Toolchain policies are declared; agents do not invent compilers or a second install channel.  
 - **CIAO Principle 21 – Dual Policies**: Portable core; filled Implementation Notes.  
 - **CIAO Principle 4 (O) + Principle 20**: Protection Rule against dual stack SSOTs and wrong-class pollution.
 
@@ -163,7 +166,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 3. Hard-code secrets, personal owner identity, or production host FQDNs into core rules as universal law.  
 4. Duplicate full peer requirement bodies into this residual section.  
 5. Leave Implementation Notes as hollow stubs when Status claims Active.  
-6. Reintroduce Active **online-install** / remote **self-update** / **self-uninstall** / channel **checksum** law without explicit user order (product is **local-only** by design).  
+6. Remove channel self-management, or turn empty argv into Type O, without a new user order.  
 7. Treat this file as server-maintenance allowlist law, or register an Active server-maintenance class file in parallel.  
 8. Invent a second primary language SSOT that contradicts peer modular/CLI requirements.
 
@@ -180,8 +183,8 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | AC-3 | Residual ownership table honest: no silent dual SSOT with peer REQs |
 | AC-4 | Core rules remain free of frozen secret/host hardcodes |
 | AC-5 | No class file conflict with `requirement-class-server-maintenance` |
-| AC-6 | Ship unit identity (posix-sh single-file, local install) consistent with peer shell REQs |
-| AC-7 | Online install package **absent** from Active registry by design |
+| AC-6 | Ship unit identity (posix-sh single-file, local install and channel self-install) consistent with peer shell REQs |
+| AC-7 | Channel requirements are Active. This product’s `backup` / `restore` / `print-sudoers` stay absent |
 
 ---
 
@@ -189,8 +192,13 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 
 | Key | Relationship |
 |-----|--------------|
-| `requirement-bootstrap-chain` | This product is hop 0 / origin |
+| `requirement-bootstrap-chain` | `selfmanaged` (A) → this product (B); historical hop `cli-template` |
 | `requirement-project-folder` | Layout and install locations |
+| `requirement-shell-cli-default-interaction` | Front menu and self-management board |
+| `requirement-shell-self-management` | Channel version-check, self-update, self-uninstall |
+| `requirement-shell-cli-self-install` | Channel place; not an alias of `install` |
+| `requirement-shell-automatic-checksum` | Companion digest on channel downloads |
+| `requirement-domain-tmpl-to-prj` | Template-name / project-name hop |
 | `requirement-shell-cli-interface` | Command surface, flags, dispatch |
 | `requirement-shell-cli-zero-arguments` | Type N empty argv |
 | `requirement-shell-local-self-management` | Local install lifecycle |
@@ -216,9 +224,10 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | 2026-08-13 | Active 1.3.0 | This product is hop 0; selfmanaged is not origin |
 | 2026-09-02 | Active 1.4.0 | Residual + Related point at `requirement-shell-sudo-command` |
 | 2026-09-06 | Active 1.5.0 | Residual + OS family point at Termux (`requirement-shell-termux-ish`) |
+| 2026-10-04 | Active 1.5.1 | Practice line names local install and channel self-install. Related points at the channel requirements. |
 
 ---
 
-**Last Updated**: 2026-09-02  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
