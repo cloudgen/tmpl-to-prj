@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-interface.md  
-**Status**: Active (Version 2.3.0)  
+**Status**: Active (Version 2.4.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -12,7 +12,7 @@ Domain verb catalog ownership is `requirement-domain-tmpl-to-prj` (dual mention)
 
 ### 1.1 Human-facing
 
-**In one sentence:** You type `tmpl-to-prj` plus a command; unknown words fail closed; empty argv is a menu on a terminal and help in a script.
+**In one sentence:** You type `tmpl-to-prj` plus a command; unknown words fail closed; empty argv is a menu on a terminal and self-install in a pipe.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -64,7 +64,7 @@ Additional flags **MAY** be added only when documented here (or a superseding re
 
 1. **Single entry:** `app_main` **MUST** parse global flags and route commands.  
 2. **Unknown command:** **MUST** fail loudly with pointer to `help` (via output SSOT).  
-3. **Empty argv:** TTY → main menu; off-TTY → help (`requirement-shell-cli-zero-arguments.md` · `requirement-shell-cli-default-interaction.md`).  
+3. **Empty argv:** TTY → main menu; off-TTY → `inst_self_install` (not help) (`requirement-shell-cli-zero-arguments.md` · `requirement-shell-cli-default-interaction.md`).  
 4. **No raw user I/O:** User-facing messages **MUST** go through `out_*`.  
 5. Script end **MUST** call `app_main "$@"` (no basename gate that blocks dispatch).  
 6. This product’s tokens **MUST NOT** include `backup`, `restore`, `print-sudoers`, `print-sudoers-install-script`, `remove-project-sudoers` — those **MUST** fail as unknown.
@@ -90,7 +90,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | **Primary executable** | `src/tmpl-to-prj` (POSIX `/bin/sh`, single-file ship unit) |
 | **Dispatcher** | `app_main` |
 | **Output SSOT** | `out_text` + wrappers (`out_info`, `out_success`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_json`, …) |
-| **Version SSOT** | `VERSION="1.5.1"` hard-assign in ship unit |
+| **Version SSOT** | `VERSION="1.5.2"` hard-assign in ship unit |
 | **Install paths** | Global: `GLOBAL_BIN` default `/usr/local/bin`; User: `USER_BIN` default `${HOME}/.local/bin` |
 | **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` via `install` (0755) or `self-install` (0700 unless root) |
 | **Online channel** | `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` |
@@ -102,7 +102,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 
 | Command | Type | Handler family | Required behavior |
 |---------|------|----------------|-------------------|
-| *(no args — empty argv)* | Type 0 | `app_main` → `app_default` or `app_help` | TTY menu; off-TTY help — not install |
+| *(no args — empty argv)* | Type 0 | `app_main` → `app_default` or `inst_self_install` | TTY menu; off-TTY self-install — not help |
 | `install` | Type 0 | `inst_local_install` | Copy running ship unit to privilege-correct bin; idempotent unless `--force` |
 | `uninstall` | Type 0 | `inst_local_uninstall` | Remove managed binary; confirm unless `--force` |
 | `where-is-me` | Type 0 | `app_where_is_me` | Running + install paths + installed flag |
@@ -135,7 +135,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 #### Dispatcher acceptance criteria
 
 1. Unknown token after flag parse → `out_die` with pointer to `tmpl-to-prj help`.  
-2. Zero-arg → TTY menu / off-TTY help (not install).  
+2. Zero-arg → TTY menu / off-TTY self-install (not help).  
 3. Command routing table in `app_main` **must** include every row above and **no** trimmed parent verbs.  
 4. Help text **must** stay aligned with that table.
 
@@ -189,7 +189,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
 1. Add domain or sudoers verbs without a new Active requirement and explicit user order.  
-2. Change empty argv from Type N help to install-ensure.  
+2. Change non-interactive 0-argv from self-install back to help, or change TTY 0-argv from the menu to install.  
 3. Bypass `out_*` for user-facing messages.  
 4. Hide the channel from help, or print the token `CHECKSUM` in help or about.  
 5. Collapse Type 1/2 into “just run as root.”
@@ -205,7 +205,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | AC-1 | Help lists install / uninstall / where-is-me / version / about / help |
 | AC-2 | Help and about omit backup / restore / print-sudoers |
 | AC-3 | Unknown and trimmed verbs exit non-zero |
-| AC-4 | Empty argv is TTY menu / off-TTY help |
+| AC-4 | Empty argv is TTY menu / off-TTY self-install |
 
 ---
 
@@ -241,9 +241,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | 2026-08-13 | Active 2.0.0 | cli-template Type 0 only |
 | 2026-09-06 | Active 2.1.0 | Termux target; human-facing; empty argv AC is TTY menu / off-TTY help |
 | 2026-09-27 | Active 2.2.0 | `about` cache lines follow `requirement-shell-cli-storage` 1.2.0 (used / preferred / 1st / 2nd) |
+| 2026-10-04 | Active 2.4.0 | Off-TTY empty argv is self-install. TTY menu stays |
 
 ---
 
-**Last Updated**: 2026-09-27  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

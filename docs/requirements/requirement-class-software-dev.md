@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.5.1 – residual points at channel self-management and Termux)  
+**Status**: Active (Version 1.5.2 – non-interactive 0-argv is Type O-S)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -103,7 +103,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | **Architectures supported** | any arch with POSIX sh and the external tools the script invokes |
 | **Git surface** | used when product is published |
 | **Ship unit / install** | yes — `src/tmpl-to-prj`. Dual: local `install` (0755) and channel `self-install` / `SCRIPT_URL` |
-| **Product version SSOT** | `VERSION="1.5.1"` hard-assign in `src/tmpl-to-prj` |
+| **Product version SSOT** | `VERSION="1.5.2"` hard-assign in `src/tmpl-to-prj` |
 | **Bootstrap origin** | `selfmanaged` (A) → this product (B). Historical hop: `cli-template` |
 
 **Residual ownership table:**
@@ -116,7 +116,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Bootstrap lineage / keep-trim | `requirement-bootstrap-chain` | A=`selfmanaged` → B=`tmpl-to-prj` |
 | Project layout / ship path | `requirement-project-folder` | `src/tmpl-to-prj` |
 | Type 0 CLI surface / flags / dispatch | `requirement-shell-cli-interface` | Dual-mention domain verbs |
-| Empty argv | `requirement-shell-cli-zero-arguments` | TTY menu; off-TTY help |
+| Empty argv | `requirement-shell-cli-zero-arguments` | TTY menu; non-interactive 0-argv self-install (Type O-S) |
 | Default interaction | `requirement-shell-cli-default-interaction` | plan / apply / 8 self-management |
 | Local self-managed lifecycle | `requirement-shell-local-self-management` | install / uninstall / where-is-me (0755) |
 | Channel self-management | `requirement-shell-self-management` | version-check / self-update / self-uninstall |
@@ -134,7 +134,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Privilege / sudoers-file emit | **intentionally absent** | Compose sibling folder-backup sudoers |
 | Folder archive backup / restore / retention | **intentionally absent as this CLI’s verbs** | Sibling `folder-backup` |
 | Domain surface (`requirement-domain-*`) | `requirement-domain-tmpl-to-prj` | Current domain SSOT |
-| Type O empty argv | **intentionally absent** | Type N kept (menu / help) |
+| Type O empty argv | `requirement-shell-cli-zero-arguments` | Type O-S off-TTY. TTY menu kept. Not Type N help |
 
 ---
 
@@ -166,7 +166,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 3. Hard-code secrets, personal owner identity, or production host FQDNs into core rules as universal law.  
 4. Duplicate full peer requirement bodies into this residual section.  
 5. Leave Implementation Notes as hollow stubs when Status claims Active.  
-6. Remove channel self-management, or turn empty argv into Type O, without a new user order.  
+6. Remove channel self-management, revert non-interactive 0-argv from Type O-S to help, or drop the TTY menu, without a new user order.  
 7. Treat this file as server-maintenance allowlist law, or register an Active server-maintenance class file in parallel.  
 8. Invent a second primary language SSOT that contradicts peer modular/CLI requirements.
 
@@ -200,7 +200,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | `requirement-shell-automatic-checksum` | Companion digest on channel downloads |
 | `requirement-domain-tmpl-to-prj` | Template-name / project-name hop |
 | `requirement-shell-cli-interface` | Command surface, flags, dispatch |
-| `requirement-shell-cli-zero-arguments` | Type N empty argv |
+| `requirement-shell-cli-zero-arguments` | TTY menu; non-interactive 0-argv Type O-S |
 | `requirement-shell-local-self-management` | Local install lifecycle |
 | `requirement-shell-output-requirements` | `out_*` SSOT |
 | `requirement-shell-cli-storage` | Scratch/cache resolve |
@@ -225,6 +225,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | 2026-09-02 | Active 1.4.0 | Residual + Related point at `requirement-shell-sudo-command` |
 | 2026-09-06 | Active 1.5.0 | Residual + OS family point at Termux (`requirement-shell-termux-ish`) |
 | 2026-10-04 | Active 1.5.1 | Practice line names local install and channel self-install. Related points at the channel requirements. |
+| 2026-10-04 | Active 1.5.2 | Non-interactive 0-argv is Type O-S. TTY menu stays |
 
 ---
 

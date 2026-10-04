@@ -1,7 +1,7 @@
 # Requirement ↔ test matrix — tmpl-to-prj
 
 **Updated:** 2026-10-04  
-**Product VERSION:** 1.5.1  
+**Product VERSION:** 1.5.2  
 **Suite:** `tests/run.sh`
 
 | Requirement key | Area | TP families | Coverage notes |
@@ -10,10 +10,10 @@
 | requirement-bootstrap-chain | architecture | TP-CLI-04, TP-CLI-10, TP-CLI-13 | Channel verbs present; backup/restore/print-sudoers absent |
 | requirement-project-folder | architecture | TP-LC-01 | src ship unit + user bin |
 | requirement-shell-cli-interface | shell | TP-CLI-* | Commands, flags, dispatch |
-| requirement-shell-cli-zero-arguments | shell | TP-CLI-07 | Type N help |
+| requirement-shell-cli-zero-arguments | shell | TP-CLI-07, TP-CLI-31 | TTY menu stays; off-TTY 0-argv and stdin pipe self-install; not help |
 | requirement-shell-local-self-management | shell | TP-LC-* (incl. **09/10** mode) | install/uninstall/where-is-me; **0755** |
 | requirement-shell-self-management | shell | TP-CLI-04, TP-CLI-10, TP-CLI-30 | version-check, self-update, self-uninstall |
-| requirement-shell-cli-self-install | shell | TP-CLI-29, TP-CLI-30 | copy when `$0` is the script (0700); channel replace |
+| requirement-shell-cli-self-install | shell | TP-CLI-07, TP-CLI-29, TP-CLI-30, TP-CLI-31 | copy when `$0` is the script (0700); pipe downloads; channel replace |
 | requirement-shell-automatic-checksum | shell | TP-CLI-04, TP-CLI-06 | `CHECKSUM` absent from help and about |
 | requirement-shell-output-requirements | shell | TP-CLI-03,05,08,09 | JSON / quiet / errors |
 | requirement-shell-modular-function-design | shell | (indirect) | no `fb_*`; `app_main` / `out_*` |

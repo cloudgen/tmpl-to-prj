@@ -1,6 +1,6 @@
 # tmpl-to-prj - Copy harness docs from a genesis template into a named project
 
-![Version](https://img.shields.io/badge/Version-1.5.1-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.5.2-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 
@@ -30,7 +30,7 @@
 - **folder-backup compose**: dest archive when the global binary is ready on a POSIX host with a matching grant; skipped on Termux / Git Bash / Windows cmd (local dest-docs snapshot instead)
 - **Termux target**: detect Termux-like userspace; no extra `pkg` list (this program is `/bin/sh` only)
 - **Numbered menu** on a real terminal: 1 plan, 2 apply, 8 self-management (82–87), 9 Exit
-- **Empty argv in a script** prints help (does not install)
+- **Empty argv in a pipe** places the program (`self-install`). On a terminal, no words still shows the numbered menu
 - **Fail-closed**: unknown commands exit non-zero
 - **CIAO / CIAO-Lite** defensive design (Protection Zones, `out_*` output SSOT)
 
@@ -79,7 +79,7 @@ The companion URL is `${SCRIPT_URL}.sha256`. In this repository the file is `src
 After install, on a terminal, run `tmpl-to-prj` with no arguments. Live capture:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.5.1*) — numbered list of live commands
+[INFO] **tmpl-to-prj**(*1.5.2*) — numbered list of live commands
 1. **plan**: *Show template and project roots (no writes)*
 2. **apply**: *Copy harness docs from the template into the project*
 8. **self-management**: *this CLI install, version, update, uninstall*
@@ -90,7 +90,7 @@ Choice:
 Choose **8**:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.5.1*) — self-management
+[INFO] **tmpl-to-prj**(*1.5.2*) — self-management
 82. **version**: *show current version*
 83. **about**: *show detailed diagnostics*
 84. **version-check**: *compare local vs remote version*
@@ -184,6 +184,8 @@ Keep CIAO / CIAO-Lite Protection Zones. Trace behavior to live `docs/requirement
 MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
+
+2026-10-04 — `curl -fsSL …/src/tmpl-to-prj | sh` with no arguments places the program. A non-interactive empty line no longer prints help. A terminal with no words still shows the numbered menu. Version **1.5.2**.
 
 2026-10-04 — A folder-backup failure after a passed gate no longer says to check sudoers argv. Apply still stops before overlay and points at the folder-backup error. Version **1.5.1**.
 

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-self-install.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-self-install`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,10 +8,11 @@
 
 This requirement is the product law for **how tmpl-to-prj places itself on the channel path**: the `self-install` verb.
 
-Specialized from selfmanaged on 2026-10-04. **Specialization kept by user order (“maintain all the features of tmpl-to-prj”):**
+Specialized from selfmanaged on 2026-10-04. **Kept:**
 
-1. Empty argv stays **Type N** (TTY menu, off-TTY help). It **MUST NOT** call `inst_self_install`.  
-2. `install` stays the local **0755** copy (`inst_local_install`). It is **not** an alias of `self-install`.
+1. **TTY** empty argv stays the numbered menu. It **MUST NOT** call `inst_self_install`.  
+2. **Non-interactive** empty argv (`$# -eq 0` and `TTY=0`, including `curl … \| sh`) **MUST** call `inst_self_install`. It **MUST NOT** show help.  
+3. `install` stays the local **0755** copy (`inst_local_install`). It is **not** an alias of `self-install`.
 
 ### 1.1 Human-facing
 
@@ -31,9 +32,10 @@ Specialized from selfmanaged on 2026-10-04. **Specialization kept by user order 
 
 1. `tmpl-to-prj self-install` **MUST** call `inst_self_install`.  
 2. `tmpl-to-prj install` **MUST** call `inst_local_install` (mode **0755**, no network).  
-3. Empty argv **MUST NOT** call `inst_self_install` or `inst_maybe_install`.  
-4. Menu **87** or the token `self-install` **MUST** call `inst_self_install`.  
-5. Menu **81** / the token `install` on the menu is a bad pick. The CLI verb `install` still works outside the menu.
+3. Non-interactive empty argv **MUST** call `inst_self_install`. It **MUST NOT** call `app_help`.  
+4. TTY empty argv **MUST NOT** call `inst_self_install` or `inst_maybe_install`.  
+5. Menu **87** or the token `self-install` **MUST** call `inst_self_install`.  
+6. Menu **81** / the token `install` on the menu is a bad pick. The CLI verb `install` still works outside the menu.
 
 ### 2.2 `$0` source
 
@@ -88,12 +90,13 @@ No in-tool `sudo`. Do not print `sudo curl | sh`. Git Bash and Windows cmd do no
 
 **MUST NOT**:
 
-1. Route empty argv to `inst_self_install`.  
-2. Make `install` call `inst_self_install`.  
-3. Use `chmod +x` as the only mode change on a `mktemp` file.  
-4. Leave a self-install global dest at **0700** or **0711** on a normal root install.  
-5. Leave a self-install user dest at **0755** (that mode belongs to `install`).  
-6. Recommend password sudo for this place path.
+1. Route non-interactive empty argv to help.  
+2. Route TTY empty argv to `inst_self_install`.  
+3. Make `install` call `inst_self_install`.  
+4. Use `chmod +x` as the only mode change on a `mktemp` file.  
+5. Leave a self-install global dest at **0700** or **0711** on a normal root install.  
+6. Leave a self-install user dest at **0755** (that mode belongs to `install`).  
+7. Recommend password sudo for this place path.
 
 ---
 
@@ -101,10 +104,11 @@ No in-tool `sudo`. Do not print `sudo curl | sh`. Git Bash and Windows cmd do no
 
 | ID | Where | Status |
 |----|-------|--------|
-| **TP-CLI-07** | `tests/test_cli.sh` | have (off-TTY empty argv is help) |
+| **TP-CLI-07** | `tests/test_cli.sh` | have (off-TTY 0-argv copies; not help) |
+| **TP-CLI-31** | `tests/test_cli.sh` | have (stdin pipe downloads; not help) |
 | **TP-CLI-29** | `tests/test_cli.sh` | have (self-install copy, mode 0700; `install --force` heals 0755) |
 | **TP-LC-09** | `tests/test_local_lifecycle.sh` | have (`install` mode 0755) |
 
 **Last Updated**: 2026-10-04  
 **Owner**: tmpl-to-prj project maintainers  
-**Alignment**: Specialized from selfmanaged `requirement-shell-cli-self-install`, with the Type N and local-0755 exceptions above.
+**Alignment**: Specialized from selfmanaged `requirement-shell-cli-self-install`. TTY menu stays. Non-interactive 0-argv self-installs. Local `install` stays mode 0755.

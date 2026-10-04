@@ -1,21 +1,21 @@
 **file**: docs/requirements/requirement-shell-cli-default-interaction.md  
-**Status**: Active (Version 1.5.0)  
+**Status**: Active (Version 1.6.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-default-interaction`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan`, `apply`, and **8** self-management. The self-management board lists **82–87**. This file merges the tmpl-to-prj domain rows with the selfmanaged menu law (2026-10-04). **Interactive** empty argv **MUST** show this menu. **Non-interactive** empty argv **MUST** stay help (Type N). Command **`menu`** (alias **`main`**) uses the same handler.
+tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan`, `apply`, and **8** self-management. The self-management board lists **82–87**. This file merges the tmpl-to-prj domain rows with the selfmanaged menu law (2026-10-04). **Interactive** empty argv **MUST** show this menu and **MUST NOT** self-install. **Non-interactive** empty argv **MUST** self-install (Type O-S) and **MUST NOT** show this menu or help. Command **`menu`** (alias **`main`**) uses the same handler. Off-TTY `menu` still prints help and **MUST NOT** hang.
 
 ### 1.1 Human-facing
 
-**In one sentence:** At a real terminal, typing only `tmpl-to-prj` shows plan, apply, and self-management; in a script it prints help.
+**In one sentence:** At a real terminal, typing only `tmpl-to-prj` shows plan, apply, and self-management; a pipe with no words places the program.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
 | You / this login | Pick 1 or 2, then names | `tmpl-to-prj` then `2` |
-| The other role | CI / pipe | empty argv = help |
+| The other role | CI / pipe | empty argv = self-install, not this menu |
 | Not this file | Install / version on the list | those stay on `help` |
 
 | Includes | Excludes |
@@ -33,7 +33,7 @@ tmpl-to-prj **claims** a default function: a **numbered main menu** of `plan`, `
 
 ### 2.1 Claim and case
 
-Claimed **yes**. Zero-argument REQ exists. Product is **dual-mode** and empty argv stays **Type N**. TTY empty argv **MUST** use this menu. Off-TTY empty argv **MUST** be help (zero-arguments). JSON or quiet empty argv **MUST NOT** open this menu and **MUST NOT** self-install.
+Claimed **yes**. Zero-argument REQ exists. TTY empty argv **MUST** use this menu and **MUST NOT** self-install. Off-TTY empty argv **MUST** self-install and **MUST NOT** open this menu (zero-arguments). JSON or quiet with no command **MUST NOT** open this menu and **MUST NOT** self-install.
 
 ### 2.2 `menu` / `main`
 
@@ -138,7 +138,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Artifact | Role |
 |----------|------|
 | `docs/requirements/index.md` | Registry |
-| `docs/requirements/requirement-shell-cli-zero-arguments.md` | Off-TTY empty argv = help |
+| `docs/requirements/requirement-shell-cli-zero-arguments.md` | Off-TTY empty argv = self-install; TTY = this menu |
 | `docs/requirements/requirement-domain-tmpl-to-prj.md` | plan / apply semantics |
 | `docs/requirements/requirement-shell-cli-interface.md` | `menu` / `main` tokens |
 | `./src/tmpl-to-prj` | Ship unit |
@@ -148,7 +148,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
 | **TP-TMPL-TO-PRJ-10** | `tests/test_domain_tmpl_to_prj.sh` | have |
-| **TP-CLI-07** | `tests/test_cli.sh` | have (off-TTY empty argv = help) |
+| **TP-CLI-07** | `tests/test_cli.sh` | have (off-TTY empty argv self-installs; not this menu) |
+| **TP-CLI-31** | `tests/test_cli.sh` | have (stdin pipe self-installs; not help) |
 | **TP-CLI-17** | `tests/test_cli.sh` | have (menu header `${APP_NAME}(${VERSION})` bold/italic on TTY; row 8) |
 | **TP-CLI-26** | `tests/test_cli.sh` | have (board 82–87, 0 Back, no 81) |
 | **TP-CLI-27** | `tests/test_cli.sh` | have (finished 82 redisplays the front board) |

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-interactive-vs-noninteractive.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.2.0)  
 **Area**: shell  
 **Key**: `requirement-shell-interactive-vs-noninteractive`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -66,7 +66,7 @@ Rules:
 | Item | Value |
 |------|--------|
 | **Product** | `tmpl-to-prj` |
-| **No curl\|sh auto-install path** | Local-only; non-interactive does not mean Type O install-ensure |
+| **curl\|sh** | Non-interactive 0-argv self-installs (`requirement-shell-cli-zero-arguments`). This file still owns no-hang and uninstall fail-closed |
 | **Prompt helper** | `prompt_yes_no` for uninstall (and any future destructive confirm) |
 
 ### 2.5 Why This Requirement Exists (CIAO)
@@ -140,9 +140,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-03 | Active | Interactive vs non-interactive for folder-backup |
+| 2026-10-04 | Active 1.2.0 | `curl \| sh` self-installs. This file still owns no-hang and uninstall fail-closed |
 
 ---
 
-**Last Updated**: 2026-08-03  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

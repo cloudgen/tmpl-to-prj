@@ -3,9 +3,9 @@
 Maps **TP-*** coverage to `tests/`.  
 **Suite entry:** `./tests/run.sh`  
 **Ship unit:** `src/tmpl-to-prj`  
-**Product VERSION:** 1.5.1  
+**Product VERSION:** 1.5.2  
 **Last plan update:** 2026-10-04  
-**Last suite run:** PASS=291 FAIL=0 SKIP=0 (2026-10-04)
+**Last suite run:** PASS=308 FAIL=0 SKIP=0 (2026-10-04)
 
 Status: **have** = automated today · **todo** = needed · **optional** · **n/a** · **skip** (environment)
 
@@ -17,7 +17,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 |------|--------|----------|
 | Syntax `sh -n` | have | TP-CLI-01 |
 | version / help / about human + JSON | have | TP-CLI-02..06 |
-| Off-TTY empty argv = help | have | TP-CLI-07 |
+| Off-TTY empty argv = self-install (not help) | have | TP-CLI-07, TP-CLI-31 |
 | Unknown + quiet + set -u HOME | have | TP-CLI-08..11 |
 | Cache folder isolation (login + process; silent fallback; persistence) | have | TP-CLI-06, TP-CLI-12 |
 | Channel verbs; unreachable channel fails loud | have | TP-CLI-04, TP-CLI-10 |
@@ -74,7 +74,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-CLI-04 | help lists local and channel verbs; no `CHECKSUM`; no backup/restore/sudoers | test_cli | requirement-shell-cli-interface · requirement-shell-automatic-checksum | **have** |
 | TP-CLI-05 | help JSON short | test_cli | requirement-shell-output-requirements | **have** |
 | TP-CLI-06 | about JSON cache + persistence; human Cache folder labels; no domain fields | test_cli | requirement-shell-cli-storage | **have** |
-| TP-CLI-07 | off-TTY empty argv help | test_cli | requirement-shell-cli-zero-arguments | **have** |
+| TP-CLI-07 | off-TTY 0-argv copies the script; not help; second run already installed | test_cli | requirement-shell-cli-zero-arguments | **have** |
 | TP-CLI-08 | unknown fail-closed | test_cli | requirement-shell-cli-interface | **have** |
 | TP-CLI-09 | quiet suppresses version | test_cli | requirement-shell-output-requirements | **have** |
 | TP-CLI-10 | unreachable `SCRIPT_URL` on self-update and version-check fails loud | test_cli | requirement-shell-self-management | **have** |
@@ -87,6 +87,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-CLI-28 | Bad pick reprints this layer | test_cli | requirement-shell-cli-default-interaction | **have** |
 | TP-CLI-29 | `self-install` copies `$0` at mode 0700; `install` stays 0755 | test_cli | requirement-shell-cli-self-install | **have** |
 | TP-CLI-30 | Downgrade refused; newer channel replaces; JSON uninstall needs `--force` | test_cli | requirement-shell-self-management · requirement-shell-cli-self-install | **have** |
+| TP-CLI-31 | stdin pipe 0-argv (`cat ship \| sh`) downloads and places; unreachable pipe is non-zero and not help; second run already installed | test_cli | requirement-shell-cli-zero-arguments · requirement-shell-cli-self-install | **have** |
 
 ### TP-LC (local lifecycle)
 
@@ -122,4 +123,4 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 1. Closing a **bug** finding updates the matching TP to **have**.  
 2. Do not mark TP **have** without a suite assertion (or honest skip/n/a).  
 3. Channel coverage stays on TP-CLI-04, TP-CLI-10, TP-CLI-29, and TP-CLI-30. Do not add this product’s backup, restore, or print-sudoers as Core.  
-4. Do not add a `setup` verb — empty argv stays the numbered list or help.
+4. Do not add a `setup` verb. TTY empty argv stays the numbered list. Non-interactive 0-argv self-installs and must not show help.

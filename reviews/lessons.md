@@ -4,7 +4,7 @@ Durable failure modes. **Always re-check on product review.**
 
 | ID | Mode | Prevention | Status |
 |----|------|------------|--------|
-| L-TYPE-N-01 | Empty argv becomes install-ensure (parent Type O leak) | `requirement-shell-cli-zero-arguments` Type N; TP-CLI-07 | open watch |
+| L-TYPE-N-01 | Documented `curl \| sh` shows help because law, TP-CLI-07, and review all said Type N. **CL-ONLINE-INSTALL-SCRIPT** §2 stopped when the label was Type N. `sh path` is not the pipe (`$0` is the file) | Non-interactive 0-argv is Type O-S (`inst_self_install`). TP-CLI-07 copy; TP-CLI-31 stdin pipe, not `Usage:`. A Type N label does not waive the one-liner. **INC-20261004-003** | closed 2026-10-04 |
 | L-ONLINE-01 | Online verbs treated as a trim leak after channel law landed | TP-CLI-04 (self-install listed; no `CHECKSUM` token) | closed 2026-10-04 — channel self-management is law in **1.5.0**. `SCRIPT_URL` stays this product. |
 | L-ONLINE-02 | Channel points at another product, or `help`/`about` prints `CHECKSUM` | requirement-shell-self-management · requirement-shell-automatic-checksum; TP-CLI-04 | open watch |
 | L-UNIN-01 | Non-interactive uninstall succeeds without force | TP-LC-05 confirm fail-closed | open watch |
@@ -22,6 +22,6 @@ Durable failure modes. **Always re-check on product review.**
 | L-T2P-ID-01 | Implementation Notes still say `cli-template` / `src/cli-template` after A→B | Retarget notes to `tmpl-to-prj`; AC-2 ship unit `src/tmpl-to-prj`; registry honesty | closed 2026-09-06 |
 | L-TX-SUDO-01 | Termux / Git Bash still invoke `sudo folder-backup` or recommend `sudo install` | Detect class; `util_sudo` skip; gate missing; TP-TX-06..08 | open watch |
 
-**Related-product only (do not re-apply as this origin’s law):** L-DEPOSIT-01, L-SUDOERS-01..05, L-OVERWRITE-01 stay on folder-backup. Type O empty-argv stays off this product. Channel self-management is this product’s law (L-ONLINE-02).
+**Related-product only (do not re-apply as this origin’s law):** L-DEPOSIT-01, L-SUDOERS-01..05, L-OVERWRITE-01 stay on folder-backup. Channel self-management is this product’s law (L-ONLINE-02).
 
-**This origin’s kept surfaces:** output SSOT, no basename gate on entry, storage isolation, Type N empty argv.
+**This origin’s kept surfaces:** output SSOT, no basename gate on entry, storage isolation, TTY menu, non-interactive 0-argv self-install (not help).

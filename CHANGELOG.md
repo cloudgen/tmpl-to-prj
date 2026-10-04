@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.2] - 2026-10-04
+
+### Fixed
+
+- Non-interactive empty argv self-installs. `curl -fsSL https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj | sh` places the program instead of printing help. A terminal with no words still shows the numbered menu. `install` stays the local copy at mode **0755** and is not an alias of `self-install`. Law: `requirement-shell-cli-zero-arguments` **1.2.0**. Suite **TP-CLI-07**, **TP-CLI-31**. The online-install checklist no longer treats a Type N label as a waiver when that one-liner is documented. **INC-20261004-003**.
+
 ## [1.5.1] - 2026-10-04
 
 ### Fixed

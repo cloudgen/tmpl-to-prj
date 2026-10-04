@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-self-management.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.0)  
 **Area**: shell  
 **Key**: `requirement-shell-self-management`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -11,7 +11,7 @@ This requirement is the project Single Source of Truth for **channel self-manage
 It was specialized from sibling **selfmanaged** (bootstrap A → this product B) on 2026-10-04. Local copy verbs stay on `requirement-shell-local-self-management.md`. They are **not** aliases of these verbs.
 
 **Scope:** Compare, replace, and remove the managed binary using the configured channel.  
-**Out of scope:** Empty argv (Type N). Local `install` / `uninstall` / `where-is-me` at mode **0755**. Domain `plan` / `apply`. Checksum math (`requirement-shell-automatic-checksum.md`). This product’s own `backup` / `restore` / `print-sudoers` verbs.
+**Out of scope:** Empty-argv routing (`requirement-shell-cli-zero-arguments`: TTY menu, non-interactive 0-argv `inst_self_install`). Local `install` / `uninstall` / `where-is-me` at mode **0755**. Domain `plan` / `apply`. Checksum math (`requirement-shell-automatic-checksum.md`). This product’s own `backup` / `restore` / `print-sudoers` verbs.
 
 ### 1.1 Human-facing
 
@@ -71,7 +71,7 @@ Type 0 (this login). Root may write `${GLOBAL_BIN}`. Non-root writes `${USER_BIN
 | Concern | Local (`install` / `uninstall` / `where-is-me`) | Channel (`self-install` / `self-update` / `self-uninstall` / `version-check`) |
 |---------|--------------------------------------------------|---------------------------------------------------------------------------------|
 | Primary | Copy the running ship unit. No network | Place or refresh from `SCRIPT_URL`, or copy when `$0` is the script |
-| Empty argv | Type N: TTY menu, off-TTY help. **No** place | Not invoked by empty argv |
+| Empty argv | TTY menu. **Not** `inst_local_install` | Non-interactive 0-argv calls `inst_self_install` |
 | Verb | `install` → `inst_local_install` | `self-install` → `inst_self_install`. **Not** an alias |
 | Mode | Always **0755** | **0755** if root, else **0700**. Normal-user-only CLIs stay **0700** |
 | Remove | `uninstall` | `self-uninstall` (same file, plus PATH cleanup when the user bin is empty) |
@@ -86,7 +86,7 @@ Both writers use the same privilege-correct path (`${USER_BIN}/${APP_NAME}` or `
 |------|--------|
 | Product | `tmpl-to-prj` |
 | Ship unit | `src/tmpl-to-prj` |
-| Version | `VERSION="1.5.1"` |
+| Version | `VERSION="1.5.2"` |
 | Channel | `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` |
 | Compare | `ver_gt`, `inst_get_version`, `util_fetch_remote_version` |
 | Paths | `GLOBAL_BIN` `/usr/local/bin`; `USER_BIN` `${HOME}/.local/bin` |
@@ -112,7 +112,7 @@ Both writers use the same privilege-correct path (`${USER_BIN}/${APP_NAME}` or `
 4. Delete more than the managed binary.  
 5. Rename `version-check`, `self-update`, or `self-uninstall` without updating help in the same change.  
 6. Make `install` an alias of `self-update` or `self-install`.  
-7. Make empty argv call `inst_self_install` (Type N stays).  
+7. Make empty argv call `inst_local_install`, or route non-interactive 0-argv to help.  
 8. Recommend password `sudo` for self-update or self-uninstall.  
 9. Print `CHECKSUM` in `help` or `about`.
 

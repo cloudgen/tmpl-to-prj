@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-bootstrap-chain.md  
-**Status**: Active (Version 4.2.0)  
+**Status**: Active (Version 4.3.0)  
 **Area**: architecture  
 **Key**: `requirement-bootstrap-chain`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -10,7 +10,7 @@ Declare the **bootstrap chain** for this product: **A = `selfmanaged` → B = `t
 
 **Historical hop:** `cli-template` remains an earlier ancestor. Do not reverse-copy onto `cli-template` either. **`folder-backup` is not an origin.** It is a composed sibling for dest archive.
 
-User order on 2026-10-04 re-opened the live parent hop and added selfmanaged self-management plus the merged main menu, while keeping every tmpl-to-prj feature (plan/apply, Type N empty argv, local `install` at mode 0755, folder-backup gate, Termux freeze).
+User order on 2026-10-04 re-opened the live parent hop and added selfmanaged self-management plus the merged main menu, while keeping tmpl-to-prj plan/apply, the TTY menu, local `install` at mode 0755, the folder-backup gate, and the Termux freeze. A later order the same day: non-interactive 0-argv self-installs. The documented `curl \| sh` line must not show help.
 
 ### 1.1 Human-facing
 
@@ -49,7 +49,7 @@ User order on 2026-10-04 re-opened the live parent hop and added selfmanaged sel
 | **Historical hop** | `cli-template` — earlier Type 0 template (sibling tree; do not overwrite) |
 | **Immediate origin (A)** | `selfmanaged` |
 | **Leaf (this product B)** | `tmpl-to-prj` |
-| **Specialize mode** | Inherit selfmanaged self-management and menu law; keep tmpl-to-prj domain, Type N empty argv, and local 0755 `install` |
+| **Specialize mode** | Inherit selfmanaged self-management and menu law; keep tmpl-to-prj domain, TTY menu, non-interactive 0-argv self-install, and local 0755 `install` |
 | **This ship unit** | `src/tmpl-to-prj` |
 | **This channel** | `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` — not selfmanaged’s channel |
 | **This domain** | harness-docs apply (`plan` / `apply`) — `requirement-domain-tmpl-to-prj` |
@@ -70,7 +70,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | Integrity companion | **Present** — `${SCRIPT_URL}.sha256`; `CHECKSUM` pin not shown in help/about |
 | Online lifecycle | **Present** — `self-install`, `version-check`, `self-update`, `self-uninstall`, `SCRIPT_URL` |
 | Local lifecycle | **Present** — `install` / `uninstall` / `where-is-me` at mode **0755** (not an alias of `self-install`) |
-| Empty argv | Interactive = menu; off-TTY = help (Type N kept; not Type O) |
+| Empty argv | Interactive = menu; non-interactive 0-argv = self-install (Type O-S). Not help |
 | Backup / restore / sudoers emit | **Absent** as this CLI’s verbs — compose sibling `folder-backup` |
 
 ### 2.4 Surface matrix (normative for this product)
@@ -83,7 +83,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | Storage resolve | **Keep** | Scratch only |
 | Idempotency / interactive modes | **Keep** | Lifecycle only |
 | Online channel | **Keep** (B’s URL, not A’s) | `self-install` / `self-update` / `version-check` |
-| Type O empty argv | **Absent** (authorized exception) | TTY empty argv = menu; off-TTY = help |
+| Type O empty argv | **Present** for non-interactive 0-argv (Type O-S) | TTY empty argv = menu; off-TTY = `inst_self_install` |
 | Domain backup + restore verbs on **this** CLI | **Absent** | Compose sibling `folder-backup`; do not add `backup`/`restore` tokens here |
 | Sudoers print / install-script / remove-draft | **Absent** | This product does not emit sudoers |
 | Local `install` / `uninstall` / `where-is-me` | **Keep** | Local self-managed package |
@@ -94,7 +94,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | Concern | Value |
 |---------|---------|
 | `APP_NAME` | `tmpl-to-prj` |
-| `VERSION` | `1.5.1` (product version SSOT in ship unit) |
+| `VERSION` | `1.5.2` (product version SSOT in ship unit) |
 | Primary install story | Local `install` (0755) and channel `self-install` / `curl \| sh` of this product’s `SCRIPT_URL` |
 | README one-liner | Channel URL is this product’s, not selfmanaged’s |
 
@@ -120,7 +120,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 - **Caution:** Do not invent host `setup` or other OS-mutating verbs to fill the product name.  
 - **Intentional:** Leaf specialized from selfmanaged, with tmpl-to-prj domain kept.  
 - **Anti-fragile:** Do not overwrite selfmanaged.  
-- **Over-protect:** Channel is this product’s URL. Empty argv stays Type N. Local install stays 0755.
+- **Over-protect:** Channel is this product’s URL. Non-interactive 0-argv self-installs. TTY menu stays. Local install stays 0755.
 
 ---
 
@@ -133,7 +133,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 3. Reintroduce this product’s own `backup` / `restore` / `print-sudoers` verbs.  
 4. Leave domain unowned while `plan`/`apply` exist.  
 5. Remove channel self-management or point `SCRIPT_URL` at selfmanaged without a new user order.  
-6. Drop local `install` (0755) or Type N empty argv while claiming all tmpl-to-prj features are kept.  
+6. Drop local `install` (0755), route non-interactive 0-argv back to help, or drop the TTY menu.  
 7. Reverse-copy this leaf onto `selfmanaged`.
 
 **Violating this rule is a critical bootstrap-direction regression.**
@@ -148,7 +148,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | AC-2 | Ship unit is `src/tmpl-to-prj` |
 | AC-3 | Help does not list this product’s backup / restore / print-sudoers verbs |
 | AC-4 | Unknown domain verbs fail closed |
-| AC-5 | Empty argv is Type N (TTY menu / off-TTY help) |
+| AC-5 | Empty argv is TTY menu / non-interactive self-install |
 | AC-6 | `SCRIPT_URL` names `tmpl-to-prj`, not `selfmanaged` |
 
 ---
@@ -169,7 +169,8 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
 | **TP-CLI-04,10,13** | `tests/test_cli.sh` | have | channel verbs present; backup/restore/sudoers unknown; unreachable channel fails loud |
-| **TP-CLI-07** | `tests/test_cli.sh` | have | Type N empty argv |
+| **TP-CLI-07** | `tests/test_cli.sh` | have | off-TTY 0-argv self-installs |
+| **TP-CLI-31** | `tests/test_cli.sh` | have | stdin pipe self-installs; not help |
 
 **Matrix:** `reviews/requirement-test-matrix.md`  
 **Map:** `reviews/test-plan.md`
@@ -184,6 +185,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | 2026-08-13 | Active 4.0.0 | **This product is hop 0.** No live parent. selfmanaged and folder-backup are not origins. |
 | 2026-09-06 | Active 4.1.0 | Notes aligned; origin remained cli-template |
 | 2026-10-04 | Active 4.2.0 | User order: live origin **selfmanaged → tmpl-to-prj**; keep domain, Type N, local 0755 install |
+| 2026-10-04 | Active 4.3.0 | Non-interactive 0-argv is Type O-S self-install. TTY menu and local 0755 `install` stay |
 
 ---
 

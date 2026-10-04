@@ -9,10 +9,10 @@ Authoritative specialized product law for **tmpl-to-prj** lives here.
 | Field | Value |
 |-------|--------|
 | Product / `APP_NAME` | `tmpl-to-prj` |
-| Version SSOT | `1.5.1` (ship unit hard-assign) |
+| Version SSOT | `1.5.2` (ship unit hard-assign) |
 | Ship unit | `src/tmpl-to-prj` |
 | Default install | `~/.local/bin/tmpl-to-prj` |
-| Install mode | **Local-only** |
+| Install mode | **Dual** — local `install` (0755) and channel `self-install` / `curl \| sh` |
 | Domain surface | **Active** — `requirement-domain-tmpl-to-prj` |
 
 ## Class requirement gate

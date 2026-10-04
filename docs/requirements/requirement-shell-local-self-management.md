@@ -101,7 +101,7 @@ This product ships as a **POSIX shell script** (interpreted). Execution by any n
 | Variable | Role | Default / note |
 |----------|------|----------------|
 | `APP_NAME` | Binary basename SSOT | hard-assign `tmpl-to-prj` |
-| `VERSION` | Local version SSOT | hard-assign `1.5.1` |
+| `VERSION` | Local version SSOT | hard-assign `1.5.2` |
 | `GLOBAL_BIN` | System-wide bin | `/usr/local/bin` |
 | `USER_BIN` | Per-user bin | `${HOME}/.local/bin` |
 | `FORCE` | Replace / skip confirm | `0` |
@@ -159,7 +159,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 1. Replace local `uninstall` with `self-uninstall` as the only remove verb.  
 2. Require `SCRIPT_URL` for `install`.  
-3. Make empty argv install-ensure (Type N owns empty argv).  
+3. Make empty argv call `inst_local_install`. Non-interactive 0-argv is `inst_self_install` (zero-arguments law), not this verb.  
 4. Delete user data or unrelated paths during uninstall.  
 5. Fetch remote version inside `version`.  
 6. Install the managed binary with execute-only group/other bits (`0711` / `chmod +x` after `0600` stage) — **must** keep absolute **`0755`** so global install remains multi-user runnable for a shell ship unit.
@@ -188,10 +188,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Key | Relationship |
 |-----|--------------|
 | `requirement-shell-cli-interface` | Command table + flags |
-| `requirement-shell-cli-zero-arguments` | Type N empty argv |
+| `requirement-shell-cli-zero-arguments` | TTY menu; non-interactive 0-argv is self-install, not `install` |
 | `requirement-project-folder` | Path defaults |
 | `requirement-shell-idempotency` | Already installed / uninstalled |
-| `requirement-bootstrap-chain` | Why online package is absent |
+| `requirement-bootstrap-chain` | Local `install` stays beside the channel |
 | `requirement-shell-termux-ish` | Termux install companion (empty `pkg` table) |
 | `docs/requirements/index.md` | Registry |
 
@@ -214,9 +214,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 |------|--------|------|
 | 2026-08-03 | Active | Local-only lifecycle for folder-backup |
 | 2026-08-09 | Active 1.2.0 | §2.3.1 mode **0755** multi-user; ban `chmod +x`→`0711` trap; AC-6..8; TP-LC-09/10 |
+| 2026-10-04 | Active 1.5.0 | Empty argv must not call `inst_local_install`. Non-interactive 0-argv is `inst_self_install` |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

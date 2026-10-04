@@ -90,12 +90,71 @@ run_test_cli() {
         export HOME="${_home_orig}"
     fi
 
-    # TP-CLI-07 empty argv off-TTY = help (not install)
-    _out=$(sh "${SCRIPT}" 2>/dev/null)
+    # TP-CLI-07 non-interactive 0-argv copies ($0 is the script). Not help.
+    # stdin is /dev/null so a TTY test run cannot open the menu.
+    _home_orig="${HOME:-}"
+    ci_isolated_env
+    _out=$(HOME="${CI_HOME}" USER_BIN="${CI_USER_BIN}" GLOBAL_BIN="${CI_GLOBAL_BIN}" \
+        sh "${SCRIPT}" </dev/null 2>&1)
     _ec=$?
     assert_eq "TP-CLI-07 empty argv exit 0" 0 "$_ec"
-    assert_contains "TP-CLI-07 empty argv is help" "$_out" "Usage:"
-    assert_contains "TP-CLI-07 empty argv mentions help" "$_out" "help"
+    assert_contains "TP-CLI-07 empty argv self-installs" "$_out" "no download"
+    assert_contains "TP-CLI-07 empty argv placed" "$_out" "successfully installed"
+    assert_not_contains "TP-CLI-07 empty argv is not help" "$_out" "Usage:"
+    assert_file_exists "TP-CLI-07 placed binary" "${CI_USER_BIN}/${APP_NAME}"
+    _mode=$(stat -c '%a' "${CI_USER_BIN}/${APP_NAME}" 2>/dev/null || stat -f '%OLp' "${CI_USER_BIN}/${APP_NAME}")
+    case "${_mode}" in
+        700|0700) t_pass "TP-CLI-07 self-install mode 0700" ;;
+        *) t_fail "TP-CLI-07 self-install mode 0700 (got ${_mode})" ;;
+    esac
+    _out=$(HOME="${CI_HOME}" USER_BIN="${CI_USER_BIN}" GLOBAL_BIN="${CI_GLOBAL_BIN}" \
+        sh "${SCRIPT}" </dev/null 2>&1)
+    _ec=$?
+    assert_eq "TP-CLI-07 second empty argv exit 0" 0 "$_ec"
+    assert_contains "TP-CLI-07 already installed" "$_out" "already installed"
+    assert_not_contains "TP-CLI-07 second run is not help" "$_out" "Usage:"
+    if [ -n "${_home_orig}" ]; then
+        export HOME="${_home_orig}"
+    fi
+    ci_cleanup_env
+
+    # TP-CLI-31 stdin pipe ($0 is sh, 0 argv) downloads. Not help.
+    # `sh "$SCRIPT"` does not reproduce curl | sh. The pipe does.
+    _home_orig="${HOME:-}"
+    ci_isolated_env
+    _stage=$(mktemp -d "${CI_HOME}/channel.XXXXXX")
+    cp "${SCRIPT}" "${_stage}/tmpl-to-prj"
+    _url="file://${_stage}/tmpl-to-prj"
+    _out=$(cat "${SCRIPT}" | HOME="${CI_HOME}" USER_BIN="${CI_USER_BIN}" \
+        GLOBAL_BIN="${CI_GLOBAL_BIN}" SCRIPT_URL="${_url}" sh 2>&1)
+    _ec=$?
+    assert_eq "TP-CLI-31 pipe empty argv exit 0" 0 "$_ec"
+    assert_contains "TP-CLI-31 pipe placed" "$_out" "successfully installed"
+    assert_not_contains "TP-CLI-31 pipe is not help" "$_out" "Usage:"
+    assert_file_exists "TP-CLI-31 placed binary" "${CI_USER_BIN}/${APP_NAME}"
+    _out=$(HOME="${CI_HOME}" USER_BIN="${CI_USER_BIN}" GLOBAL_BIN="${CI_GLOBAL_BIN}" \
+        SCRIPT_URL="${_url}" "${CI_USER_BIN}/${APP_NAME}" </dev/null 2>&1)
+    _ec=$?
+    assert_eq "TP-CLI-31 second pipe-installed argv exit 0" 0 "$_ec"
+    assert_contains "TP-CLI-31 already installed" "$_out" "already installed"
+    assert_not_contains "TP-CLI-31 second run is not help" "$_out" "Usage:"
+    rm -f "${CI_USER_BIN}/${APP_NAME}"
+    _err=$(cat "${SCRIPT}" | HOME="${CI_HOME}" USER_BIN="${CI_USER_BIN}" \
+        GLOBAL_BIN="${CI_GLOBAL_BIN}" \
+        SCRIPT_URL="http://127.0.0.1:1/tmpl-to-prj-missing" sh 2>&1)
+    _ec=$?
+    if [ "$_ec" -ne 0 ]; then
+        t_pass "TP-CLI-31 unreachable pipe exit non-zero"
+    else
+        t_fail "TP-CLI-31 unreachable pipe exit non-zero (got 0)"
+    fi
+    assert_contains "TP-CLI-31 unreachable pipe loud" "$_err" "Download failed"
+    assert_not_contains "TP-CLI-31 unreachable pipe is not help" "$_err" "Usage:"
+    assert_file_missing "TP-CLI-31 unreachable leaves no binary" "${CI_USER_BIN}/${APP_NAME}"
+    if [ -n "${_home_orig}" ]; then
+        export HOME="${_home_orig}"
+    fi
+    ci_cleanup_env
 
     # TP-CLI-08 unknown command fail-closed
     _err=$(sh "${SCRIPT}" no-such-command 2>&1 >/dev/null)

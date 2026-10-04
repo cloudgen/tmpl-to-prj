@@ -16,7 +16,7 @@ Exit **0** when all assertions pass; **1** on failure; **2** if ship unit missin
 |------|--------|-------------|
 | `run.sh` | Entrypoint | — |
 | `helpers.sh` | Asserts + isolated HOME | — |
-| `test_cli.sh` | CLI surface, Type N empty argv, channel miss fails loud, trimmed-verb reject, menu 8 and self-install | **TP-CLI-*** |
+| `test_cli.sh` | CLI surface, non-interactive 0-argv self-install (copy and stdin pipe), channel miss fails loud, trimmed-verb reject, menu 8 and self-install | **TP-CLI-*** |
 | `test_local_lifecycle.sh` | install / uninstall / where-is-me | **TP-LC-*** |
 | `test_domain_tmpl_to_prj.sh` | RAM-first resolve, plan/apply overlay, dest specialized docs preserve, folder-backup gate | **TP-TMPL-TO-PRJ-*** |
 | `test_termux.sh` | Termux detect, empty `pkg` table, skip `sudo` | **TP-TX-*** |

@@ -5,7 +5,7 @@
 **Always load first:** `reviews/lessons.md`
 
 **Last plan update:** 2026-10-04  
-**Ship unit VERSION:** 1.5.1  
+**Ship unit VERSION:** 1.5.2  
 **Suite baseline:** see `reviews/test-plan.md`
 
 ---
@@ -15,7 +15,7 @@
 | # | Check | Notes |
 |---|--------|--------|
 | P1 | Read `docs/requirements/index.md` | Class + architecture + shell + domain + Termux-ish |
-| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.5.1**) |
+| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.5.2**) |
 | P3 | Load `reviews/lessons.md` and re-check open L-* that still apply | Skip L-SUDOERS / restore lessons as parent-only |
 | P4 | Run `./tests/run.sh` | Record PASS/FAIL/SKIP in report |
 | P5 | Confirm the channel is this product’s `SCRIPT_URL` | `help` lists self-install / self-update; `help` and `about` do not print `CHECKSUM` |
@@ -31,7 +31,7 @@
 | Bootstrap chain | `requirement-bootstrap-chain.md` | selfmanaged → tmpl-to-prj (historical cli-template; do not reverse-copy) |
 | Project folder | `requirement-project-folder.md` | `src/tmpl-to-prj`, bins; no `/var/backup` |
 | CLI interface | `requirement-shell-cli-interface.md` | Commands, flags, dispatch |
-| Empty argv | `requirement-shell-cli-zero-arguments.md` | TTY menu; off-TTY help |
+| Empty argv | `requirement-shell-cli-zero-arguments.md` | TTY menu; non-interactive 0-argv self-install. **Block** if `curl \| sh` shows help. A Type N note does not waive **CL-ONLINE-INSTALL-SCRIPT** §2 |
 | Local self-management | `requirement-shell-local-self-management.md` | install/uninstall; mode 0755 |
 | Channel self-management | `requirement-shell-self-management.md` | version-check, self-update, self-uninstall |
 | Channel place | `requirement-shell-cli-self-install.md` | self-install; copy when `$0` is the script |

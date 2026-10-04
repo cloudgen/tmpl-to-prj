@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-zero-arguments.md  
-**Status**: Active (Version 1.1.0)  
+**Status**: Active (Version 1.2.0)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-zero-arguments`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -12,28 +12,29 @@ This requirement is the **project Single Source of Truth** for **zero-argument (
 
 | Field | Value for tmpl-to-prj |
 |-------|-------------------------|
-| **Empty-argv type** | **Type N — kept** |
-| **Rationale** | User order 2026-10-04: add selfmanaged self-management and **keep** tmpl-to-prj empty argv. **TTY** empty argv shows the **main menu**. **Off-TTY** empty argv shows **help**, not `inst_self_install`. Channel place is the explicit `self-install` verb |
+| **Empty-argv type** | **Type O-S** for non-interactive 0-argv. **TTY menu kept** |
+| **Rationale** | The documented one-liner is `curl -fsSL …/src/tmpl-to-prj \| sh` with no command token. That line is non-interactive 0-argv and **MUST** call `inst_self_install`. Showing help is a misalignment. A terminal with no words still shows the numbered menu and **MUST NOT** install |
 
-Type O (online-install empty-argv = install-ensure) does **not** apply.
+Type N (off-TTY help) does **not** apply. A product that documents that one-liner is Type O. Depth is **Type O-S** (ship unit only, not a payload). Interactive empty argv stays the menu.
 
 ### 1.1 Human-facing
 
-**In one sentence:** On a terminal, running `tmpl-to-prj` with no words shows the numbered list; in a script it prints help.
+**In one sentence:** On a terminal, running `tmpl-to-prj` with no words shows the numbered list; a pipe with no words places the program.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
 | You / this login | Operator at a terminal | `tmpl-to-prj` then `9` |
-| The other role | Automation / pipe | `tmpl-to-prj` prints help; does not hang |
+| The other role | Automation / pipe | `curl … \| sh` self-installs; does not hang; does not print help |
 | Not this file | What the numbered rows are | `requirement-shell-cli-default-interaction` |
 
 | Includes | Excludes |
 |----------|----------|
-| TTY menu; off-TTY help | Empty argv as install |
+| TTY menu; non-interactive 0-argv self-install | Non-interactive 0-argv as help; TTY 0-argv as install |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
 | Open the menu | Empty argv on a TTY | `tmpl-to-prj` |
+| Place from a pipe | Non-interactive 0-argv; `$0` is the shell | `curl -fsSL https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj \| sh` |
 
 ---
 
@@ -41,37 +42,41 @@ Type O (online-install empty-argv = install-ensure) does **not** apply.
 
 ### 2.1 Single meaning of empty argv
 
-1. When **argv is empty** (`$# -eq 0` at entry to `app_main`) **and** `TTY=1`, the dispatcher **MUST** route to the main menu (`app_default`) — `requirement-shell-cli-default-interaction`.  
-2. When argv is empty **and** `TTY=0`, the dispatcher **MUST** route to **`help`** (`app_help`).  
-3. Empty argv **MUST NOT** perform install or any state-changing ensure.  
-4. Explicit `tmpl-to-prj help` remains a valid full-usage path.  
-5. Explicit `tmpl-to-prj install` remains the only first-time local install path (plus documented force refresh).  
-6. Script entry **MUST** always call `app_main "$@"` (no basename product-name gate that blocks dispatch).
+1. When **argv is empty** (`$# -eq 0` at entry to `app_main`) **and** `TTY=1`, the dispatcher **MUST** route to the main menu (`app_default`) — `requirement-shell-cli-default-interaction`. It **MUST NOT** call `inst_self_install`.  
+2. When argv is empty **and** `TTY=0`, the dispatcher **MUST** call **`inst_self_install`** and return that status. It **MUST NOT** call `app_help`.  
+3. Already installed and force off → success text “already installed”. **MUST NOT** print full help. **MUST NOT** download again.  
+4. A place failure (network, checksum, I/O) **MUST** exit non-zero.  
+5. Explicit `tmpl-to-prj help` remains the full-usage path.  
+6. Explicit `tmpl-to-prj install` remains the local **0755** copy. It is **not** the empty-argv handler and **not** an alias of `self-install`.  
+7. Script entry **MUST** always call `app_main "$@"` (no basename product-name gate that blocks a pipe).  
+8. `sh path/to/tmpl-to-prj` with no words off a TTY copies that file (no download). `curl … \| sh` has `$0` equal to the shell and downloads `SCRIPT_URL`. A test that only runs `sh path` does **not** prove the pipe.  
+9. `--json` or `--quiet` with no command token is the JSON/help special case. It **MUST NOT** self-install and **MUST NOT** open the menu. That line is not the 0-argv one-liner.
 
 ### 2.2 Normative matrix
 
 | Invocation | Behavior |
 |------------|----------|
-| `tmpl-to-prj` (no args, TTY) | Main menu; exit 0 after pick or Exit |
-| `tmpl-to-prj` (no args, off-TTY) | Show help; exit 0 |
+| `tmpl-to-prj` (no args, TTY) | Main menu; exit 0 after pick or Exit; no install |
+| `tmpl-to-prj` (no args, off-TTY) | `inst_self_install`; not help |
+| `curl … \| sh` (no args) | Same place path; `$0` is the shell, so download |
 | `tmpl-to-prj help` | Show help; exit 0 |
-| `tmpl-to-prj install` | Local install ensure |
-| Flags only (e.g. `--json` with no command) | **MUST** still resolve to help (or fail with clear usage if product chooses fail-closed) — default: **help** after flag parse with no command token |
+| `tmpl-to-prj install` | Local install ensure (mode 0755) |
+| `--json` or `--quiet` with no command | Help (JSON when `--json`); **not** self-install; **not** the menu |
 
 ### 2.3 Implementation Notes (this project)
 
 | Item | Value |
 |------|--------|
 | **Product** | `tmpl-to-prj` |
-| **Type** | **Type N** (TTY menu; off-TTY help; empty argv is not install-ensure) |
-| **Default COMMAND** | TTY: menu handler; off-TTY: `help` |
-| **Contrast Type O** | Type O install-ensure is **not** this origin’s empty-argv law |
+| **Type** | **Type O-S** off-TTY (self-install, ship unit only). **TTY menu kept** |
+| **Default COMMAND** | TTY: menu handler; off-TTY 0-argv: `inst_self_install` |
+| **Contrast Type N** | Type N off-TTY help does **not** apply while the README one-liner has no command token |
 
 ### 2.4 Why This Requirement Exists (CIAO)
 
-- **Principle 2 – Intentional**: Empty argv meaning is explicit and not left as “whatever the parent did.”  
-- **Principle 1 – Caution**: Avoid surprise install on bare invocation for an ops CLI.  
-- **Principle 16 – Interactive**: Help is the safe human default for local tools.
+- **Principle 2 – Intentional**: The documented one-liner and the dispatcher are the same path.  
+- **Principle 1 – Caution**: A failed place is non-zero. A terminal with no words does not install.  
+- **Principle 16 – Interactive**: The pipe does not prompt. Help stays the explicit `help` verb.
 
 ---
 
@@ -82,9 +87,9 @@ When the ship unit detects Termux, Git Bash, Windows cmd, or the same class:
 | MUST | MUST NOT |
 |------|----------|
 | Keep **normal user privilege** only | Enable **admin privilege** or **dedicated system user privilege** |
-| Same empty-argv split (TTY menu / off-TTY help) | Treat empty argv as `sudo` install or `pkg` ensure |
+| Same split: TTY menu; non-interactive 0-argv self-install to the user bin at mode **0700** | Treat empty argv as `sudo` install or `pkg` ensure |
 
-**This requirement:** empty argv still is not install-ensure on Termux.
+**This requirement:** non-interactive 0-argv still self-installs on Termux. It does not become help, and it does not gain admin privilege.
 
 Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` set; `/data/data/com.termux/files/usr` exists. Git Bash — `MSYSTEM` is `MINGW*` / `MSYS*` / `UCRT*` / `CLANG*`. Windows cmd — `OS` is `Windows_NT` or `COMSPEC` names `cmd.exe` (after excluding Git Bash, Cygwin, WSL).
 
@@ -92,10 +97,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution**: No silent ensure on empty argv.  
-- **Intentional**: Type N declared in law.  
-- **Anti-fragile**: Help works offline.  
-- **Over-protect**: Do not reintroduce Type O without reclassifying product install mode.
+- **Caution**: Place failure is loud. TTY 0-argv does not install.  
+- **Intentional**: Type O-S for the pipe; menu for the terminal.  
+- **Anti-fragile**: A checkout `sh path` with no words copies offline.  
+- **Over-protect**: A Type N label does not waive the one-liner.
 
 ---
 
@@ -103,9 +108,11 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Change empty argv to install-ensure. Channel place stays the explicit `self-install` verb.  
-2. Copy Type O empty-argv law wholesale without updating this file and install mode.  
-3. Make bare invocation run domain `backup`.
+1. Route non-interactive 0-argv to help, or treat a green “Usage:” assertion as proof of the one-liner.  
+2. Route TTY 0-argv to `inst_self_install`.  
+3. Skip the online-install checklist because a file still says Type N, while the README shows `curl … \| sh` with no command token.  
+4. Make bare invocation run domain `backup` or `pkg`.  
+5. Make `install` an alias of `self-install`.
 
 **Violating this rule is a critical dispatcher regression.**
 
@@ -115,9 +122,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | ID | Criterion |
 |----|-----------|
-| AC-1 | Off-TTY empty argv shows help and does not install; TTY empty argv shows the menu |
-| AC-2 | Type N is the declared empty-argv type |
-| AC-3 | `install` remains an explicit command |
+| AC-1 | Off-TTY empty argv self-installs and does not show help; TTY empty argv shows the menu and does not install |
+| AC-2 | Non-interactive empty argv is Type O-S. Type N help is not this product’s empty-argv law |
+| AC-3 | `install` remains an explicit local command and is not the empty-argv handler |
+| AC-4 | A stdin pipe (`cat ship \| sh`) with 0 argv is tested. `sh path` alone does not prove it |
 
 ---
 
@@ -136,7 +144,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-CLI-07** | `tests/test_cli.sh` | have |
+| **TP-CLI-07** | `tests/test_cli.sh` | have (off-TTY 0-argv copies; not help) |
+| **TP-CLI-31** | `tests/test_cli.sh` | have (stdin pipe downloads; unreachable pipe is non-zero and not help) |
 
 **Matrix:** `reviews/requirement-test-matrix.md`  
 **Map:** `reviews/test-plan.md`
@@ -146,9 +155,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-03 | Active | Type N for local-only folder-backup |
+| 2026-10-04 | Active 1.2.0 | Non-interactive 0-argv is Type O-S self-install. TTY menu stays. The one-liner must not show help |
 
 ---
 
-**Last Updated**: 2026-08-03  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

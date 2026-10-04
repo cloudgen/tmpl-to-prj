@@ -41,7 +41,7 @@
 # Single-file ship unit under src/; install to ~/.local/bin (user) or /usr/local/bin (root/--global).
 #
 # APP NAME: hard-assign APP_NAME="tmpl-to-prj"
-# VERSION: hard-assign VERSION="1.5.1"
+# VERSION: hard-assign VERSION="1.5.2"
 #
 # =============================================================================
 
@@ -58,11 +58,12 @@ APP_NAME="tmpl-to-prj"
 : "${SHORT_DESCRIPTION:=${APP_DESC}}"
 : "${DESCRIPTION:=POSIX /bin/sh local CLI: apply or plan a harness-docs hop using template-name and project-name. RAM-drive first. Preserves dest specialized docs folders (requirements, incidents, checklists, whitelists, housekeeping, docs/reviews).}"
 # Product version SSOT (semver). Extractors use: grep '^VERSION="'
-VERSION="1.5.1"
-: "${VERSION:=1.5.1}"
+VERSION="1.5.2"
+: "${VERSION:=1.5.2}"
 # Repository identity SSOT (git host owner/repo for this product's channel).
 # Dual install: `install` copies this file at mode 0755 (no network).
-# `self-install` / `self-update` use SCRIPT_URL. Empty argv stays Type N (menu / help).
+# Non-interactive 0-argv and `self-install` place the CLI (copy when $0 is
+# this file; download when $0 is a shell). TTY 0-argv stays the menu.
 : "${REPO_USER:=cloudgen}"
 : "${REPO_NAME:=tmpl-to-prj}"
 : "${SCRIPT_RELPATH:=src/${APP_NAME}}"
@@ -2269,20 +2270,18 @@ inst_self_install_copy_from_script() {
 # =============================================================================
 #
 # GENERAL PURPOSE:
-# Type O CLI place/ensure. Empty argv and the self-install verb (install is
-# an alias). Script $0 → copy without download. Interpreter $0 → channel
-# download. Dest mode 0755 global / 0700 local. PATH rc MAY.
+# Type O-S CLI place/ensure. Non-interactive empty argv and the self-install
+# verb. Script $0 → copy without download. Interpreter $0 → channel download.
+# Dest mode 0755 global / 0700 local. PATH rc MAY.
+# `install` stays inst_local_install at mode 0755 (not an alias).
 #
 # ALIGNMENT (live requirements only):
 # - requirement-shell-cli-self-install.md
 # - requirement-shell-cli-zero-arguments.md
 # - requirement-shell-automatic-checksum.md
 #
-# Last updated: 2026-09-17
+# Last updated: 2026-10-04
 # =============================================================================
-# tmpl-to-prj specialization: empty argv does NOT call inst_self_install
-# (Type N stays help / menu). `install` stays inst_local_install at mode 0755.
-# This function is the self-install / channel path only.
 inst_self_install() {
     : "${JSON:=0}"
     : "${FORCE_REINSTALL:=0}"
@@ -4812,7 +4811,7 @@ app_help() {
     out_plain "  ${APP_NAME} self-install"
     out_plain "  ${APP_NAME} version-check"
     out_empty_line
-    out_info "Interactive empty argv shows the numbered menu (1 plan, 2 apply, 8 self-management, 9 Exit). Under 8: 82 version, 83 about, 84 version-check, 85 self-update, 86 self-uninstall, 87 self-install, 0 Back. After plan or apply, pick an unspecialized template (0 requirement files, no incident bodies, no product tests) then a project. Type 0 (or 9 when the list is short) to return to the main menu. Off-TTY empty argv shows help."
+    out_info "Interactive empty argv shows the numbered menu (1 plan, 2 apply, 8 self-management, 9 Exit). Under 8: 82 version, 83 about, 84 version-check, 85 self-update, 86 self-uninstall, 87 self-install, 0 Back. After plan or apply, pick an unspecialized template (0 requirement files, no incident bodies, no product tests) then a project. Type 0 (or 9 when the list is short) to return to the main menu. Off-TTY empty argv places this program (self-install). The explicit help verb prints this text."
     out_info "Optional extra: folder-backup backup TEMPLATE_ROOT when this login is root or holds a NOPASSWD backup * fragment (apply backs up dest when that same check passes)."
 }
 
@@ -4822,15 +4821,16 @@ app_help() {
 #
 # GENERAL PURPOSE:
 # Single dispatcher for tmpl-to-prj. Interactive empty argv = main menu.
-# Off-TTY empty argv = help. Domain: plan / apply / menu.
+# Non-interactive empty argv = self-install (not help). Domain: plan / apply / menu.
 #
 # ALIGNMENT:
 # - requirement-shell-cli-interface.md
 # - requirement-shell-cli-zero-arguments.md
 # - requirement-shell-cli-default-interaction.md
+# - requirement-shell-cli-self-install.md
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-02
+# Last updated: 2026-10-04
 # =============================================================================
 app_main() {
     : "${COMMAND:=help}"
@@ -4859,10 +4859,12 @@ app_main() {
     if [ $# -eq 0 ]; then
         if [ "${TTY}" -eq 1 ]; then
             app_default
-        else
-            app_help
+            return 0
         fi
-        return 0
+        # curl | sh has no command token and no TTY. That line places the CLI.
+        # Help is the explicit help verb. A failed place must not exit 0.
+        inst_self_install
+        return $?
     fi
 
     while [ $# -gt 0 ]; do
@@ -4933,5 +4935,6 @@ app_main() {
 # =============================================================================
 # Always invoke app_main. No basename gate (pipe-safe entry).
 # Product law: requirement-shell-cli-zero-arguments.md
+# Non-interactive 0-argv reaches inst_self_install inside app_main.
 # =============================================================================
 app_main "$@"
