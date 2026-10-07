@@ -94,7 +94,7 @@ These structural contracts are inherited from selfmanaged and kept with the tmpl
 | Concern | Value |
 |---------|---------|
 | `APP_NAME` | `tmpl-to-prj` |
-| `VERSION` | `1.6.1` (product version SSOT in ship unit) |
+| `VERSION` | `1.6.2` (product version SSOT in ship unit) |
 | Primary install story | Local `install` (0755) and channel `self-install` / `curl \| sh` of this product’s `SCRIPT_URL` |
 | README one-liner | Channel URL is this product’s, not selfmanaged’s |
 

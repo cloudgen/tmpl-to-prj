@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-interface.md  
-**Status**: Active (Version 2.4.0)  
+**Status**: Active (Version 2.4.1)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -90,7 +90,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | **Primary executable** | `src/tmpl-to-prj` (POSIX `/bin/sh`, single-file ship unit) |
 | **Dispatcher** | `app_main` |
 | **Output SSOT** | `out_text` + wrappers (`out_info`, `out_success`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_json`, …) |
-| **Version SSOT** | `VERSION="1.6.1"` hard-assign in ship unit |
+| **Version SSOT** | `VERSION="1.6.2"` hard-assign in ship unit |
 | **Install paths** | Global: `GLOBAL_BIN` default `/usr/local/bin`; User: `USER_BIN` default `${HOME}/.local/bin` |
 | **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` via `install` (0755) or `self-install` (0700 unless root) |
 | **Online channel** | `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` |
@@ -113,7 +113,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | `apply` | Type 0 | `t2p_apply` | Dual mention: domain SSOT |
 | `menu` / `main` | Type 0 | `app_default` | Dual mention: default-interaction |
 | `list-templates` | Type 0 test-purpose | `t2p_cmd_list_templates` | Dual mention: domain SSOT; RAM parent, current folder, and `PROJECTS_ROOT`; `requirement-*.md` excludes; help lists apart |
-| `list-projects` | Type 0 test-purpose | `t2p_cmd_list_projects` | Dual mention: domain SSOT; help lists apart |
+| `list-projects` | Type 0 test-purpose | `t2p_cmd_list_projects` | Dual mention: domain SSOT. Any existing directory. No `docs/` or `AGENTS.md` test. Help lists apart |
 | `self-install` | Type 0 | `inst_self_install` | Copy when `$0` is the script; download when `$0` is a shell. Not an alias of `install` |
 | `version-check` | Type 0 | `ver_check` | Local vs `SCRIPT_URL`. Fail loud if the channel is unreachable |
 | `self-update` | Type 0 | `inst_self_update` | Newer channel replaces. No silent downgrade |
@@ -242,6 +242,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | 2026-09-06 | Active 2.1.0 | Termux target; human-facing; empty argv AC is TTY menu / off-TTY help |
 | 2026-09-27 | Active 2.2.0 | `about` cache lines follow `requirement-shell-cli-storage` 1.2.0 (used / preferred / 1st / 2nd) |
 | 2026-10-04 | Active 2.4.0 | Off-TTY empty argv is self-install. TTY menu stays |
+| 2026-10-07 | Active 2.4.1 | `list-projects` dual mention: any directory dest (domain 1.10.0) |
 
 ---
 

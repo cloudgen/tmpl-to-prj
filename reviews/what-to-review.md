@@ -5,7 +5,7 @@
 **Always load first:** `reviews/lessons.md`
 
 **Last plan update:** 2026-10-07  
-**Ship unit VERSION:** 1.6.1  
+**Ship unit VERSION:** 1.6.2  
 **Suite baseline:** see `reviews/test-plan.md`
 
 ---
@@ -15,7 +15,7 @@
 | # | Check | Notes |
 |---|--------|--------|
 | P1 | Read `docs/requirements/index.md` | Class + architecture + shell + domain + Termux-ish |
-| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.6.1**) |
+| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.6.2**) |
 | P3 | Load `reviews/lessons.md` and re-check open L-* that still apply | Skip L-SUDOERS / restore lessons as parent-only |
 | P4 | Run `./tests/run.sh` | Record PASS/FAIL/SKIP in report |
 | P5 | Confirm the channel is this product’s `SCRIPT_URL` | `help` lists self-install / self-update; `help` and `about` do not print `CHECKSUM` |
@@ -41,6 +41,6 @@
 | Modular design | `requirement-shell-modular-function-design.md` | `t2p_` domain prefix |
 | Idempotency | `requirement-shell-idempotency.md` | Re-install |
 | Storage | `requirement-shell-cli-storage.md` | Per-login per-process cache under `cache/`; silent tier miss; persistence `~/.local/${APP_NAME}` |
-| Domain hop | `requirement-domain-tmpl-to-prj.md` | plan/apply; dest requirements **and** dest incidents preserved (L-T2P-INC-01) |
+| Domain hop | `requirement-domain-tmpl-to-prj.md` | plan/apply; dest is any directory (L-T2P-DEST-01); dest requirements **and** dest incidents preserved (L-T2P-INC-01) |
 
 **Do not review as this product’s law:** folder-archive backup, restore dest whitelist, sudoers-file emit (those remain on sibling **folder-backup**).

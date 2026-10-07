@@ -10,9 +10,9 @@
 | requirement-bootstrap-chain | Bootstrap chain selfmanaged → tmpl-to-prj (historical cli-template) | architecture | Active (4.3.0) | `requirement-bootstrap-chain.md` | 2026-10-04 |
 | requirement-project-folder | Project layout (`src/tmpl-to-prj`), install bins; cache leaves point at `requirement-shell-cli-storage`; no durable backup deposit | architecture | Active (2.2.0) | `requirement-project-folder.md` | 2026-09-27 |
 | requirement-actor-role-subject | Light actor / role / subject catalog (no dest) | architecture | Active (1.0.0) | `requirement-actor-role-subject.md` | 2026-09-02 |
-| requirement-shell-cli-interface | Shell CLI interface (Type 0 + plan/apply/menu + channel self-management; flags) | shell | Active (2.4.0) | `requirement-shell-cli-interface.md` | 2026-10-04 |
+| requirement-shell-cli-interface | Shell CLI interface (Type 0 + plan/apply/menu + channel self-management; flags) | shell | Active (2.4.1) | `requirement-shell-cli-interface.md` | 2026-10-07 |
 | requirement-shell-cli-zero-arguments | Empty argv: TTY menu; non-interactive 0-argv self-install (Type O-S) | shell | Active (1.2.0) | `requirement-shell-cli-zero-arguments.md` | 2026-10-04 |
-| requirement-shell-cli-default-interaction | Front menu 1 plan, 2 apply, 8 self-management, 9 Exit; board 82–87 and 0 Back; picker 0 | shell | Active (1.6.0) | `requirement-shell-cli-default-interaction.md` | 2026-10-04 |
+| requirement-shell-cli-default-interaction | Front menu 1 plan, 2 apply, 8 self-management, 9 Exit; board 82–87 and 0 Back; picker 0 | shell | Active (1.6.1) | `requirement-shell-cli-default-interaction.md` | 2026-10-07 |
 | requirement-shell-local-self-management | Local install / uninstall / where-is-me; **mode 0755**; not an alias of self-install | shell | Active (1.5.0) | `requirement-shell-local-self-management.md` | 2026-10-04 |
 | requirement-shell-self-management | Channel version-check, self-update, self-uninstall, about | shell | Active (1.1.0) | `requirement-shell-self-management.md` | 2026-10-04 |
 | requirement-shell-cli-self-install | self-install (copy when $0 is the script; download when $0 is a shell); non-interactive 0-argv uses this path; dest 0755/0700 | shell | Active (1.1.0) | `requirement-shell-cli-self-install.md` | 2026-10-04 |
@@ -25,7 +25,7 @@
 | requirement-shell-idempotency | Re-run safety for install / uninstall | shell | Active (1.1.0) | `requirement-shell-idempotency.md` | 2026-08-13 |
 | requirement-shell-interactive-vs-noninteractive | Interactive vs non-interactive / confirm policy | shell | Active (1.2.0) | `requirement-shell-interactive-vs-noninteractive.md` | 2026-10-04 |
 | requirement-shell-cli-storage | Cache folder (Linux shm → tmp → `~/.cache`; Git Bash tmp → AppData; Mac tmp → Library/Caches → `~/cache`) and persistence `${HOME}/.local/${APP_NAME}`; silent tier miss | shell | Active (1.2.0) | `requirement-shell-cli-storage.md` | 2026-09-27 |
-| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a failed backup after pass is not a sudoers miss; file counts exclude symlinks; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.9.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-07 |
+| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest is any existing directory; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a failed backup after pass is not a sudoers miss; file counts exclude symlinks; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.10.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-07 |
 
 ## Intentionally absent (by design)
 

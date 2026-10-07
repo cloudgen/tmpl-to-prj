@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-cli-default-interaction.md  
-**Status**: Active (Version 1.6.0)  
+**Status**: Active (Version 1.6.1)  
 **Area**: shell  
 **Key**: `requirement-shell-cli-default-interaction`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -62,7 +62,7 @@ Header **MUST** print **`${APP_NAME}`**(*`${VERSION}`*) (app-name-version-displa
 5. Each command row **MUST** be `N. short: explain` via `out_menu_choice`. On a TTY the short name is bold (SGR **1**) and the explain is italic light gray (SGR **3** + **37**). Exit has no explain.  
 6. A bad pick **MUST** `out_error`, name the pick, reprint **this** layer, and read again. **MUST NOT** `out_die`.  
 7. A finished `plan`, `apply`, or self-management leaf **MUST** show the front board again. **MUST NOT** leave the program only because the command finished. Picker cancel still returns here.  
-8. After `plan`/`apply`, when names are missing on TTY, **MUST** show a numbered **template** list then a numbered **project** list (current folder if it is a project, then `PROJECTS_ROOT`). Template rows **MUST** be unspecialized kits only (domain SSOT). Each of those pickers **MUST** print **0. Back to main menu** as the only numbered back row. **MUST NOT** print a second Back row (**9** / **99**). Choosing **0** (or the all-nines number when it is not an item) **MUST** return to this main menu and **MUST NOT** exit the process.  
+8. After `plan`/`apply`, when names are missing on TTY, **MUST** show a numbered **template** list then a numbered **project** list (the current folder when it is a directory and not a refused path, then directory children of the RAM parent and `PROJECTS_ROOT`). A project row is any existing directory (domain SSOT). Template rows **MUST** be unspecialized kits only (domain SSOT). Each of those pickers **MUST** print **0. Back to main menu** as the only numbered back row. **MUST NOT** print a second Back row (**9** / **99**). Choosing **0** (or the all-nines number when it is not an item) **MUST** return to this main menu and **MUST NOT** exit the process.  
 9. **MUST NOT** list test-purpose verbs (`list-templates` / `list-projects`) on this main list. **MUST NOT** put `sudo` or `pkg` on the list.
 
 ### 2.3.1 Self-management board (parent 8)
@@ -156,6 +156,6 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 | **TP-CLI-28** | `tests/test_cli.sh` | have (bad pick reprints; process stays up) |
 | **TP-TMPL-TO-PRJ-19** | `tests/test_domain_tmpl_to_prj.sh` | have (TTY picker **0** returns to main menu; no duplicate 9 Back row) |
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-07 (1.6.1 project picker lists any directory; domain SSOT owns the dest rule)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

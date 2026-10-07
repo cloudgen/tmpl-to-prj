@@ -272,6 +272,38 @@ run_test_domain_tmpl_to_prj() {
     assert_contains "TP-TMPL-TO-PRJ-13 current-folder row" "$_human" "current-folder"
     assert_contains "TP-TMPL-TO-PRJ-13 prjs child" "$_human" "proj-a"
 
+    # TP-TMPL-TO-PRJ-29 any directory is a dest (no docs/ or AGENTS.md test)
+    mkdir -p "${PROJECTS_ROOT}/bare-proj/src" "${PROJECTS_ROOT}/.hidden-dest"
+    printf 'SHIP-KEEP\n' >"${PROJECTS_ROOT}/bare-proj/src/app"
+    printf 'not-a-folder\n' >"${PROJECTS_ROOT}/not-a-folder"
+    _human=$(cd "${PROJECTS_ROOT}/bare-proj" && sh "${SCRIPT}" list-projects 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-29 cwd bare folder is current-folder" "$_human" "bare-proj: current-folder"
+    _human=$(cd "${_away}" && sh "${SCRIPT}" list-projects 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-29 bare folder listed" "$_human" "bare-proj: hard-disk"
+    assert_contains "TP-TMPL-TO-PRJ-29 template is also a dest" "$_human" "disk-only-kit:"
+    assert_contains "TP-TMPL-TO-PRJ-29 non-template is a dest" "$_human" "proj-a:"
+    assert_not_contains "TP-TMPL-TO-PRJ-29 a file is not a dest" "$_human" "not-a-folder"
+    assert_not_contains "TP-TMPL-TO-PRJ-29 dot directory stays off the inventory" "$_human" "hidden-dest"
+    _out=$(sh "${SCRIPT}" --json plan kit-a bare-proj 2>/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-29 plan bare dest exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-29 plan names the bare root" "$_out" "bare-proj"
+    _out=$(sh "${SCRIPT}" --json plan kit-a "${PROJECTS_ROOT}/.hidden-dest" 2>/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-29 plan absolute dot directory exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-29 explicit path host" "$_out" "explicit-path"
+    _err=$(sh "${SCRIPT}" plan kit-a "${HOME}" 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-29 refused home exit 1" 1 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-29 refused home text" "$_err" "refused path"
+    _err=$(sh "${SCRIPT}" plan kit-a not-a-folder 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-29 file name exit 1" 1 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-29 file name not found" "$_err" "not found"
+    _out=$(sh "${SCRIPT}" apply --force kit-a bare-proj 2>&1)
+    assert_eq "TP-TMPL-TO-PRJ-29 apply bare dest exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-29 kit docs copied" \
+        "$(cat "${PROJECTS_ROOT}/bare-proj/docs/skills/from-kit.md")" "RAM-HOST"
+    assert_contains "TP-TMPL-TO-PRJ-29 ship kept" \
+        "$(cat "${PROJECTS_ROOT}/bare-proj/src/app")" "SHIP-KEEP"
+    assert_file_missing "TP-TMPL-TO-PRJ-29 no AGENTS.md invented" "${PROJECTS_ROOT}/bare-proj/AGENTS.md"
+
     # TP-TMPL-TO-PRJ-20 kit incidents README must not replace dest bodies (INC-20260910-001)
     assert_not_contains "TP-TMPL-TO-PRJ-20 kit incidents README not dest SSOT" \
         "$(cat "${PROJECTS_ROOT}/proj-a/docs/incidents/README.md")" "FROM-KIT-INC-README"

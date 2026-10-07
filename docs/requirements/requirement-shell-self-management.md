@@ -86,7 +86,7 @@ Both writers use the same privilege-correct path (`${USER_BIN}/${APP_NAME}` or `
 |------|--------|
 | Product | `tmpl-to-prj` |
 | Ship unit | `src/tmpl-to-prj` |
-| Version | `VERSION="1.6.1"` |
+| Version | `VERSION="1.6.2"` |
 | Channel | `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` |
 | Compare | `ver_gt`, `inst_get_version`, `util_fetch_remote_version` |
 | Paths | `GLOBAL_BIN` `/usr/local/bin`; `USER_BIN` `${HOME}/.local/bin` |

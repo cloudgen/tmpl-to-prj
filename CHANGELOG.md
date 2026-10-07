@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.2] - 2026-10-07
+
+### Fixed
+
+- A dest project is any existing directory. `list-projects`, the TTY project picker, `plan`, and `apply` no longer require `docs/` or `AGENTS.md`. A template, a stripped template, a non-template, and a folder that contains only `src/` are all dests. A file is not a dest. Dot names and `lost+found` stay off the inventory. A named absolute directory still resolves, including a dot directory. `$HOME`, `/`, `/home`, `/dev`, and the RAM mount stay refused. Law: `requirement-domain-tmpl-to-prj` **1.10.0**. Suite **TP-TMPL-TO-PRJ-29**.
+
 ## [1.6.1] - 2026-10-07
 
 ### Fixed

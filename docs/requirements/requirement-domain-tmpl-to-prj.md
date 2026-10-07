@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-tmpl-to-prj.md  
-**Status**: Active (Version 1.9.0)  
+**Status**: Active (Version 1.10.0)  
 **Area**: domain  
 **Key**: `requirement-domain-tmpl-to-prj`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -47,7 +47,7 @@ This requirement is the **current domain SSOT** for tmpl-to-prj: copy **portable
 | `apply` | `t2p_apply` | Type 0 | Confirm (unless `--force`) → backup dest → overlay docs → restore dest specialized docs folders |
 | `menu` / `main` | `app_default` | Type 0 | Numbered list; then TTY template list and project list |
 | `list-templates` | `t2p_cmd_list_templates` | Type 0 test-purpose | Print genesis-shaped kits; no writes |
-| `list-projects` | `t2p_cmd_list_projects` | Type 0 test-purpose | Print current folder (if a project) and `PROJECTS_ROOT` children |
+| `list-projects` | `t2p_cmd_list_projects` | Type 0 test-purpose | Print the current folder when it is a directory and not refused, and directory children of the RAM parent and `PROJECTS_ROOT` |
 
 Dual mention: these tokens **MUST** also appear on `requirement-shell-cli-interface`.
 
@@ -65,7 +65,7 @@ Operands / flags:
 
 | Mode | MUST |
 |------|------|
-| Interactive TTY | Numbered list of **templates** (unspecialized kits under the RAM parent, the current folder, and children of `PROJECTS_ROOT`), then numbered list of **projects**: current folder if it is a project, **and** children of `PROJECTS_ROOT` (RAM-first). Pick a number (or a listed basename). Current-folder pick **MUST** use that absolute path. Each picker **MUST** end with **exactly one** numbered back row: **0. Back to main menu**. **MUST NOT** also print **9** / **99** as a second Back row. Choosing **0**, the all-nines number when it is not an item (**9** when eight or fewer rows, **99** when ninety-eight or fewer), `exit`, `quit`, or `back` **MUST** return to the numbered main menu and **MUST NOT** exit the process and **MUST NOT** apply. |
+| Interactive TTY | Numbered list of **templates** (unspecialized kits under the RAM parent, the current folder, and children of `PROJECTS_ROOT`), then numbered list of **projects**: the current folder when it is a directory and not a refused path, **and** directory children of the RAM parent and of `PROJECTS_ROOT` (RAM-first). A project is any existing directory. Pick a number (or a listed basename). Current-folder pick **MUST** use that absolute path. Each picker **MUST** end with **exactly one** numbered back row: **0. Back to main menu**. **MUST NOT** also print **9** / **99** as a second Back row. Choosing **0**, the all-nines number when it is not an item (**9** when eight or fewer rows, **99** when ninety-eight or fewer), `exit`, `quit`, or `back` **MUST** return to the numbered main menu and **MUST NOT** exit the process and **MUST NOT** apply. |
 | Non-interactive / `--json` | Fail closed; **MUST NOT** hang. Next: pass both names |
 
 Test-purpose (help lists **apart** from operational): `list-templates`, `list-projects` print the same numbered inventories and return (no pick, no writes).
@@ -107,7 +107,14 @@ Template **MUST** be an **unspecialized** kit. All of:
 
 `docs/requirements/README.md` and `docs/requirements/index.md` **MAY** exist (genesis or stripped placeholders). Other markdown under `docs/requirements/` that is **not** `requirement-*.md` does **not** exclude the kit. `docs/incidents/README.md` **MAY** exist. **MUST NOT** treat every `docs/requirements/*.md` as product law — that would drop a real template that only ships the placeholder README and index. **MUST NOT** treat `docs/README.md` mentioning genesis / stripped-genesis / Template name as sufficient — specialized products keep that map after a hop and **MUST NOT** appear on the template list.
 
-Project **MUST** have `docs/` or `AGENTS.md`. The project list still includes the current folder and children of `PROJECTS_ROOT`. That scan is **not** the template scan.
+A **project** (the dest) **MUST** be an existing directory. **MUST NOT** require `docs/`, `AGENTS.md`, or any of template, stripped template, or non-template. A directory that contains only `src/` is a project. A file is not a project.
+
+The project list **MUST** include:
+
+1. The current folder, when that folder is a directory and not a refused path.  
+2. Directory children of `${T2P_RAM_ROOT}` and of `${PROJECTS_ROOT}` (RAM-first for the same basename).
+
+Dot names and `lost+found` stay off that inventory. A named absolute directory still resolves when it exists and is not refused, including a directory whose basename starts with a dot. Refused paths stay refused: `$HOME`, `/`, `/home`, `/dev`, `/dev/shm`, and `${T2P_RAM_ROOT}` itself. Source ≠ dest. That scan is **not** the template scan.
 
 #### folder-backup gate
 
@@ -277,7 +284,8 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 14. Omit an unspecialized kit that exists only as a child of `${PROJECTS_ROOT}` / `~/prjs`. The template inventory **MUST** search that parent. A child with one or more `requirement-*.md`, an incident body, or a product test stays off the list. Named resolve stays RAM, then that parent.  
 15. Treat `docs/requirements/README.md`, `docs/requirements/index.md`, or any non-`requirement-*.md` markdown as product law that excludes a template or a stripped template.  
 16. Count a symlink in **source-folder-file-count** or **archive-file-count**, or make those counts match by deleting symlinks or by `tar -h`.  
-17. Close **INC-20261005-001** by claiming this product fixed the sibling file counters.
+17. Close **INC-20261005-001** by claiming this product fixed the sibling file counters.  
+18. Require dest `docs/` or `AGENTS.md`, or drop a dest because it is a template, a stripped template, a non-template, or a directory with neither marker. A file and a refused path stay excluded.
 
 ---
 
@@ -297,9 +305,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-TMPL-TO-PRJ-01..28** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo`; NOPASSWD uses `sudo -n`. **INC-20261004-001**; **26**: pass gate and a failed backup do not say to check sudoers. **INC-20261004-002**; **27**: template inventory is the RAM parent, the current folder, and `PROJECTS_ROOT`; a projects-only unspecialized kit is listed from another folder; the same basename on RAM is one row; a specialized product, a `docs/` tree with no `README.md`, and nested `tests/` cases stay off the list; **28**: `requirement-*.md` excludes a non-template; README, index, and other non-requirement markdown do not) |
+| **TP-TMPL-TO-PRJ-01..29** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo`; NOPASSWD uses `sudo -n`. **INC-20261004-001**; **26**: pass gate and a failed backup do not say to check sudoers. **INC-20261004-002**; **27**: template inventory is the RAM parent, the current folder, and `PROJECTS_ROOT`; a projects-only unspecialized kit is listed from another folder; the same basename on RAM is one row; a specialized product, a `docs/` tree with no `README.md`, and nested `tests/` cases stay off the list; **28**: `requirement-*.md` excludes a non-template; README, index, and other non-requirement markdown do not; **29**: a directory with neither `docs/` nor `AGENTS.md` is a dest, as are a template and a non-template; a file is omitted; a refused path fails; a dot directory is off the inventory and still resolves by absolute path) |
 | **TP-TX-06** | `tests/test_termux.sh` | have (Termux apply: no `sudo`; local snapshot) |
 
-**Last Updated**: 2026-10-07 (1.9.0 template inventory includes children of `PROJECTS_ROOT`; unspecialized test unchanged)  
+**Last Updated**: 2026-10-07 (1.10.0 a dest is any existing directory; no `docs/` or `AGENTS.md` test; template shape stays on the template list only)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
