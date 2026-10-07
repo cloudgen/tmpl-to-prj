@@ -2,7 +2,7 @@
 
 **Product:** tmpl-to-prj (POSIX `/bin/sh` CLI — copy harness docs from a genesis template or subclass into a named project; local install plus channel self-management)  
 **Workspace state:** Specialized product law (left genesis); **software-development** class; bootstrap **selfmanaged → tmpl-to-prj** (historical hop **cli-template**).  
-**Updated:** 2026-10-04
+**Updated:** 2026-10-07
 
 | ID / key | Title | Area | Status | Path | Updated |
 |----------|-------|------|--------|------|---------|
@@ -25,7 +25,7 @@
 | requirement-shell-idempotency | Re-run safety for install / uninstall | shell | Active (1.1.0) | `requirement-shell-idempotency.md` | 2026-08-13 |
 | requirement-shell-interactive-vs-noninteractive | Interactive vs non-interactive / confirm policy | shell | Active (1.2.0) | `requirement-shell-interactive-vs-noninteractive.md` | 2026-10-04 |
 | requirement-shell-cli-storage | Cache folder (Linux shm → tmp → `~/.cache`; Git Bash tmp → AppData; Mac tmp → Library/Caches → `~/cache`) and persistence `${HOME}/.local/${APP_NAME}`; silent tier miss | shell | Active (1.2.0) | `requirement-shell-cli-storage.md` | 2026-09-27 |
-| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a failed backup after pass is not a sudoers miss | domain | Active (1.7.1) | `requirement-domain-tmpl-to-prj.md` | 2026-10-04 |
+| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a failed backup after pass is not a sudoers miss; file counts exclude symlinks; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.9.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-07 |
 
 ## Intentionally absent (by design)
 

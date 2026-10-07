@@ -21,7 +21,7 @@ Human-readable column is `{{short-descript}}: {{explain}}` (short description = 
 | apply | `t2p_apply` | Type 0 | 2026-09-10 | `apply: Copy harness docs from the template into the project (keep dest specialized docs folders)` | operational | live |
 | menu | `app_default` | Type 0 | 2026-10-04 | `menu: Numbered list (1 plan, 2 apply, 8 self-management, 9 Exit)` | operational | live |
 | main | `app_default` | Type 0 | 2026-09-02 | `main: Alias of menu` | operational | live |
-| list-templates | `t2p_cmd_list_templates` | Type 0 | 2026-09-02 | `list-templates: Numbered genesis-template (or subclass) kits` | test-purpose | live |
+| list-templates | `t2p_cmd_list_templates` | Type 0 | 2026-10-07 | `list-templates: Numbered kits under RAM, the current folder, and PROJECTS_ROOT (0 requirement-*.md)` | test-purpose | live |
 | list-projects | `t2p_cmd_list_projects` | Type 0 | 2026-09-02 | `list-projects: Numbered dest candidates (current folder and ~/prjs)` | test-purpose | live |
 
 Front board: **plan**, **apply**, **self-management** (8), Exit **9**. Under 8: **82** version, **83** about, **84** version-check, **85** self-update, **86** self-uninstall, **87** self-install, **0** Back. **81** install is hidden. After plan or apply, TTY pickers list **unspecialized** kits then projects; **0** returns to this menu (all-nines accepted when free, not printed). Test-purpose verbs stay off the menu. `install` stays a command and is not a front-board row.

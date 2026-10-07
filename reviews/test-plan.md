@@ -3,9 +3,9 @@
 Maps **TP-*** coverage to `tests/`.  
 **Suite entry:** `./tests/run.sh`  
 **Ship unit:** `src/tmpl-to-prj`  
-**Product VERSION:** 1.5.2  
-**Last plan update:** 2026-10-04  
-**Last suite run:** PASS=308 FAIL=0 SKIP=0 (2026-10-04)
+**Product VERSION:** 1.6.1  
+**Last plan update:** 2026-10-07  
+**Last suite run:** PASS=324 FAIL=0 SKIP=0 (2026-10-07)
 
 Status: **have** = automated today · **todo** = needed · **optional** · **n/a** · **skip** (environment)
 
@@ -26,7 +26,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | Local install / idempotent / uninstall / mode 0755 | have | TP-LC-01..10 |
 | Backup / restore / sudoers emit | n/a | Absent by design (Type 0 template; not a backup product) |
 | Channel place, self-update, companion name absent from help | have | TP-CLI-04, TP-CLI-10, TP-CLI-29, TP-CLI-30 |
-| Domain harness-docs hop | have | TP-TMPL-TO-PRJ-01..23 |
+| Domain harness-docs hop | have | TP-TMPL-TO-PRJ-01..28 |
 | Termux target / normal-user-only | have | TP-TX-01,02,06,07,08 |
 
 ### TP-TMPL-TO-PRJ (domain)
@@ -59,6 +59,8 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-24 | TTY and a password `backup *` grant do not invoke `sudo`; plan stays unproven | test_domain | requirement-domain-tmpl-to-prj · requirement-shell-sudo-command · INC-20261004-001 | **have** |
 | TP-TMPL-TO-PRJ-25 | NOPASSWD `backup *` apply uses `sudo -n` | test_domain | requirement-shell-sudo-command · INC-20261004-001 | **have** |
 | TP-TMPL-TO-PRJ-26 | Pass gate and a failed backup do not say to check sudoers; dest is not overlaid | test_domain | requirement-domain-tmpl-to-prj · INC-20261004-002 | **have** |
+| TP-TMPL-TO-PRJ-27 | Template inventory is RAM, the current folder, and PROJECTS_ROOT; one row per basename | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-28 | `requirement-*.md` excludes a non-template; README, index, and other notes do not | test_domain | requirement-domain-tmpl-to-prj | **have** |
 
 ---
 

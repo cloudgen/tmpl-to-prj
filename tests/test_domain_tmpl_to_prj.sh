@@ -221,6 +221,48 @@ run_test_domain_tmpl_to_prj() {
     assert_contains "TP-TMPL-TO-PRJ-19 all-nines returns to main menu" "$_out" "numbered list of live commands"
     assert_not_contains "TP-TMPL-TO-PRJ-19 all-nines not printed" "$_out" "9. Back to main menu"
 
+    # TP-TMPL-TO-PRJ-27 template inventory is RAM + current folder + PROJECTS_ROOT
+    t2p_mk_kit "${PROJECTS_ROOT}/disk-only-kit"
+    mkdir -p "${PROJECTS_ROOT}/spec-only/docs"
+    printf 'spec\n' >"${PROJECTS_ROOT}/spec-only/docs/spec.md"
+    t2p_mk_kit "${PROJECTS_ROOT}/nested-tests"
+    mkdir -p "${PROJECTS_ROOT}/nested-tests/tests/behavioral"
+    printf '#!/bin/sh\n' >"${PROJECTS_ROOT}/nested-tests/tests/behavioral/run.sh"
+    _away=$(mktemp -d "${TMPDIR:-/tmp}/t2p-away.XXXXXX")
+    _out=$(cd "${_away}" && sh "${SCRIPT}" --json list-templates 2>/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-27 away list exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-27 projects-only kit listed" "$_out" "disk-only-kit"
+    assert_contains "TP-TMPL-TO-PRJ-27 RAM kit still listed" "$_out" "kit-a"
+    assert_not_contains "TP-TMPL-TO-PRJ-27 specialized product stays off the list" "$_out" "proj-a"
+    assert_not_contains "TP-TMPL-TO-PRJ-27 docs without README is not a kit" "$_out" "spec-only"
+    assert_not_contains "TP-TMPL-TO-PRJ-27 nested product tests are not a kit" "$_out" "nested-tests"
+    _human=$(cd "${_away}" && sh "${SCRIPT}" list-templates 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-27 projects-only host is hard-disk" "$_human" "disk-only-kit: hard-disk"
+    _kit_rows=$(printf '%s\n' "${_human}" | grep -c 'kit-a:' || true)
+    assert_eq "TP-TMPL-TO-PRJ-27 one row when RAM and disk share a basename" 1 "${_kit_rows}"
+    _out=$(cd "${PROJECTS_ROOT}" && sh "${SCRIPT}" --json list-templates 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-27 current parent lists the kit" "$_out" "disk-only-kit"
+    _human=$(cd "${PROJECTS_ROOT}/disk-only-kit" && sh "${SCRIPT}" list-templates 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-27 cwd kit is current-folder" "$_human" "current-folder"
+    assert_contains "TP-TMPL-TO-PRJ-27 cwd kit name" "$_human" "disk-only-kit"
+    _parent=$(mktemp -d "${TMPDIR:-/tmp}/t2p-parent.XXXXXX")
+    t2p_mk_kit "${_parent}/child-kit"
+    _out=$(cd "${_parent}" && sh "${SCRIPT}" --json list-templates 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-27 child of cwd listed" "$_out" "child-kit"
+
+    # TP-TMPL-TO-PRJ-28 requirement-*.md excludes; README/index/other md do not
+    t2p_mk_kit "${T2P_RAM_ROOT}/strip-kit"
+    printf '# index\n' >"${T2P_RAM_ROOT}/strip-kit/docs/requirements/index.md"
+    printf 'notes\n' >"${T2P_RAM_ROOT}/strip-kit/docs/requirements/notes.md"
+    t2p_mk_kit "${T2P_RAM_ROOT}/law-kit"
+    printf 'LAW\n' >"${T2P_RAM_ROOT}/law-kit/docs/requirements/requirement-law.md"
+    _out=$(cd "${_away}" && sh "${SCRIPT}" --json list-templates 2>/dev/null)
+    assert_contains "TP-TMPL-TO-PRJ-28 placeholder md still a template" "$_out" "strip-kit"
+    assert_not_contains "TP-TMPL-TO-PRJ-28 requirement-*.md is a non-template" "$_out" "law-kit"
+    _err=$(sh "${SCRIPT}" apply --force law-kit proj-a 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-28 non-template as template exit 1" 1 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-28 non-template text" "$_err" "0 requirement"
+
     # TP-TMPL-TO-PRJ-13 numbered project inventory: current folder + PROJECTS_ROOT
     _out=$(sh "${SCRIPT}" --json list-projects 2>/dev/null)
     assert_eq "TP-TMPL-TO-PRJ-13 list-projects exit 0" 0 "$?"
@@ -351,6 +393,12 @@ run_test_domain_tmpl_to_prj() {
         t_fail "TP-TMPL-TO-PRJ-26 backup was invoked (log=$(cat "${_fblog}"))"
     fi
 
+    if [ -n "${_away:-}" ]; then
+        rm -rf "${_away}"
+    fi
+    if [ -n "${_parent:-}" ]; then
+        rm -rf "${_parent}"
+    fi
     rm -rf "${T2P_RAM_ROOT}" "${PROJECTS_ROOT}"
     ci_cleanup_env
 }

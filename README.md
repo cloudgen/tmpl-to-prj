@@ -1,6 +1,6 @@
 # tmpl-to-prj - Copy harness docs from a genesis template into a named project
 
-![Version](https://img.shields.io/badge/Version-1.5.2-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.6.1-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 
@@ -25,7 +25,8 @@
 - **Channel self-management**: `self-install`, `version-check`, `self-update`, `self-uninstall`
 - **SHA-256 companion**: a channel download checks `${SCRIPT_URL}.sha256` by itself (match continues, mismatch stops, a missing file warns and continues)
 - **Harness-docs hop**: `plan` and `apply` with **template-name** and **project-name**
-- **RAM-drive first**: `/dev/shm/<name>` wins over `${HOME}/prjs/<name>` when both exist (on Termux, `/dev/shm` is often absent — hard-disk `prjs` is used)
+- **RAM-drive first**: a named template or project uses `/dev/shm/<name>` over `${HOME}/prjs/<name>` when both exist (on Termux, `/dev/shm` is often absent — hard-disk `prjs` is used)
+- **Template menu**: `list-templates` and the apply picker list unspecialized kits under `/dev/shm`, the current folder, and `~/prjs`. A tree with `docs/requirements/requirement-*.md` is not a template. `README.md` and `index.md` in that folder may stay. The same name on `/dev/shm` and `~/prjs` is one row (the RAM row)
 - **Specialized dest docs preserved**: dest `docs/requirements/`, `docs/incidents/`, filled `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, and dest `docs/reviews/` are moved aside, then restored
 - **folder-backup compose**: dest archive when the global binary is ready on a POSIX host with a matching grant; skipped on Termux / Git Bash / Windows cmd (local dest-docs snapshot instead)
 - **Termux target**: detect Termux-like userspace; no extra `pkg` list (this program is `/bin/sh` only)
@@ -79,7 +80,7 @@ The companion URL is `${SCRIPT_URL}.sha256`. In this repository the file is `src
 After install, on a terminal, run `tmpl-to-prj` with no arguments. Live capture:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.5.2*) — numbered list of live commands
+[INFO] **tmpl-to-prj**(*1.6.1*) — numbered list of live commands
 1. **plan**: *Show template and project roots (no writes)*
 2. **apply**: *Copy harness docs from the template into the project*
 8. **self-management**: *this CLI install, version, update, uninstall*
@@ -90,7 +91,7 @@ Choice:
 Choose **8**:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.5.2*) — self-management
+[INFO] **tmpl-to-prj**(*1.6.1*) — self-management
 82. **version**: *show current version*
 83. **about**: *show detailed diagnostics*
 84. **version-check**: *compare local vs remote version*
@@ -184,6 +185,10 @@ Keep CIAO / CIAO-Lite Protection Zones. Trace behavior to live `docs/requirement
 MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
+
+2026-10-07 — Template lists include unspecialized kits under `~/prjs` as well as `/dev/shm` and the current folder. A folder with `docs/requirements/requirement-*.md` is not a template. Version **1.6.1**.
+
+2026-10-07 — Template lists use `/dev/shm` and the current folder. `~/prjs` is not a forced template scan. A folder with `docs/requirements/requirement-*.md` is not a template. Glossary names **source-folder-file-count** and **archive-file-count** both exclude symlinks. This program does not compute those counts. Version **1.6.0**.
 
 2026-10-04 — `curl -fsSL …/src/tmpl-to-prj | sh` with no arguments places the program. A non-interactive empty line no longer prints help. A terminal with no words still shows the numbered menu. Version **1.5.2**.
 

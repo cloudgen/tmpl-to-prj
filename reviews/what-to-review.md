@@ -4,8 +4,8 @@
 **Project nature:** software-development · domain SSOT `requirement-domain-tmpl-to-prj` · local `install` plus channel `SCRIPT_URL` · **Termux** is a target.  
 **Always load first:** `reviews/lessons.md`
 
-**Last plan update:** 2026-10-04  
-**Ship unit VERSION:** 1.5.2  
+**Last plan update:** 2026-10-07  
+**Ship unit VERSION:** 1.6.1  
 **Suite baseline:** see `reviews/test-plan.md`
 
 ---
@@ -15,7 +15,7 @@
 | # | Check | Notes |
 |---|--------|--------|
 | P1 | Read `docs/requirements/index.md` | Class + architecture + shell + domain + Termux-ish |
-| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.5.2**) |
+| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.6.1**) |
 | P3 | Load `reviews/lessons.md` and re-check open L-* that still apply | Skip L-SUDOERS / restore lessons as parent-only |
 | P4 | Run `./tests/run.sh` | Record PASS/FAIL/SKIP in report |
 | P5 | Confirm the channel is this product’s `SCRIPT_URL` | `help` lists self-install / self-update; `help` and `about` do not print `CHECKSUM` |

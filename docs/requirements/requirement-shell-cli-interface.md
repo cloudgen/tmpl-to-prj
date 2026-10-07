@@ -90,7 +90,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | **Primary executable** | `src/tmpl-to-prj` (POSIX `/bin/sh`, single-file ship unit) |
 | **Dispatcher** | `app_main` |
 | **Output SSOT** | `out_text` + wrappers (`out_info`, `out_success`, `out_warn`, `out_error`, `out_die`, `out_plain`, `out_json`, …) |
-| **Version SSOT** | `VERSION="1.5.2"` hard-assign in ship unit |
+| **Version SSOT** | `VERSION="1.6.1"` hard-assign in ship unit |
 | **Install paths** | Global: `GLOBAL_BIN` default `/usr/local/bin`; User: `USER_BIN` default `${HOME}/.local/bin` |
 | **Primary install story** | User bin: `~/.local/bin/tmpl-to-prj` via `install` (0755) or `self-install` (0700 unless root) |
 | **Online channel** | `SCRIPT_URL` default `https://raw.githubusercontent.com/cloudgen/tmpl-to-prj/main/src/tmpl-to-prj` |
@@ -112,7 +112,7 @@ In JSON mode, help **MUST NOT** dump long human text; return a short structured 
 | `plan` | Type 0 | `t2p_plan` | Dual mention: domain SSOT |
 | `apply` | Type 0 | `t2p_apply` | Dual mention: domain SSOT |
 | `menu` / `main` | Type 0 | `app_default` | Dual mention: default-interaction |
-| `list-templates` | Type 0 test-purpose | `t2p_cmd_list_templates` | Dual mention: domain SSOT; help lists apart |
+| `list-templates` | Type 0 test-purpose | `t2p_cmd_list_templates` | Dual mention: domain SSOT; RAM parent, current folder, and `PROJECTS_ROOT`; `requirement-*.md` excludes; help lists apart |
 | `list-projects` | Type 0 test-purpose | `t2p_cmd_list_projects` | Dual mention: domain SSOT; help lists apart |
 | `self-install` | Type 0 | `inst_self_install` | Copy when `$0` is the script; download when `$0` is a shell. Not an alias of `install` |
 | `version-check` | Type 0 | `ver_check` | Local vs `SCRIPT_URL`. Fail loud if the channel is unreachable |
@@ -245,6 +245,6 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-07  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

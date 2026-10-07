@@ -1,7 +1,7 @@
 # Requirement ↔ test matrix — tmpl-to-prj
 
-**Updated:** 2026-10-04  
-**Product VERSION:** 1.5.2  
+**Updated:** 2026-10-07  
+**Product VERSION:** 1.6.1  
 **Suite:** `tests/run.sh`
 
 | Requirement key | Area | TP families | Coverage notes |
@@ -23,7 +23,7 @@
 | requirement-shell-cli-default-interaction | shell | TP-TMPL-TO-PRJ-10, TP-CLI-17, TP-CLI-26..28, TP-TMPL-TO-PRJ-19 | Front 1/2/8/9; board 82–87 and 0 Back; picker **0** back |
 | requirement-shell-sudo-command | shell | TP-TMPL-TO-PRJ-07, 14..16, 24..25; TP-TX-06,07 | Observed verb-only vs sibling dest `backup *` vs unproven; TTY does not password-prompt; skip sudo on Termux / Git Bash |
 | requirement-shell-termux-ish | shell | TP-TX-01,02,06,07,08 | Empty `pkg` table; detect freeze |
-| requirement-domain-tmpl-to-prj | domain | TP-TMPL-TO-PRJ-01..26; TP-TX-06 | Hop + folder-backup gate (root or NOPASSWD; missing binary skips) + unspecialized kit filter + picker back; dest specialized docs folders preserved; Termux local snapshot; pass-gate backup failure is not a sudoers miss |
+| requirement-domain-tmpl-to-prj | domain | TP-TMPL-TO-PRJ-01..28; TP-TX-06 | Hop + folder-backup gate (root or NOPASSWD; missing binary skips) + unspecialized kit filter + picker back; dest specialized docs folders preserved; Termux local snapshot; pass-gate backup failure is not a sudoers miss; template inventory is RAM, the current folder, and PROJECTS_ROOT; `requirement-*.md` excludes; both file counts exclude symlinks |
 | requirement-actor-role-subject | architecture | (indirect) | Sibling dest is folder-backup sudoers file |
 
 **Absent by design (no TP Core):** this product’s own backup/restore/print-sudoers emit. Channel place and the companion digest are in scope (TP-CLI-04, 10, 29, 30).

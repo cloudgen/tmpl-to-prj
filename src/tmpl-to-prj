@@ -41,7 +41,7 @@
 # Single-file ship unit under src/; install to ~/.local/bin (user) or /usr/local/bin (root/--global).
 #
 # APP NAME: hard-assign APP_NAME="tmpl-to-prj"
-# VERSION: hard-assign VERSION="1.5.2"
+# VERSION: hard-assign VERSION="1.6.1"
 #
 # =============================================================================
 
@@ -58,8 +58,8 @@ APP_NAME="tmpl-to-prj"
 : "${SHORT_DESCRIPTION:=${APP_DESC}}"
 : "${DESCRIPTION:=POSIX /bin/sh local CLI: apply or plan a harness-docs hop using template-name and project-name. RAM-drive first. Preserves dest specialized docs folders (requirements, incidents, checklists, whitelists, housekeeping, docs/reviews).}"
 # Product version SSOT (semver). Extractors use: grep '^VERSION="'
-VERSION="1.5.2"
-: "${VERSION:=1.5.2}"
+VERSION="1.6.1"
+: "${VERSION:=1.6.1}"
 # Repository identity SSOT (git host owner/repo for this product's channel).
 # Dual install: `install` copies this file at mode 0755 (no network).
 # Non-interactive 0-argv and `self-install` place the CLI (copy when $0 is
@@ -3599,16 +3599,24 @@ t2p_count_requirements() {
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-03
+# Counts every depth. Does not walk a directory symlink.
+#
+# Last updated: 2026-10-07
 # =============================================================================
 t2p_count_non_readme_files() {
     _dir="${1:-}"
     _c=0
-    [ -n "${_dir}" ] && [ -d "${_dir}" ] || {
+    [ -n "${_dir}" ] && [ -d "${_dir}" ] && [ ! -L "${_dir}" ] || {
         printf '0'
         return 0
     }
     for _f in "${_dir}"/*; do
+        [ -e "${_f}" ] || [ -L "${_f}" ] || continue
+        if [ -d "${_f}" ] && [ ! -L "${_f}" ]; then
+            _sub=$(t2p_count_non_readme_files "${_f}")
+            _c=$((_c + _sub))
+            continue
+        fi
         [ -f "${_f}" ] || continue
         _b="${_f##*/}"
         case "${_b}" in
@@ -3620,17 +3628,18 @@ t2p_count_non_readme_files() {
 }
 
 # =============================================================================
-# t2p_is_genesis_shaped() - Unspecialized kit: docs/, 0 REQs, no incidents, no tests
+# t2p_is_genesis_shaped() - Unspecialized kit: docs/README.md, 0 REQs, no incidents, no tests
 # =============================================================================
 #
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-03
+# Last updated: 2026-10-07
 # =============================================================================
 t2p_is_genesis_shaped() {
     _root="${1:-}"
     [ -d "${_root}/docs" ] || return 1
+    [ -f "${_root}/docs/README.md" ] || return 1
     _n=$(t2p_count_requirements "${_root}")
     [ "${_n}" -eq 0 ] || return 1
     _inc=$(t2p_count_non_readme_files "${_root}/docs/incidents")
@@ -3714,13 +3723,113 @@ t2p_list_count() {
 }
 
 # =============================================================================
-# t2p_build_template_list() - Unique genesis-shaped kits (RAM-first)
+# t2p_template_path_seen() - True when the absolute root is already listed
+# =============================================================================
+t2p_template_path_seen() {
+    _tps_seen="${1:-}"
+    _tps_root="${2:-}"
+    [ -n "${_tps_seen}" ] && [ -f "${_tps_seen}" ] || return 1
+    while IFS= read -r _tps_ln || [ -n "${_tps_ln}" ]; do
+        if [ "${_tps_ln}" = "${_tps_root}" ]; then
+            return 0
+        fi
+    done < "${_tps_seen}"
+    return 1
+}
+
+# =============================================================================
+# t2p_template_name_seen() - True when this basename is already a list row
 # =============================================================================
 #
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-02
+# Last updated: 2026-10-07
+# =============================================================================
+t2p_template_name_seen() {
+    _tns_file="${1:-}"
+    _tns_name="${2:-}"
+    [ -n "${_tns_file}" ] && [ -f "${_tns_file}" ] || return 1
+    while IFS='|' read -r _tns_n _tns_rest || [ -n "${_tns_n}" ]; do
+        if [ "${_tns_n}" = "${_tns_name}" ]; then
+            return 0
+        fi
+    done < "${_tns_file}"
+    return 1
+}
+
+# =============================================================================
+# t2p_add_template_candidate() - Append one unspecialized kit if new
+# =============================================================================
+#
+# ALIGNMENT:
+# - requirement-domain-tmpl-to-prj.md
+#
+# Last updated: 2026-10-07
+# =============================================================================
+t2p_add_template_candidate() {
+    _cand_file="${1:-}"
+    _cand_seen="${2:-}"
+    _cand_root="${3:-}"
+    _cand_host="${4:-}"
+    _cand_name="${5:-}"
+    [ -n "${_cand_root}" ] && [ -d "${_cand_root}" ] || return 0
+    if t2p_refuse_path "${_cand_root}"; then
+        return 0
+    fi
+    if t2p_template_path_seen "${_cand_seen}" "${_cand_root}"; then
+        return 0
+    fi
+    if ! t2p_is_genesis_shaped "${_cand_root}"; then
+        return 0
+    fi
+    printf '%s\n' "${_cand_root}" >> "${_cand_seen}"
+    printf '%s|%s|%s\n' "${_cand_name}" "${_cand_host}" "${_cand_root}" >> "${_cand_file}"
+}
+
+# =============================================================================
+# t2p_scan_template_parent() - Add unspecialized children of one parent
+# =============================================================================
+#
+# ALIGNMENT:
+# - requirement-domain-tmpl-to-prj.md
+#
+# Fifth argument 1 skips a basename already on the list (RAM wins over disk).
+#
+# Last updated: 2026-10-07
+# =============================================================================
+t2p_scan_template_parent() {
+    _scan_file="${1:-}"
+    _scan_seen="${2:-}"
+    _scan_parent="${3:-}"
+    _scan_host="${4:-}"
+    _scan_unique="${5:-0}"
+    [ -n "${_scan_parent}" ] && [ -d "${_scan_parent}" ] || return 0
+    for _scan_d in "${_scan_parent}"/*; do
+        [ -d "${_scan_d}" ] || continue
+        _scan_base="${_scan_d##*/}"
+        case "${_scan_base}" in
+            .*|lost+found) continue ;;
+        esac
+        if [ "${_scan_unique}" -eq 1 ] && t2p_template_name_seen "${_scan_file}" "${_scan_base}"; then
+            continue
+        fi
+        t2p_add_template_candidate "${_scan_file}" "${_scan_seen}" "${_scan_d}" "${_scan_host}" "${_scan_base}"
+    done
+}
+
+# =============================================================================
+# t2p_build_template_list() - Kits under RAM, the current folder, and ~/prjs
+# =============================================================================
+#
+# ALIGNMENT:
+# - requirement-domain-tmpl-to-prj.md
+#
+# Stripped kits that live only under PROJECTS_ROOT are listed. A tree with
+# requirement-*.md, an incident body, or a product test is not. The same
+# basename on the RAM parent is one row (the RAM row).
+#
+# Last updated: 2026-10-07
 # =============================================================================
 t2p_build_template_list() {
     _file="${1:-}"
@@ -3728,22 +3837,17 @@ t2p_build_template_list() {
     : "${HOME:=/tmp}"
     : "${PROJECTS_ROOT:=${HOME}/prjs}"
     : > "${_file}"
-    _names=$(t2p_mktemp_list)
-    {
-        t2p_for_each_child "${T2P_RAM_ROOT}"
-        t2p_for_each_child "${PROJECTS_ROOT}"
-    } | sort -u > "${_names}"
-    while IFS= read -r _base || [ -n "${_base}" ]; do
-        [ -n "${_base}" ] || continue
-        if t2p_resolve_root "${_base}"; then
-            if t2p_is_genesis_shaped "${T2P_RESOLVED_ROOT}"; then
-                if ! t2p_refuse_path "${T2P_RESOLVED_ROOT}"; then
-                    printf '%s|%s|%s\n' "${_base}" "${T2P_LAST_HOST_VERSION}" "${T2P_RESOLVED_ROOT}" >> "${_file}"
-                fi
-            fi
-        fi
-    done < "${_names}"
-    rm -f "${_names}"
+    _seen=$(t2p_mktemp_list)
+    : > "${_seen}"
+    _cwd=$(pwd 2>/dev/null || printf '%s' ".")
+    t2p_scan_template_parent "${_file}" "${_seen}" "${T2P_RAM_ROOT}" "ram-drive" 0
+    if ! t2p_refuse_path "${_cwd}"; then
+        _cb="${_cwd##*/}"
+        t2p_add_template_candidate "${_file}" "${_seen}" "${_cwd}" "current-folder" "${_cb}"
+        t2p_scan_template_parent "${_file}" "${_seen}" "${_cwd}" "current-folder" 0
+    fi
+    t2p_scan_template_parent "${_file}" "${_seen}" "${PROJECTS_ROOT}" "hard-disk" 1
+    rm -f "${_seen}"
 }
 
 # =============================================================================
@@ -3970,7 +4074,7 @@ t2p_pick_template() {
     _n=$(t2p_list_count "${_file}")
     if [ "${_n}" -eq 0 ]; then
         rm -f "${_file}"
-        out_die "No genesis-template (or subclass) found under ${T2P_RAM_ROOT} or ${PROJECTS_ROOT}. Next: ${APP_NAME} apply --template NAME --project NAME"
+        out_die "No genesis-template (or subclass) found under ${T2P_RAM_ROOT}, ${PROJECTS_ROOT}, or the current folder. Next: ${APP_NAME} apply --template NAME --project NAME"
     fi
     t2p_print_picker "Choose a template (genesis-template or subclass; unspecialized kit)" "${_file}" 1
     t2p_read_pick "${_file}" "${_n}"
@@ -4166,7 +4270,7 @@ t2p_preflight() {
         out_die "template-name and project-name resolved to the same folder. Next: pick two different names."
     fi
     if ! t2p_is_genesis_shaped "${T2P_SRC_ROOT}"; then
-        out_die "template '${TEMPLATE_NAME}' is not a genesis-template (or subclass) kit (needs docs/, 0 requirement-*.md, no incident bodies, no product tests). Next: pick an unspecialized kit."
+        out_die "template '${TEMPLATE_NAME}' is not a genesis-template (or subclass) kit (needs docs/README.md, 0 requirement-*.md, no incident bodies, no product tests). Next: pick an unspecialized kit."
     fi
     if ! t2p_is_project_shaped "${T2P_DST_ROOT}"; then
         out_die "project '${PROJECT_NAME}' does not look like a project root (needs docs/ or AGENTS.md). Next: run from a specialized workspace."
@@ -4761,7 +4865,7 @@ app_help() {
     out_plain "  apply <template-name> <project-name>"
     out_plain "                      Backup dest, mv dest specialized docs folders aside, copy template docs, restore those dest folders"
     out_plain "  menu                 Numbered list (1 plan, 2 apply, 8 self-management, 9 Exit). Alias: main"
-    out_plain "                      After plan/apply, TTY lists unspecialized templates then projects; 0 returns to the menu"
+    out_plain "                      After plan/apply, TTY lists unspecialized templates under RAM, the current folder, and ${PROJECTS_ROOT}, then projects; 0 returns to the menu"
     out_empty_line
     out_info "Lifecycle (local copy, mode 0755, no network):"
     out_plain "  install              Copy the running script (root→global, user→~/.local/bin)"
@@ -4779,7 +4883,7 @@ app_help() {
     out_plain "  self-uninstall       Remove the managed binary (confirm or --force)"
     out_empty_line
     out_info "Test-purpose commands:"
-    out_plain "  list-templates       Numbered unspecialized kits (0 REQs, no incidents, no tests; no writes)"
+    out_plain "  list-templates       Numbered kits under RAM, the current folder, and ${PROJECTS_ROOT} (0 requirement-*.md; no writes)"
     out_plain "  list-projects        Numbered dest candidates: current folder and ${PROJECTS_ROOT}"
     out_empty_line
     out_info "Global Options:"
@@ -4811,7 +4915,7 @@ app_help() {
     out_plain "  ${APP_NAME} self-install"
     out_plain "  ${APP_NAME} version-check"
     out_empty_line
-    out_info "Interactive empty argv shows the numbered menu (1 plan, 2 apply, 8 self-management, 9 Exit). Under 8: 82 version, 83 about, 84 version-check, 85 self-update, 86 self-uninstall, 87 self-install, 0 Back. After plan or apply, pick an unspecialized template (0 requirement files, no incident bodies, no product tests) then a project. Type 0 (or 9 when the list is short) to return to the main menu. Off-TTY empty argv places this program (self-install). The explicit help verb prints this text."
+    out_info "Interactive empty argv shows the numbered menu (1 plan, 2 apply, 8 self-management, 9 Exit). Under 8: 82 version, 83 about, 84 version-check, 85 self-update, 86 self-uninstall, 87 self-install, 0 Back. After plan or apply, pick an unspecialized template under the RAM parent, the current folder, or ${PROJECTS_ROOT} (0 requirement-*.md; README and index under docs/requirements may exist) then a project. Type 0 (or 9 when the list is short) to return to the main menu. Off-TTY empty argv places this program (self-install). The explicit help verb prints this text."
     out_info "Optional extra: folder-backup backup TEMPLATE_ROOT when this login is root or holds a NOPASSWD backup * fragment (apply backs up dest when that same check passes)."
 }
 

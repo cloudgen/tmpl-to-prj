@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.1] - 2026-10-07
+
+### Fixed
+
+- `list-templates` and the TTY template picker also search children of `PROJECTS_ROOT` (`~/prjs`). A stripped kit that lives only there (for example `sh-cli-template`, `python-cli-template`, `cpp-gnome-template`, `cpp-template`) is listed when the current folder is somewhere else. The same basename on the RAM parent stays one row. A tree still needs `docs/README.md`, and it stays off the list when it has `docs/requirements/requirement-*.md`, an incident body, or a product test at any depth under `tests/`. Law: `requirement-domain-tmpl-to-prj` **1.9.0**. Suite **TP-TMPL-TO-PRJ-27**.
+
+## [1.6.0] - 2026-10-07
+
+### Added
+
+- Glossary terms **source-folder-file-count** and **archive-file-count**. Both exclude symlinks, directories, fifos, sockets, and device nodes. The archive still stores each symlink. The file check is those two counts equal. A `tar -tzf` line that does not end in `/` is not the archive tally. Do not delete links and do not create the archive with `tar -h`. This product does not compute the counters. **INC-20261005-001** stays open. Law: `requirement-domain-tmpl-to-prj` **1.8.0**.
+
+### Changed
+
+- `list-templates` and the TTY template picker search children of the RAM parent (`T2P_RAM_ROOT`, default `/dev/shm`) and the current folder. They do not force `~/prjs` as the template search parent. A kit that lives only under the projects parent is listed when that parent or the kit is the current folder. Named `--template` still resolves the RAM parent, then `PROJECTS_ROOT`. A tree with `docs/requirements/requirement-*.md` is a non-template. `README.md`, `index.md`, and other markdown that is not `requirement-*.md` do not exclude a kit or a stripped kit. Suite **TP-TMPL-TO-PRJ-27**, **TP-TMPL-TO-PRJ-28**.
+
 ## [1.5.2] - 2026-10-04
 
 ### Fixed
