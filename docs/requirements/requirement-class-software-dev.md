@@ -103,7 +103,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | **Architectures supported** | any arch with POSIX sh and the external tools the script invokes |
 | **Git surface** | used when product is published |
 | **Ship unit / install** | yes — `src/tmpl-to-prj`. Dual: local `install` (0755) and channel `self-install` / `SCRIPT_URL` |
-| **Product version SSOT** | `VERSION="1.6.2"` hard-assign in `src/tmpl-to-prj` |
+| **Product version SSOT** | `VERSION="1.6.3"` hard-assign in `src/tmpl-to-prj` |
 | **Bootstrap origin** | `selfmanaged` (A) → this product (B). Historical hop: `cli-template` |
 
 **Residual ownership table:**

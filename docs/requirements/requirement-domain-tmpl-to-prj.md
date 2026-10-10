@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-tmpl-to-prj.md  
-**Status**: Active (Version 1.10.0)  
+**Status**: Active (Version 1.11.0)  
 **Area**: domain  
 **Key**: `requirement-domain-tmpl-to-prj`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -118,7 +118,7 @@ Dot names and `lost+found` stay off that inventory. A named absolute directory s
 
 #### folder-backup gate
 
-Sibling binary `{{GLOBAL_BIN}}/folder-backup` (override `T2P_FOLDER_BACKUP`). Corresponding sudoers for **this** `id -un` — **sibling dest first** (from sibling `print-sudoers`):
+Sibling binary `folder-backup`, looked up in `{{GLOBAL_BIN}}` then `{{USER_BIN}}` (override `T2P_FOLDER_BACKUP`). Corresponding sudoers for **this** `id -un` — **sibling dest first** (from sibling `print-sudoers`):
 
 | Probe (in order) | Override |
 |------------------|----------|
@@ -128,14 +128,14 @@ Sibling binary `{{GLOBAL_BIN}}/folder-backup` (override `T2P_FOLDER_BACKUP`). Co
 | `sudo -n -l` listing `folder-backup backup *` | skipped when `T2P_SUDOERS_FILE` or `T2P_SUDOERS_D_DIR` is set |
 | Explicit file | `T2P_SUDOERS_FILE` (tests; exclusive) |
 
-Check order on apply and plan: **existence of** `folder-backup` **first**. If the global binary is missing or `version` fails, **skip** folder-backup (local dest-docs snapshot). If it exists, backup runs only when this login **is root** or **has the sudoers file** (or `sudo -n -l`) with the corresponding right: NOPASSWD `folder-backup backup *`. This product **MUST NOT** ask for a sudo password.
+Check order on apply and plan: **existence of** `folder-backup` **first**, in `{{GLOBAL_BIN}}` then `{{USER_BIN}}`. Backup is **not** the hop. A missing binary, a missing sudoers fragment for this login, a verb-only grant, or a password-only grant **warns** and **continues** template sync (local dest-docs snapshot). If the binary exists, backup **runs** only when this login **is root** or **has the sudoers file** (or `sudo -n -l`) with the corresponding right: NOPASSWD `folder-backup backup *`. This product **MUST NOT** ask for a sudo password. **MUST NOT** stop the overlay because that optional backup cannot run (**INC-20261010-001**, **PP-A-30**).
 
 | Gate | Meaning | apply |
 |------|---------|-------|
-| **missing** | Global binary not executable / version fails | **Skip** folder-backup. Local dest-docs snapshot under dest `.t2p-docs-backup-<stamp>`; honest that it dies with `$HOME` wipe. **MUST NOT** invoke `sudo` |
-| **narrow** | Binary exists; a readable fragment or `sudo -n -l` listing **shows** verb-only `backup` (no `*`) | **Fail closed**. Next: sibling `folder-backup print-sudoers` |
-| **unproven** | Binary exists; this login is not root; no NOPASSWD `backup *` (no fragment, unreadable fragment, or a password-only grant). A TTY does not change this | **Fail closed** before overlay. **MUST NOT** run password `sudo`. Next: use `folder-backup` to submit a request and create a sudoer file fragment for a later backup (`print-sudoers`, then `generate-sudoer-request`, then `submit-sudoer-request`). **MUST NOT** call this verb-only. **MUST NOT** treat a missing `/etc/{{username}}/folder-backup` as narrow |
-| **pass** | This login is root (`id -u` = 0), **or** a fragment or `sudo -n -l` allows NOPASSWD `folder-backup backup *` | Root: `folder-backup backup {{DEST_ROOT}}` with no `sudo`. Else: `sudo -n {{GLOBAL_BIN}}/folder-backup backup {{DEST_ROOT}}`. Require success. **MUST NOT** also create `.t2p-docs-backup-*`. If that command exits non-zero, fail closed before overlay. **MUST NOT** name sudoers argv as the next step (the gate already proved the right). Next: read the folder-backup error already printed and re-run apply after that backup succeeds (**INC-20261004-002**) |
+| **missing** | Not executable in `{{GLOBAL_BIN}}` or `{{USER_BIN}}`, or `version` fails | **Warn** and **continue**. Name both directories. Local dest-docs snapshot under dest `.t2p-docs-backup-<stamp>`; honest that it dies with `$HOME` wipe. **MUST NOT** invoke `sudo`. **MUST NOT** exit before overlay |
+| **narrow** | Binary exists; a readable fragment or `sudo -n -l` listing **shows** verb-only `backup` (no `*`) | **Warn** and **continue** with the local dest-docs snapshot. **MUST NOT** run `sudo`. Next may name sibling `folder-backup print-sudoers`. **MUST NOT** exit before overlay |
+| **unproven** | Binary exists; this login is not root; no NOPASSWD `backup *` (no fragment in `/etc/sudoers.d/`, unreadable fragment, or a password-only grant). A TTY does not change this | **Warn** and **continue** with the local dest-docs snapshot. **MUST NOT** run password `sudo`. The warning names the sibling path to submit a request and create a sudoer file fragment (`print-sudoers`, then `generate-sudoer-request`, then `submit-sudoer-request`). **MUST NOT** call this verb-only. **MUST NOT** treat a missing `/etc/{{username}}/folder-backup` as narrow. **MUST NOT** exit before overlay (**INC-20261010-001**) |
+| **pass** | This login is root (`id -u` = 0), **or** a fragment or `sudo -n -l` allows NOPASSWD `folder-backup backup *` | Root: `folder-backup backup {{DEST_ROOT}}` with no `sudo`. Else: `sudo -n` the resolved binary `backup {{DEST_ROOT}}`. Require success. **MUST NOT** also create `.t2p-docs-backup-*`. If that command exits non-zero, fail closed before overlay. **MUST NOT** name sudoers argv as the next step (the gate already proved the right). Next: read the folder-backup error already printed and re-run apply after that backup succeeds (**INC-20261004-002**) |
 
 **MUST NOT** auto-write `/etc`. **MUST NOT** invent `sudo cp` / `mkdir` / `tar`. **MUST NOT** use host `(ALL:ALL) ALL` from a non-TTY session. Another user’s sudoers file is **not** sufficient.
 
@@ -214,7 +214,7 @@ After apply, dest `docs/README.md` **MAY** still describe the source kit. **MUST
 | Domain prefix | `t2p_` |
 | Default RAM parent | `/dev/shm` (`T2P_RAM_ROOT`) |
 | Default projects parent | `${HOME}/prjs` (`PROJECTS_ROOT`) |
-| Sibling backup CLI | `folder-backup` at `GLOBAL_BIN` |
+| Sibling backup CLI | `folder-backup` in `GLOBAL_BIN`, then `USER_BIN` |
 | Sudo wrap | `util_sudo` → only `folder-backup backup <dest-root>` |
 | Test overrides | `T2P_FOLDER_BACKUP`, `T2P_SUDOERS_FILE`, `T2P_SUDOERS_D_DIR`, `T2P_BACKUP_NOSUDO=1` |
 
@@ -255,9 +255,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution:** Fail closed on missing names, refused paths, grant-too-narrow, and an unproven backup right (including on a TTY).  
-- **Intentional:** Recipe is dest-docs replace + restore dest specialized docs folders. Folder-backup runs only for root or a NOPASSWD `backup *` fragment.  
-- **Anti-fragile:** Restore those dest folders if copy fails; local snapshot only when the folder-backup binary is missing.  
+- **Caution:** Fail closed on missing names and refused paths. A missing `folder-backup` binary, a missing sudoers fragment, a verb-only grant, or an unproven backup right warns and continues (including on a TTY). A backup command that was started and exited non-zero still stops before overlay.  
+- **Intentional:** Recipe is dest-docs replace + restore dest specialized docs folders. Folder-backup runs only for root or a NOPASSWD `backup *` fragment. Backup is not the hop.  
+- **Anti-fragile:** Restore those dest folders if copy fails; local snapshot when folder-backup cannot run.  
 - **Over-protect:** Never delete dest project root; never emit sudoers; never ask for a sudo password.
 
 ---
@@ -270,10 +270,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 2. Overlay dest `docs/requirements/` with the template registry.  
 2a. Overlay dest `docs/incidents/` (bodies or dest README) with the template genesis incidents placeholder when dest had that directory.  
 2b. Overlay dest `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, or dest `docs/reviews/` with the kit placeholder when dest had that directory.  
-3. Skip the folder-backup gate when the global binary exists.  
+3. Skip the folder-backup gate when the binary exists in `{{GLOBAL_BIN}}` or `{{USER_BIN}}`.  
 4. Treat verb-only sudoers `backup` as authorizing `backup <folder>`.  
 5. Treat a missing `/etc/{{username}}/folder-backup` as verb-only / grant-too-narrow when sibling dest is `/etc/sudoers.d/folder-backup-<user>`.  
-6. Ask for a sudo password, or treat a TTY as a grant, when this login is not root and NOPASSWD `backup *` is not proven. A missing fragment stays **unproven** and stops apply. Next names sibling `folder-backup` submit-a-request and creating the sudoer file fragment (`print-sudoers`, `generate-sudoer-request`, `submit-sudoer-request`).  
+6. Ask for a sudo password, or treat a TTY as a grant, when this login is not root and NOPASSWD `backup *` is not proven. A missing binary (not in `{{GLOBAL_BIN}}` or `{{USER_BIN}}`), a missing `/etc/sudoers.d/folder-backup-<user>`, a verb-only grant, or any other **unproven** right **warns** and **continues** template sync. It does **not** exit. The warning may name sibling `folder-backup` submit-a-request and creating the sudoer file fragment (`print-sudoers`, `generate-sudoer-request`, `submit-sudoer-request`). Stopping that line is **PP-A-30** / **INC-20261010-001**.  
 7. Dual-write RAM and hard-disk for the same basename.  
 8. Copy dest `AGENTS.md` / ship unit from the template.  
 9. Invent OS-tool sudo or this product’s `print-sudoers`.  
@@ -305,9 +305,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-TMPL-TO-PRJ-01..29** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo`; NOPASSWD uses `sudo -n`. **INC-20261004-001**; **26**: pass gate and a failed backup do not say to check sudoers. **INC-20261004-002**; **27**: template inventory is the RAM parent, the current folder, and `PROJECTS_ROOT`; a projects-only unspecialized kit is listed from another folder; the same basename on RAM is one row; a specialized product, a `docs/` tree with no `README.md`, and nested `tests/` cases stay off the list; **28**: `requirement-*.md` excludes a non-template; README, index, and other non-requirement markdown do not; **29**: a directory with neither `docs/` nor `AGENTS.md` is a dest, as are a template and a non-template; a file is omitted; a refused path fails; a dot directory is off the inventory and still resolves by absolute path) |
+| **TP-TMPL-TO-PRJ-01..30** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven warns and overlays; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo` and still overlay; NOPASSWD uses `sudo -n`. **INC-20261004-001** / **INC-20261010-001**; **26**: pass gate and a failed backup do not say to check sudoers and still stop before overlay. **INC-20261004-002**; **27**: template inventory is the RAM parent, the current folder, and `PROJECTS_ROOT`; a projects-only unspecialized kit is listed from another folder; the same basename on RAM is one row; a specialized product, a `docs/` tree with no `README.md`, and nested `tests/` cases stay off the list; **28**: `requirement-*.md` excludes a non-template; README, index, and other non-requirement markdown do not; **29**: a directory with neither `docs/` nor `AGENTS.md` is a dest, as are a template and a non-template; a file is omitted; a refused path fails; a dot directory is off the inventory and still resolves by absolute path; **30**: a binary only in `{{USER_BIN}}` or only in `{{GLOBAL_BIN}}`, with no sudoers fragment, warns and overlays) |
 | **TP-TX-06** | `tests/test_termux.sh` | have (Termux apply: no `sudo`; local snapshot) |
 
-**Last Updated**: 2026-10-07 (1.10.0 a dest is any existing directory; no `docs/` or `AGENTS.md` test; template shape stays on the template list only)  
+**Last Updated**: 2026-10-10 (1.11.0 backup does not block template sync when the binary or the sudoers fragment is missing. **INC-20261010-001**. **PP-A-30**)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

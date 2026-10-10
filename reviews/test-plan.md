@@ -3,7 +3,7 @@
 Maps **TP-*** coverage to `tests/`.  
 **Suite entry:** `./tests/run.sh`  
 **Ship unit:** `src/tmpl-to-prj`  
-**Product VERSION:** 1.6.2  
+**Product VERSION:** 1.6.3  
 **Last plan update:** 2026-10-07  
 **Last suite run:** PASS=342 FAIL=0 SKIP=0 (2026-10-07)
 
@@ -39,7 +39,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-04 | plan does not mutate dest | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-05 | apply keeps dest specialized docs folders and root README | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-06 | template requirements do not remain | test_domain | requirement-domain-tmpl-to-prj | **have** |
-| TP-TMPL-TO-PRJ-07 | observed verb-only fails closed | test_domain | requirement-shell-sudo-command | **have** |
+| TP-TMPL-TO-PRJ-07 | observed verb-only warns and overlays; no sudo | test_domain | requirement-shell-sudo-command | **have** |
 | TP-TMPL-TO-PRJ-08 | missing folder-backup uses local snapshot | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-09 | source equals dest fails | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-10 | off-TTY menu is help | test_domain | requirement-shell-cli-default-interaction | **have** |
@@ -48,7 +48,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-13 | list-projects current folder + PROJECTS_ROOT | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-14 | `backup *` at `T2P_SUDOERS_FILE` is pass | test_domain | requirement-domain-tmpl-to-prj · INC-20260902-001 | **have** |
 | TP-TMPL-TO-PRJ-15 | `backup *` at sudoers.d `folder-backup-<user>` is pass | test_domain | requirement-shell-sudo-command · INC-20260902-001 | **have** |
-| TP-TMPL-TO-PRJ-16 | missing dest is unproven, not verb-only; Next is submit a request and create the fragment | test_domain | requirement-domain-tmpl-to-prj · INC-20261004-001 | **have** |
+| TP-TMPL-TO-PRJ-16 | missing dest is unproven, not verb-only; warns, names the fragment, and overlays | test_domain | requirement-domain-tmpl-to-prj · INC-20261010-001 | **have** |
 | TP-TMPL-TO-PRJ-17 | specialized product / incidents / tests are not templates | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-18 | list-templates has no Back row | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-19 | TTY picker 0 returns to main menu (no duplicate 9 Back row) | test_domain | requirement-shell-cli-default-interaction | **have** |
@@ -62,6 +62,7 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-27 | Template inventory is RAM, the current folder, and PROJECTS_ROOT; one row per basename | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-28 | `requirement-*.md` excludes a non-template; README, index, and other notes do not | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-29 | Any directory is a dest: bare folder, template, and non-template; a file is omitted; home is refused; a dot directory resolves by path | test_domain | requirement-domain-tmpl-to-prj | **have** |
+| TP-TMPL-TO-PRJ-30 | Binary only in USER_BIN or only in GLOBAL_BIN, no sudoers fragment: warn and overlay | test_domain | requirement-domain-tmpl-to-prj · INC-20261010-001 | **have** |
 
 ---
 

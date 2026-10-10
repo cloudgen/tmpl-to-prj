@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-sudo-command.md  
-**Status**: Active (Version 1.4.0)  
+**Status**: Active (Version 1.5.0)  
 **Area**: shell  
 **Key**: `requirement-shell-sudo-command`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -37,7 +37,7 @@ C0–C6 (check before sudo + wrap):
 | **C0** | Every in-tool `sudo` is this wrap. chmod is **not** this product’s elev case. |
 | **C1** | Probe is **already-root** (`id -u` = 0). **MUST NOT** use `[ -O dest]` to skip `folder-backup backup` (deposit still needs root). |
 | **C2** | Probe match → **MUST NOT** `sudo`. |
-| **C3** | Probe miss and not root → `util_sudo` may run the allow-table argv **only** when that row is NOPASSWD and matches the full argv, via `sudo -n`. A TTY password `sudo` is forbidden (**INC-20261004-001**). No matching NOPASSWD → fail closed. Next: use sibling `folder-backup` to submit a request and create a sudoer file fragment for a later backup. |
+| **C3** | Probe miss and not root → `util_sudo` may run the allow-table argv **only** when that row is NOPASSWD and matches the full argv, via `sudo -n`. A TTY password `sudo` is forbidden (**INC-20261004-001**). No matching NOPASSWD → do **not** call `sudo`. Warn and continue template sync with a local dest-docs snapshot (**INC-20261010-001**). The warning may name sibling `folder-backup` submit-a-request and the sudoer file fragment. |
 | **C4** | **MUST NOT** probe `sudo true` / `sudo mkdir` / `sudo cp` / `sudo ls` / `sudo stat`. |
 | **C5** | Already-root **MUST** run the argv without `sudo`. |
 | **C6** | Exactly one wrap (`util_sudo`). **MUST NOT** scatter `sudo`. |
@@ -46,7 +46,7 @@ Also:
 
 1. **MUST** publish a **sudo allow table** from a **studied** fragment (`print-sudoers` dest, readable file, or `sudo -n -l`). **MUST NOT** guess dest or argv.  
 2. This wrap **MUST** pass only the allow-table row with **This wrap? = yes**.  
-3. **MUST NOT** ask for a sudo password in any mode, including a TTY. No matching NOPASSWD and not root → fail closed with Next (submit a request and create the sudoer file fragment). Missing `folder-backup` skips the wrap (local dest-docs snapshot).  
+3. **MUST NOT** ask for a sudo password in any mode, including a TTY. No matching NOPASSWD and not root → do **not** call `sudo`. Warn and continue the hop (local dest-docs snapshot). The warning may name submit-a-request and the sudoer file fragment. Missing `folder-backup` in `{{GLOBAL_BIN}}` and `{{USER_BIN}}` is the same continue path. Stopping that line is **PP-A-30**.  
 4. Fixture `T2P_BACKUP_NOSUDO=1` **MAY** skip sudo (CI stub). Production apply **MUST NOT** set that flag.  
 5. This CLI **MUST NOT** emit sudoers. Sibling `print-sudoers` is the emit path. Create-sudoers / sudoers-content checklists are **N/A**.  
 6. On a **command line for normal user only** (Termux, Git Bash, Windows cmd), `util_sudo` **MUST** return non-zero **without** invoking `sudo`. Folder-backup gate **MUST** be **missing** (local dest-docs snapshot). **MUST NOT** recommend `sudo` as Next on that class.
@@ -135,9 +135,10 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-TMPL-TO-PRJ-07** | `tests/test_domain_tmpl_to_prj.sh` | have (observed verb-only fail) |
-| **TP-TMPL-TO-PRJ-14..16** | `tests/test_domain_tmpl_to_prj.sh` | have (star dest / unproven ≠ verb-only) |
-| **TP-TMPL-TO-PRJ-24..25** | `tests/test_domain_tmpl_to_prj.sh` | have (TTY and password grant do not invoke `sudo`; NOPASSWD uses `sudo -n`. **INC-20261004-001**) |
+| **TP-TMPL-TO-PRJ-07** | `tests/test_domain_tmpl_to_prj.sh` | have (observed verb-only warns and overlays; no `sudo`) |
+| **TP-TMPL-TO-PRJ-14..16** | `tests/test_domain_tmpl_to_prj.sh` | have (star dest / unproven ≠ verb-only; unproven warns and overlays) |
+| **TP-TMPL-TO-PRJ-24..25** | `tests/test_domain_tmpl_to_prj.sh` | have (TTY and password grant do not invoke `sudo` and still overlay; NOPASSWD uses `sudo -n`. **INC-20261004-001** / **INC-20261010-001**) |
+| **TP-TMPL-TO-PRJ-30** | `tests/test_domain_tmpl_to_prj.sh` | have (binary only in `USER_BIN` or only in `GLOBAL_BIN`, no fragment, warns and overlays) |
 | **TP-TX-06** / **TP-TX-07** | `tests/test_termux.sh` | have (Termux / Git Bash: stub `sudo` not invoked) |
 
 Checklist gates (IDs; filled basenames, no harness folder prefix):
@@ -149,6 +150,6 @@ Checklist gates (IDs; filled basenames, no harness folder prefix):
 | **CL-CREATE-SUDOERS-SECURITY** | n/a — this CLI does not emit sudoers |
 | **CL-SUDOERS-FILE-CONTENT** | n/a — this CLI does not emit sudoers |
 
-**Last Updated**: 2026-10-04 (1.4.0 no sudo password; root or NOPASSWD `backup *`. **INC-20261004-001**)  
+**Last Updated**: 2026-10-10 (1.5.0 a missing fragment warns and continues the hop. **INC-20261010-001**)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

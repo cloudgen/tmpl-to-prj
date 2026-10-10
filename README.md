@@ -1,6 +1,6 @@
 # tmpl-to-prj - Copy harness docs from a genesis template into a named project
 
-![Version](https://img.shields.io/badge/Version-1.6.2-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.6.3-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 
@@ -29,7 +29,7 @@
 - **Template menu**: `list-templates` and the apply picker list unspecialized kits under `/dev/shm`, the current folder, and `~/prjs`. A tree with `docs/requirements/requirement-*.md` is not a template. `README.md` and `index.md` in that folder may stay. The same name on `/dev/shm` and `~/prjs` is one row (the RAM row)
 - **Project menu**: `list-projects` and the apply picker list the current folder and every directory under `/dev/shm` and `~/prjs`. A dest does not need `docs/` or `AGENTS.md`. A template, a stripped template, a non-template, and a folder that only has `src/` are all valid dests. Home, `/`, `/home`, `/dev`, and `/dev/shm` stay refused
 - **Specialized dest docs preserved**: dest `docs/requirements/`, `docs/incidents/`, filled `docs/checklists/`, `docs/whitelists/`, `docs/housekeeping/`, and dest `docs/reviews/` are moved aside, then restored
-- **folder-backup compose**: dest archive when the global binary is ready on a POSIX host with a matching grant; skipped on Termux / Git Bash / Windows cmd (local dest-docs snapshot instead)
+- **folder-backup compose**: dest archive when the binary in `/usr/local/bin` or `~/.local/bin` is ready on a POSIX host with a matching grant. If the binary or the sudoers fragment is missing, apply warns and still copies template docs (local dest-docs snapshot). Skipped the same way on Termux / Git Bash / Windows cmd
 - **Termux target**: detect Termux-like userspace; no extra `pkg` list (this program is `/bin/sh` only)
 - **Numbered menu** on a real terminal: 1 plan, 2 apply, 8 self-management (82–87), 9 Exit
 - **Empty argv in a pipe** places the program (`self-install`). On a terminal, no words still shows the numbered menu
@@ -81,7 +81,7 @@ The companion URL is `${SCRIPT_URL}.sha256`. In this repository the file is `src
 After install, on a terminal, run `tmpl-to-prj` with no arguments. Live capture:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.6.2*) — numbered list of live commands
+[INFO] **tmpl-to-prj**(*1.6.3*) — numbered list of live commands
 1. **plan**: *Show template and project roots (no writes)*
 2. **apply**: *Copy harness docs from the template into the project*
 8. **self-management**: *this CLI install, version, update, uninstall*
@@ -92,7 +92,7 @@ Choice:
 Choose **8**:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.6.2*) — self-management
+[INFO] **tmpl-to-prj**(*1.6.3*) — self-management
 82. **version**: *show current version*
 83. **about**: *show detailed diagnostics*
 84. **version-check**: *compare local vs remote version*
@@ -186,6 +186,8 @@ Keep CIAO / CIAO-Lite Protection Zones. Trace behavior to live `docs/requirement
 MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
+
+2026-10-10 — A missing `folder-backup` binary or a missing sudoers fragment warns and template sync continues. Backup is not required for the docs copy. A backup that was started and failed still stops. Version **1.6.3**.
 
 2026-10-07 — A project folder is any existing directory. The project list and `apply` no longer require `docs/` or `AGENTS.md`. A template, a stripped template, a non-template, and a folder that only has `src/` are all dests. Home, `/`, `/home`, `/dev`, and `/dev/shm` stay refused. Version **1.6.2**.
 

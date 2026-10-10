@@ -41,7 +41,7 @@
 # Single-file ship unit under src/; install to ~/.local/bin (user) or /usr/local/bin (root/--global).
 #
 # APP NAME: hard-assign APP_NAME="tmpl-to-prj"
-# VERSION: hard-assign VERSION="1.6.1"
+# VERSION: hard-assign VERSION="1.6.3"
 #
 # =============================================================================
 
@@ -58,8 +58,8 @@ APP_NAME="tmpl-to-prj"
 : "${SHORT_DESCRIPTION:=${APP_DESC}}"
 : "${DESCRIPTION:=POSIX /bin/sh local CLI: apply or plan a harness-docs hop using template-name and project-name. RAM-drive first. Preserves dest specialized docs folders (requirements, incidents, checklists, whitelists, housekeeping, docs/reviews).}"
 # Product version SSOT (semver). Extractors use: grep '^VERSION="'
-VERSION="1.6.2"
-: "${VERSION:=1.6.2}"
+VERSION="1.6.3"
+: "${VERSION:=1.6.3}"
 # Repository identity SSOT (git host owner/repo for this product's channel).
 # Dual install: `install` copies this file at mode 0755 (no network).
 # Non-interactive 0-argv and `self-install` place the CLI (copy when $0 is
@@ -3262,6 +3262,10 @@ t2p_termux_pkg_ensure() {
 # Wrap sudo for the folder-backup backup argv. Skip sudo when already root
 # or when T2P_BACKUP_NOSUDO=1 (fixture). Matching NOPASSWD uses sudo -n.
 # A terminal is not a grant: this wrap never asks for a sudo password.
+# Call this only after the folder-backup gate is pass. A missing binary or
+# an unproven fragment warns and continues in t2p_backup_dest (INC-20261010-001).
+# This wrap still dies if it is called without root or NOPASSWD, so a bug
+# cannot fall through to a password prompt.
 # On a command line for normal user only (Termux / Git Bash / Windows cmd):
 # MUST NOT invoke sudo.
 #
@@ -3270,8 +3274,9 @@ t2p_termux_pkg_ensure() {
 # - requirement-shell-termux-ish.md
 # - requirement-domain-tmpl-to-prj.md
 # - INC-20261004-001
+# - INC-20261010-001
 #
-# Last updated: 2026-10-04
+# Last updated: 2026-10-10
 # =============================================================================
 util_sudo() {
     : "${T2P_BACKUP_NOSUDO:=0}"
@@ -3302,14 +3307,23 @@ util_sudo() {
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 #
-# Last updated: 2026-09-02
+# Last updated: 2026-10-10
 # =============================================================================
 t2p_folder_backup_bin() {
     : "${GLOBAL_BIN:=/usr/local/bin}"
+    : "${USER_BIN:=${HOME}/.local/bin}"
     : "${FOLDER_BACKUP_NAME:=folder-backup}"
     : "${T2P_FOLDER_BACKUP:=}"
     if [ -n "${T2P_FOLDER_BACKUP}" ]; then
         printf '%s' "${T2P_FOLDER_BACKUP}"
+        return 0
+    fi
+    if [ -x "${GLOBAL_BIN}/${FOLDER_BACKUP_NAME}" ]; then
+        printf '%s' "${GLOBAL_BIN}/${FOLDER_BACKUP_NAME}"
+        return 0
+    fi
+    if [ -x "${USER_BIN}/${FOLDER_BACKUP_NAME}" ]; then
+        printf '%s' "${USER_BIN}/${FOLDER_BACKUP_NAME}"
         return 0
     fi
     printf '%s' "${GLOBAL_BIN}/${FOLDER_BACKUP_NAME}"
@@ -3456,15 +3470,17 @@ t2p_msg_no_backup_right() {
 # t2p_folder_backup_gate() - missing | narrow | unproven | pass
 # =============================================================================
 #
-# Existence of folder-backup is first. Missing binary skips folder-backup.
+# Existence of folder-backup is first (GLOBAL_BIN, then USER_BIN).
+# Missing binary, narrow, and unproven do not stop template sync.
 # Pass is root, or a NOPASSWD backup * grant. A TTY is not a grant.
 #
 # ALIGNMENT:
 # - requirement-domain-tmpl-to-prj.md
 # - INC-20260902-001
 # - INC-20261004-001
+# - INC-20261010-001
 #
-# Last updated: 2026-10-04
+# Last updated: 2026-10-10
 # =============================================================================
 t2p_folder_backup_gate() {
     : "${IS_ROOT:=0}"
@@ -4366,13 +4382,13 @@ t2p_plan() {
     fi
     out_info "Plan only: no docs overlay. apply will mv dest specialized docs folders aside (requirements, incidents, checklists, whitelists, housekeeping, reviews), copy template docs, then restore those dest folders."
     if [ "${T2P_FB_GATE}" = "missing" ]; then
-        out_warn "Global folder-backup is not installed. apply will skip folder-backup and take a local dest-docs snapshot."
+        out_warn "folder-backup is not in ${GLOBAL_BIN} or ${USER_BIN}. Backup is not required for template sync. apply will warn and continue with a local dest-docs snapshot."
     fi
     if [ "${T2P_FB_GATE}" = "narrow" ]; then
-        out_warn "folder-backup exists but this login's sudoers is verb-only backup (no *). apply will fail closed. Next: sibling folder-backup print-sudoers"
+        out_warn "folder-backup exists but this login's sudoers is verb-only backup (no *). Backup is not required for template sync. apply will warn and continue with a local dest-docs snapshot. Next: sibling folder-backup print-sudoers"
     fi
     if [ "${T2P_FB_GATE}" = "unproven" ]; then
-        out_warn "$(t2p_msg_no_backup_right) apply will stop before overlay."
+        out_warn "$(t2p_msg_no_backup_right) Backup is not required for template sync. apply will warn and continue with a local dest-docs snapshot."
     fi
     if [ "${T2P_FB_GATE}" = "pass" ]; then
         if [ "${T2P_FB_ROOT:-0}" -eq 1 ]; then
@@ -4430,18 +4446,27 @@ t2p_local_docs_snapshot() {
 # - requirement-shell-sudo-command.md
 # - INC-20261004-001
 # - INC-20261004-002
+# - INC-20261010-001
 #
-# Last updated: 2026-10-04
+# Last updated: 2026-10-10
 # =============================================================================
 t2p_backup_dest() {
     _dest="${1:-}"
     : "${T2P_FB_GATE:=}"
+    : "${GLOBAL_BIN:=/usr/local/bin}"
+    : "${USER_BIN:=${HOME}/.local/bin}"
+    : "${FOLDER_BACKUP_NAME:=folder-backup}"
+    : "${USERNAME:=unknown}"
     T2P_BACKUP_NOTE=""
     if [ "${T2P_FB_GATE}" = "narrow" ]; then
-        out_die "folder-backup is installed but this login's sudoers is verb-only backup (no *). Next: run sibling folder-backup print-sudoers and install a backup * line at /etc/sudoers.d/${FOLDER_BACKUP_NAME}-${USERNAME}."
+        out_warn "folder-backup is installed but this login's sudoers is verb-only backup (no *). Backup is not required for template sync. Continuing with a local dest-docs snapshot. Next: run sibling ${FOLDER_BACKUP_NAME} print-sudoers and install a backup * line at /etc/sudoers.d/${FOLDER_BACKUP_NAME}-${USERNAME}."
+        t2p_local_docs_snapshot "${_dest}"
+        return 0
     fi
     if [ "${T2P_FB_GATE}" = "unproven" ]; then
-        out_die "$(t2p_msg_no_backup_right)"
+        out_warn "$(t2p_msg_no_backup_right) Backup is not required for template sync. Continuing with a local dest-docs snapshot."
+        t2p_local_docs_snapshot "${_dest}"
+        return 0
     fi
     if [ "${T2P_FB_GATE}" = "pass" ]; then
         _bin=$(t2p_folder_backup_bin)
@@ -4454,6 +4479,7 @@ t2p_backup_dest() {
         fi
         out_die "folder-backup backup failed. The gate already passed, so this is not a sudoers argv miss. Next: read the folder-backup error above and re-run apply after that backup succeeds."
     fi
+    out_warn "folder-backup is not in ${GLOBAL_BIN} or ${USER_BIN}. Backup is not required for template sync. Continuing with a local dest-docs snapshot."
     t2p_local_docs_snapshot "${_dest}"
 }
 
@@ -4923,7 +4949,7 @@ app_help() {
     out_plain "  ${APP_NAME} version-check"
     out_empty_line
     out_info "Interactive empty argv shows the numbered menu (1 plan, 2 apply, 8 self-management, 9 Exit). Under 8: 82 version, 83 about, 84 version-check, 85 self-update, 86 self-uninstall, 87 self-install, 0 Back. After plan or apply, pick an unspecialized template under the RAM parent, the current folder, or ${PROJECTS_ROOT} (0 requirement-*.md; README and index under docs/requirements may exist) then a project folder. A dest is any existing directory: a template, a stripped template, a non-template, or a folder with no docs/ and no AGENTS.md. Home, /, /home, /dev, and the RAM mount stay refused. Type 0 (or 9 when the list is short) to return to the main menu. Off-TTY empty argv places this program (self-install). The explicit help verb prints this text."
-    out_info "Optional extra: folder-backup backup TEMPLATE_ROOT when this login is root or holds a NOPASSWD backup * fragment (apply backs up dest when that same check passes)."
+    out_info "Optional extra: folder-backup backup TEMPLATE_ROOT when this login is root or holds a NOPASSWD backup * fragment (apply backs up dest when that same check passes). If folder-backup is not in ${GLOBAL_BIN} or ${USER_BIN}, or this login has no sudoers fragment for it, apply warns and still copies the template docs."
 }
 
 # =============================================================================

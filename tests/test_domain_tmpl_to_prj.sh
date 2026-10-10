@@ -110,9 +110,13 @@ run_test_domain_tmpl_to_prj() {
     printf 'user ALL=(root) NOPASSWD: /usr/local/bin/folder-backup backup\n' >"${CI_HOME}/narrow-sudoers"
     _err=$(T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/narrow-sudoers" \
         sh "${SCRIPT}" apply --force kit-a proj-b 2>&1 >/dev/null)
-    assert_eq "TP-TMPL-TO-PRJ-07 narrow sudoers exit 1" 1 "$?"
+    assert_eq "TP-TMPL-TO-PRJ-07 narrow sudoers exit 0" 0 "$?"
     assert_contains "TP-TMPL-TO-PRJ-07 too narrow" "$_err" "verb-only"
-    assert_file_exists "TP-TMPL-TO-PRJ-07 dest not overlaid" "${PROJECTS_ROOT}/proj-b/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-07 continues" "$_err" "Backup is not required"
+    assert_contains "TP-TMPL-TO-PRJ-07 warning" "$_err" "[WARN]"
+    assert_not_contains "TP-TMPL-TO-PRJ-07 no error stop" "$_err" "[ERROR]"
+    assert_file_missing "TP-TMPL-TO-PRJ-07 old dest skill replaced" "${PROJECTS_ROOT}/proj-b/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-07 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-b/docs/skills/from-kit.md")" "RAM-HOST"
 
     # TP-TMPL-TO-PRJ-14 backup * at T2P_SUDOERS_FILE → pass (INC-20260902-001)
     printf 'user ALL=(root) NOPASSWD: /usr/local/bin/folder-backup backup *\n' >"${CI_HOME}/star-sudoers"
@@ -137,19 +141,31 @@ run_test_domain_tmpl_to_prj() {
     t2p_mk_proj "${PROJECTS_ROOT}/proj-u"
     _err=$(T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_D_DIR="${_empty_sd}" \
         sh "${SCRIPT}" apply --force kit-a proj-u 2>&1 >/dev/null)
-    assert_eq "TP-TMPL-TO-PRJ-16 unproven exit 1" 1 "$?"
+    assert_eq "TP-TMPL-TO-PRJ-16 unproven exit 0" 0 "$?"
     assert_contains "TP-TMPL-TO-PRJ-16 unproven text" "$_err" "not proven"
     assert_contains "TP-TMPL-TO-PRJ-16 names submit" "$_err" "submit a request"
     assert_contains "TP-TMPL-TO-PRJ-16 names fragment" "$_err" "sudoer file fragment"
+    assert_contains "TP-TMPL-TO-PRJ-16 continues" "$_err" "Backup is not required"
+    assert_contains "TP-TMPL-TO-PRJ-16 warning" "$_err" "[WARN]"
+    assert_not_contains "TP-TMPL-TO-PRJ-16 no error stop" "$_err" "[ERROR]"
     assert_not_contains "TP-TMPL-TO-PRJ-16 not claiming is verb-only" "$_err" "sudoers is verb-only"
     assert_not_contains "TP-TMPL-TO-PRJ-16 no password sudo next" "$_err" "from a terminal run sudo"
-    assert_file_exists "TP-TMPL-TO-PRJ-16 dest not overlaid" "${PROJECTS_ROOT}/proj-u/docs/skills/old.md"
+    assert_file_missing "TP-TMPL-TO-PRJ-16 old dest skill replaced" "${PROJECTS_ROOT}/proj-u/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-16 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-u/docs/skills/from-kit.md")" "RAM-HOST"
+    _out=$(T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_D_DIR="${_empty_sd}" \
+        sh "${SCRIPT}" plan kit-a proj-u 2>&1)
+    assert_eq "TP-TMPL-TO-PRJ-16 plan exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-16 plan continues" "$_out" "Backup is not required"
+    assert_not_contains "TP-TMPL-TO-PRJ-16 plan does not stop" "$_out" "stop before overlay"
 
     # TP-TMPL-TO-PRJ-08 missing folder-backup → local snapshot + apply
     t2p_mk_proj "${PROJECTS_ROOT}/proj-c"
     _out=$(sh "${SCRIPT}" apply --force kit-a proj-c 2>&1)
     assert_eq "TP-TMPL-TO-PRJ-08 missing fb apply exit 0" 0 "$?"
     assert_contains "TP-TMPL-TO-PRJ-08 local snapshot note" "$_out" "Local dest-docs snapshot"
+    assert_contains "TP-TMPL-TO-PRJ-08 names both bins" "$_out" "not in"
+    assert_contains "TP-TMPL-TO-PRJ-08 backup not required" "$_out" "Backup is not required"
+    assert_contains "TP-TMPL-TO-PRJ-08 warning" "$_out" "[WARN]"
     _snaps=$(find "${PROJECTS_ROOT}/proj-c" -maxdepth 1 -type d -name '.t2p-docs-backup-*' | wc -l)
     if [ "${_snaps}" -ge 1 ]; then
         t_pass "TP-TMPL-TO-PRJ-08 snapshot dir created"
@@ -360,11 +376,14 @@ run_test_domain_tmpl_to_prj() {
     t2p_mk_proj "${PROJECTS_ROOT}/proj-tty"
     _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_D_DIR="${_empty_sd}" \
         sh "${SCRIPT}" apply --force kit-a proj-tty 2>&1 >/dev/null)
-    assert_eq "TP-TMPL-TO-PRJ-24 TTY no grant exit 1" 1 "$?"
+    assert_eq "TP-TMPL-TO-PRJ-24 TTY no grant exit 0" 0 "$?"
     assert_contains "TP-TMPL-TO-PRJ-24 submit request" "$_err" "submit a request"
     assert_contains "TP-TMPL-TO-PRJ-24 sudoer fragment" "$_err" "sudoer file fragment"
+    assert_contains "TP-TMPL-TO-PRJ-24 continues" "$_err" "Backup is not required"
     assert_not_contains "TP-TMPL-TO-PRJ-24 not verb-only" "$_err" "sudoers is verb-only"
-    assert_file_exists "TP-TMPL-TO-PRJ-24 dest not overlaid" "${PROJECTS_ROOT}/proj-tty/docs/skills/old.md"
+    assert_not_contains "TP-TMPL-TO-PRJ-24 no error stop" "$_err" "[ERROR]"
+    assert_file_missing "TP-TMPL-TO-PRJ-24 old dest skill replaced" "${PROJECTS_ROOT}/proj-tty/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-24 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-tty/docs/skills/from-kit.md")" "RAM-HOST"
     if [ -s "${_sudolog}" ]; then
         t_fail "TP-TMPL-TO-PRJ-24 sudo not invoked (log=$(cat "${_sudolog}"))"
     else
@@ -381,9 +400,12 @@ run_test_domain_tmpl_to_prj() {
     : >"${_fblog}"
     _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/password-sudoers" \
         sh "${SCRIPT}" apply --force kit-a proj-pw 2>&1 >/dev/null)
-    assert_eq "TP-TMPL-TO-PRJ-24 password grant exit 1" 1 "$?"
+    assert_eq "TP-TMPL-TO-PRJ-24 password grant exit 0" 0 "$?"
     assert_contains "TP-TMPL-TO-PRJ-24 password grant names submit" "$_err" "submit-sudoer-request"
-    assert_file_exists "TP-TMPL-TO-PRJ-24 password grant dest not overlaid" "${PROJECTS_ROOT}/proj-pw/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-24 password grant continues" "$_err" "Backup is not required"
+    assert_not_contains "TP-TMPL-TO-PRJ-24 password grant no error stop" "$_err" "[ERROR]"
+    assert_file_missing "TP-TMPL-TO-PRJ-24 password grant old skill replaced" "${PROJECTS_ROOT}/proj-pw/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-24 password grant kit copied" "$(cat "${PROJECTS_ROOT}/proj-pw/docs/skills/from-kit.md")" "RAM-HOST"
     if [ -s "${_sudolog}" ]; then
         t_fail "TP-TMPL-TO-PRJ-24 password grant does not call sudo (log=$(cat "${_sudolog}"))"
     else
@@ -424,6 +446,31 @@ run_test_domain_tmpl_to_prj() {
     else
         t_fail "TP-TMPL-TO-PRJ-26 backup was invoked (log=$(cat "${_fblog}"))"
     fi
+
+    # TP-TMPL-TO-PRJ-30 binary only under USER_BIN or GLOBAL_BIN, no sudoers file
+    printf '#!/bin/sh\nexit 0\n' >"${CI_USER_BIN}/folder-backup"
+    chmod 0755 "${CI_USER_BIN}/folder-backup"
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-userbin"
+    _err=$(T2P_SUDOERS_D_DIR="${_empty_sd}" \
+        sh "${SCRIPT}" apply --force kit-a proj-userbin 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-30 user-bin unproven exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-30 user-bin not proven" "$_err" "not proven"
+    assert_contains "TP-TMPL-TO-PRJ-30 user-bin continues" "$_err" "Backup is not required"
+    assert_not_contains "TP-TMPL-TO-PRJ-30 user-bin no error" "$_err" "[ERROR]"
+    assert_contains "TP-TMPL-TO-PRJ-30 user-bin kit copied" \
+        "$(cat "${PROJECTS_ROOT}/proj-userbin/docs/skills/from-kit.md")" "RAM-HOST"
+    rm -f "${CI_USER_BIN}/folder-backup"
+    printf '#!/bin/sh\nexit 0\n' >"${CI_GLOBAL_BIN}/folder-backup"
+    chmod 0755 "${CI_GLOBAL_BIN}/folder-backup"
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-globalbin"
+    _err=$(T2P_SUDOERS_D_DIR="${_empty_sd}" \
+        sh "${SCRIPT}" apply --force kit-a proj-globalbin 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-30 global-bin unproven exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-30 global-bin not proven" "$_err" "not proven"
+    assert_contains "TP-TMPL-TO-PRJ-30 global-bin continues" "$_err" "Backup is not required"
+    assert_contains "TP-TMPL-TO-PRJ-30 global-bin kit copied" \
+        "$(cat "${PROJECTS_ROOT}/proj-globalbin/docs/skills/from-kit.md")" "RAM-HOST"
+    rm -f "${CI_GLOBAL_BIN}/folder-backup"
 
     if [ -n "${_away:-}" ]; then
         rm -rf "${_away}"

@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.3] - 2026-10-10
+
+### Fixed
+
+- **INC-20261010-001** / **PP-A-30**: `apply` stopped with `[ERROR]` when `folder-backup` was installed and this login had no NOPASSWD `backup *` right. Backup is not the hop. If the binary is not in `/usr/local/bin` or `~/.local/bin`, or this login has no sudoers fragment, a verb-only grant, or a password-only grant, apply warns, takes a local dest-docs snapshot, and still copies template docs. It does not ask for a sudo password and it does not call `sudo`. A backup that was started after a passed gate and exited non-zero still stops before overlay (**INC-20261004-002**). Law: `requirement-domain-tmpl-to-prj` **1.11.0**, `requirement-shell-sudo-command` **1.5.0**. Suite **TP-TMPL-TO-PRJ-07**, **16**, **24**, **30**.
+
 ## [1.6.2] - 2026-10-07
 
 ### Fixed

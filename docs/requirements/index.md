@@ -20,12 +20,12 @@
 | requirement-shell-output-requirements | Central `out_*` output SSOT | shell | Active | `requirement-shell-output-requirements.md` | 2026-08-13 |
 | requirement-shell-modular-function-design | Single-file modular prefixes (`out_`/`inst_`/`app_`/`t2p_`) | shell | Active (2.1.0) | `requirement-shell-modular-function-design.md` | 2026-09-06 |
 | requirement-shell-script-coding | POSIX sh coding style (specialize-in home) | shell | Active (1.0.1) | `requirement-shell-script-coding.md` | 2026-09-02 |
-| requirement-shell-sudo-command | In-tool sudo wrap of sibling folder-backup backup (root or NOPASSWD only; no password prompt) | shell | Active (1.4.0) | `requirement-shell-sudo-command.md` | 2026-10-04 |
+| requirement-shell-sudo-command | In-tool sudo wrap of sibling folder-backup backup (root or NOPASSWD only; no password prompt; a missing fragment warns and continues) | shell | Active (1.5.0) | `requirement-shell-sudo-command.md` | 2026-10-10 |
 | requirement-shell-termux-ish | Termux target: detect, empty pkg table, skip sudo | shell | Active (1.0.0) | `requirement-shell-termux-ish.md` | 2026-09-06 |
 | requirement-shell-idempotency | Re-run safety for install / uninstall | shell | Active (1.1.0) | `requirement-shell-idempotency.md` | 2026-08-13 |
 | requirement-shell-interactive-vs-noninteractive | Interactive vs non-interactive / confirm policy | shell | Active (1.2.0) | `requirement-shell-interactive-vs-noninteractive.md` | 2026-10-04 |
 | requirement-shell-cli-storage | Cache folder (Linux shm → tmp → `~/.cache`; Git Bash tmp → AppData; Mac tmp → Library/Caches → `~/cache`) and persistence `${HOME}/.local/${APP_NAME}`; silent tier miss | shell | Active (1.2.0) | `requirement-shell-cli-storage.md` | 2026-09-27 |
-| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest is any existing directory; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a failed backup after pass is not a sudoers miss; file counts exclude symlinks; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.10.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-07 |
+| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest is any existing directory; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a missing binary or sudoers fragment warns and continues; a failed backup after pass is not a sudoers miss; file counts exclude symlinks; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.11.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-10 |
 
 ## Intentionally absent (by design)
 

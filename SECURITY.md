@@ -4,7 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.6.2 (current) | Yes |
+| 1.6.3 (current) | Yes |
+| 1.6.2 | Yes |
 | 1.6.1 | Yes |
 | 1.6.0 | Yes |
 | 1.5.2 | Yes |
@@ -60,7 +61,7 @@ Channel `self-install` and `self-update` use the automatic companion check. Oper
 ## Scope notes
 
 - This product does **not** emit or install `/etc/sudoers.d` fragments.  
-- This product does **not** write under `/var/backup` itself; it may invoke sibling `folder-backup backup <dest>` when this login is root or a NOPASSWD `backup *` grant exists. It does not ask for a sudo password. A missing `folder-backup` binary skips that step.  
+- This product does **not** write under `/var/backup` itself; it may invoke sibling `folder-backup backup <dest>` when this login is root or a NOPASSWD `backup *` grant exists. It does not ask for a sudo password. If the binary is not in `/usr/local/bin` or `~/.local/bin`, or this login has no sudoers fragment, apply warns and still copies template docs.  
 - Uninstall removes only the managed binary.  
 - Local `~/.local/bin` install is user-rewritable; prefer global install on multi-user POSIX hosts when a shared CLI is desired. On Termux / Git Bash / Windows cmd this product **MUST NOT** invoke `sudo`.  
 - Related docs: [`README.md`](./README.md), [`LICENSE.md`](./LICENSE.md).
