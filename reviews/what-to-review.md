@@ -5,7 +5,7 @@
 **Always load first:** `reviews/lessons.md`
 
 **Last plan update:** 2026-10-07  
-**Ship unit VERSION:** 1.6.3  
+**Ship unit VERSION:** 1.6.4  
 **Suite baseline:** see `reviews/test-plan.md`
 
 ---
@@ -15,7 +15,7 @@
 | # | Check | Notes |
 |---|--------|--------|
 | P1 | Read `docs/requirements/index.md` | Class + architecture + shell + domain + Termux-ish |
-| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.6.3**) |
+| P2 | Confirm ship unit `src/tmpl-to-prj` | `APP_NAME` / `VERSION` hard-assign (**1.6.4**) |
 | P3 | Load `reviews/lessons.md` and re-check open L-* that still apply | Skip L-SUDOERS / restore lessons as parent-only |
 | P4 | Run `./tests/run.sh` | Record PASS/FAIL/SKIP in report |
 | P5 | Confirm the channel is this product’s `SCRIPT_URL` | `help` lists self-install / self-update; `help` and `about` do not print `CHECKSUM` |
@@ -38,6 +38,7 @@
 | Companion digest | `requirement-shell-automatic-checksum.md` | `${SCRIPT_URL}.sha256`; pin not in help/about |
 | Termux-ish | `requirement-shell-termux-ish.md` | Detect; empty `pkg` table; skip sudo |
 | Output SSOT | `requirement-shell-output-requirements.md` | `out_*`; JSON errors |
+| Exit catalog | `requirement-shell-exit-condition.md` | `out_die` status 1; direct `return 1`; status 0; warn-and-continue |
 | Modular design | `requirement-shell-modular-function-design.md` | `t2p_` domain prefix |
 | Idempotency | `requirement-shell-idempotency.md` | Re-install |
 | Storage | `requirement-shell-cli-storage.md` | Per-login per-process cache under `cache/`; silent tier miss; persistence `~/.local/${APP_NAME}` |

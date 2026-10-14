@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.5.2 – non-interactive 0-argv is Type O-S)  
+**Status**: Active (Version 1.5.3 – exit catalog owned by requirement-shell-exit-condition)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -103,7 +103,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | **Architectures supported** | any arch with POSIX sh and the external tools the script invokes |
 | **Git surface** | used when product is published |
 | **Ship unit / install** | yes — `src/tmpl-to-prj`. Dual: local `install` (0755) and channel `self-install` / `SCRIPT_URL` |
-| **Product version SSOT** | `VERSION="1.6.3"` hard-assign in `src/tmpl-to-prj` |
+| **Product version SSOT** | `VERSION="1.6.4"` hard-assign in `src/tmpl-to-prj` |
 | **Bootstrap origin** | `selfmanaged` (A) → this product (B). Historical hop: `cli-template` |
 
 **Residual ownership table:**
@@ -127,6 +127,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | Termux target / empty `pkg` table | `requirement-shell-termux-ish` | Detect; no extra packages |
 | Actor / role / subject | `requirement-actor-role-subject` | light table; no dest |
 | Output SSOT (`out_*`) | `requirement-shell-output-requirements` | Do not duplicate |
+| Process exit catalog | `requirement-shell-exit-condition` | Do not duplicate the exit tables |
 | Scratch/cache storage resolve | `requirement-shell-cli-storage` | Do not duplicate |
 | Idempotency / re-run safety | `requirement-shell-idempotency` | Do not duplicate |
 | Interactive vs non-interactive | `requirement-shell-interactive-vs-noninteractive` | Do not duplicate |
@@ -203,6 +204,7 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | `requirement-shell-cli-zero-arguments` | TTY menu; non-interactive 0-argv Type O-S |
 | `requirement-shell-local-self-management` | Local install lifecycle |
 | `requirement-shell-output-requirements` | `out_*` SSOT |
+| `requirement-shell-exit-condition` | Process exit catalog (`out_die` and `return 1`) |
 | `requirement-shell-cli-storage` | Scratch/cache resolve |
 | `requirement-shell-idempotency` | Re-run safety |
 | `requirement-shell-interactive-vs-noninteractive` | Mode policy |
@@ -226,9 +228,10 @@ This file is **class law + residual SSOT**, not a second copy of Type 0 lifecycl
 | 2026-09-06 | Active 1.5.0 | Residual + OS family point at Termux (`requirement-shell-termux-ish`) |
 | 2026-10-04 | Active 1.5.1 | Practice line names local install and channel self-install. Related points at the channel requirements. |
 | 2026-10-04 | Active 1.5.2 | Non-interactive 0-argv is Type O-S. TTY menu stays |
+| 2026-10-10 | Active 1.5.3 | Exit catalog points at `requirement-shell-exit-condition`. This file does not copy the tables |
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-10  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

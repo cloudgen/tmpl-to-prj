@@ -1,7 +1,7 @@
 # Requirement ↔ test matrix — tmpl-to-prj
 
-**Updated:** 2026-10-07  
-**Product VERSION:** 1.6.3  
+**Updated:** 2026-10-14  
+**Product VERSION:** 1.6.4  
 **Suite:** `tests/run.sh`
 
 | Requirement key | Area | TP families | Coverage notes |
@@ -16,6 +16,7 @@
 | requirement-shell-cli-self-install | shell | TP-CLI-07, TP-CLI-29, TP-CLI-30, TP-CLI-31 | copy when `$0` is the script (0700); pipe downloads; channel replace |
 | requirement-shell-automatic-checksum | shell | TP-CLI-04, TP-CLI-06 | `CHECKSUM` absent from help and about |
 | requirement-shell-output-requirements | shell | TP-CLI-03,05,08,09 | JSON / quiet / errors |
+| requirement-shell-exit-condition | shell | TP-EXIT-01..05 | TP-EXIT-05 have: passed backup non-zero is EX-CONT-06 / EX-CONT-07 (TP-TMPL-TO-PRJ-26, 31). TP-EXIT-01..04 still todo |
 | requirement-shell-modular-function-design | shell | (indirect) | no `fb_*`; `app_main` / `out_*` |
 | requirement-shell-idempotency | shell | TP-LC-03,07 | Re-install / uninstall absent |
 | requirement-shell-interactive-vs-noninteractive | shell | TP-LC-05 | Uninstall confirm |
@@ -23,7 +24,7 @@
 | requirement-shell-cli-default-interaction | shell | TP-TMPL-TO-PRJ-10, TP-CLI-17, TP-CLI-26..28, TP-TMPL-TO-PRJ-19 | Front 1/2/8/9; board 82–87 and 0 Back; picker **0** back |
 | requirement-shell-sudo-command | shell | TP-TMPL-TO-PRJ-07, 14..16, 24..25, 30; TP-TX-06,07 | Observed verb-only vs sibling dest `backup *` vs unproven; unproven and verb-only warn and overlay; TTY does not password-prompt; skip sudo on Termux / Git Bash |
 | requirement-shell-termux-ish | shell | TP-TX-01,02,06,07,08 | Empty `pkg` table; detect freeze |
-| requirement-domain-tmpl-to-prj | domain | TP-TMPL-TO-PRJ-01..30; TP-TX-06 | Hop + folder-backup gate (root or NOPASSWD runs backup; missing binary, missing fragment, verb-only, and unproven warn and continue) + unspecialized kit filter + picker back; dest is any existing directory (no `docs/` or `AGENTS.md` test); dest specialized docs folders preserved; Termux local snapshot; pass-gate backup failure is not a sudoers miss and still stops; template inventory is RAM, the current folder, and PROJECTS_ROOT; `requirement-*.md` excludes; both file counts exclude symlinks |
+| requirement-domain-tmpl-to-prj | domain | TP-TMPL-TO-PRJ-01..31; TP-TX-06 | Hop + folder-backup gate (root or NOPASSWD runs backup; missing binary, missing fragment, verb-only, unproven, and a started backup that exits non-zero warn and continue) + unspecialized kit filter + picker back; dest is any existing directory (no `docs/` or `AGENTS.md` test); dest specialized docs folders preserved; Termux local snapshot; a file-count misalignment is `[WARN]` under file-counting-method and still overlays; template inventory is RAM, the current folder, and PROJECTS_ROOT; `requirement-*.md` excludes; symlinks and soft links are out of both file counts |
 | requirement-actor-role-subject | architecture | (indirect) | Sibling dest is folder-backup sudoers file |
 
 **Absent by design (no TP Core):** this product’s own backup/restore/print-sudoers emit. Channel place and the companion digest are in scope (TP-CLI-04, 10, 29, 30).

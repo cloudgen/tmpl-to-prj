@@ -4,11 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.4] - 2026-10-14
+
+### Fixed
+
+- **INC-20261014-001** (revised): a backup error no longer stops template sync. After a passed gate, `folder-backup backup` that exits non-zero warns and `apply` still copies the template docs, then keeps a local dest-docs snapshot. A file-count misalignment is `[WARN]`, not `[ERROR]`. The warning names **file-counting-method**: symlinks and soft links are not counted, so that gap is not a missing file and not a sudoers argv miss. The child `[ERROR]` is not replayed. Exit 0 still records the durable archive and does not also create `.t2p-docs-backup-*`. This tree does not change the sibling folder-backup counters. Law: `requirement-domain-tmpl-to-prj` **1.12.0**, `requirement-shell-exit-condition` **1.0.3** (EX-DIE-33 withdrawn; EX-CONT-06, EX-CONT-07), mold **LM-FOLDER-ARCHIVE-BACKUP** **1.4.0**. Terms **file-counting-method**, **no-exit-condition-optional-backup-failed**. Skills **SK-FOLDER-ARCHIVE-BACKUP** **1.3.4**, **SK-USE-FOLDER-BACKUP** **1.4.1**. Suite **TP-TMPL-TO-PRJ-26**, **TP-TMPL-TO-PRJ-31**.
+
 ## [1.6.3] - 2026-10-10
 
 ### Fixed
 
-- **INC-20261010-001** / **PP-A-30**: `apply` stopped with `[ERROR]` when `folder-backup` was installed and this login had no NOPASSWD `backup *` right. Backup is not the hop. If the binary is not in `/usr/local/bin` or `~/.local/bin`, or this login has no sudoers fragment, a verb-only grant, or a password-only grant, apply warns, takes a local dest-docs snapshot, and still copies template docs. It does not ask for a sudo password and it does not call `sudo`. A backup that was started after a passed gate and exited non-zero still stops before overlay (**INC-20261004-002**). Law: `requirement-domain-tmpl-to-prj` **1.11.0**, `requirement-shell-sudo-command` **1.5.0**. Suite **TP-TMPL-TO-PRJ-07**, **16**, **24**, **30**.
+- **INC-20261010-001** / **PP-A-30**: `apply` stopped with `[ERROR]` when `folder-backup` was installed and this login had no NOPASSWD `backup *` right. Backup is not the hop. If the binary is not in `/usr/local/bin` or `~/.local/bin`, or this login has no sudoers fragment, a verb-only grant, or a password-only grant, apply warns, takes a local dest-docs snapshot, and still copies template docs. It does not ask for a sudo password and it does not call `sudo`. A backup that was started after a passed gate and exited non-zero still stops before overlay (**INC-20261004-002**). That stop is withdrawn in **1.6.4**. Law: `requirement-domain-tmpl-to-prj` **1.11.0**, `requirement-shell-sudo-command` **1.5.0**. Suite **TP-TMPL-TO-PRJ-07**, **16**, **24**, **30**.
 
 ## [1.6.2] - 2026-10-07
 
@@ -42,7 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Fixed
 
-- **INC-20261004-002**: After the folder-backup gate passed, a non-zero `folder-backup backup` was reported as “check sudoers argv (backup *)”. The gate had already proved that argv. Apply still stops before overlay. The Next line points at the folder-backup error already printed. The 1421 != 1418 count on a tree with symlinks stays a sibling folder-backup comparison (`find -type f` versus non-directory tar members) and is not changed here. Law: `requirement-domain-tmpl-to-prj` **1.7.1**. Suite **TP-TMPL-TO-PRJ-26**.
+- **INC-20261004-002**: After the folder-backup gate passed, a non-zero `folder-backup backup` was reported as “check sudoers argv (backup *)”. The gate had already proved that argv. Apply still stops before overlay (withdrawn in **1.6.4**). The Next line points at the folder-backup error already printed. The 1421 != 1418 count on a tree with symlinks stays a sibling folder-backup comparison (`find -type f` versus non-directory tar members) and is not changed here. Law: `requirement-domain-tmpl-to-prj` **1.7.1**. Suite **TP-TMPL-TO-PRJ-26**.
 
 ## [1.5.0] - 2026-10-04
 

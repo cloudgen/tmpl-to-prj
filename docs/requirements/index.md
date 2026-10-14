@@ -2,22 +2,23 @@
 
 **Product:** tmpl-to-prj (POSIX `/bin/sh` CLI — copy harness docs from a genesis template or subclass into a named project; local install plus channel self-management)  
 **Workspace state:** Specialized product law (left genesis); **software-development** class; bootstrap **selfmanaged → tmpl-to-prj** (historical hop **cli-template**).  
-**Updated:** 2026-10-07
+**Updated:** 2026-10-10
 
 | ID / key | Title | Area | Status | Path | Updated |
 |----------|-------|------|--------|------|---------|
-| requirement-class-software-dev | Software-development class law + residual stack (posix-sh, local install and channel self-install, Termux target) | class | Active (1.5.2) | `requirement-class-software-dev.md` | 2026-10-04 |
+| requirement-class-software-dev | Software-development class law + residual stack (posix-sh, local install and channel self-install, Termux target) | class | Active (1.5.3) | `requirement-class-software-dev.md` | 2026-10-10 |
 | requirement-bootstrap-chain | Bootstrap chain selfmanaged → tmpl-to-prj (historical cli-template) | architecture | Active (4.3.0) | `requirement-bootstrap-chain.md` | 2026-10-04 |
 | requirement-project-folder | Project layout (`src/tmpl-to-prj`), install bins; cache leaves point at `requirement-shell-cli-storage`; no durable backup deposit | architecture | Active (2.2.0) | `requirement-project-folder.md` | 2026-09-27 |
 | requirement-actor-role-subject | Light actor / role / subject catalog (no dest) | architecture | Active (1.0.0) | `requirement-actor-role-subject.md` | 2026-09-02 |
-| requirement-shell-cli-interface | Shell CLI interface (Type 0 + plan/apply/menu + channel self-management; flags) | shell | Active (2.4.1) | `requirement-shell-cli-interface.md` | 2026-10-07 |
+| requirement-shell-cli-interface | Shell CLI interface (Type 0 + plan/apply/menu + channel self-management; flags) | shell | Active (2.4.2) | `requirement-shell-cli-interface.md` | 2026-10-10 |
 | requirement-shell-cli-zero-arguments | Empty argv: TTY menu; non-interactive 0-argv self-install (Type O-S) | shell | Active (1.2.0) | `requirement-shell-cli-zero-arguments.md` | 2026-10-04 |
 | requirement-shell-cli-default-interaction | Front menu 1 plan, 2 apply, 8 self-management, 9 Exit; board 82–87 and 0 Back; picker 0 | shell | Active (1.6.1) | `requirement-shell-cli-default-interaction.md` | 2026-10-07 |
 | requirement-shell-local-self-management | Local install / uninstall / where-is-me; **mode 0755**; not an alias of self-install | shell | Active (1.5.0) | `requirement-shell-local-self-management.md` | 2026-10-04 |
 | requirement-shell-self-management | Channel version-check, self-update, self-uninstall, about | shell | Active (1.1.0) | `requirement-shell-self-management.md` | 2026-10-04 |
 | requirement-shell-cli-self-install | self-install (copy when $0 is the script; download when $0 is a shell); non-interactive 0-argv uses this path; dest 0755/0700 | shell | Active (1.1.0) | `requirement-shell-cli-self-install.md` | 2026-10-04 |
 | requirement-shell-automatic-checksum | Companion `${SCRIPT_URL}.sha256`; CHECKSUM pin not shown in help/about | shell | Active (1.0.0) | `requirement-shell-automatic-checksum.md` | 2026-10-04 |
-| requirement-shell-output-requirements | Central `out_*` output SSOT | shell | Active | `requirement-shell-output-requirements.md` | 2026-08-13 |
+| requirement-shell-output-requirements | Central `out_*` output SSOT | shell | Active (1.0.1) | `requirement-shell-output-requirements.md` | 2026-10-10 |
+| requirement-shell-exit-condition | Process exit catalog: `out_die` status 1, direct-command `return 1`, status 0 endings, and warn-and-continue rows. A started optional backup that exits non-zero warns and continues | shell | Active (1.0.3) | `requirement-shell-exit-condition.md` | 2026-10-14 |
 | requirement-shell-modular-function-design | Single-file modular prefixes (`out_`/`inst_`/`app_`/`t2p_`) | shell | Active (2.1.0) | `requirement-shell-modular-function-design.md` | 2026-09-06 |
 | requirement-shell-script-coding | POSIX sh coding style (specialize-in home) | shell | Active (1.0.1) | `requirement-shell-script-coding.md` | 2026-09-02 |
 | requirement-shell-sudo-command | In-tool sudo wrap of sibling folder-backup backup (root or NOPASSWD only; no password prompt; a missing fragment warns and continues) | shell | Active (1.5.0) | `requirement-shell-sudo-command.md` | 2026-10-10 |
@@ -25,7 +26,7 @@
 | requirement-shell-idempotency | Re-run safety for install / uninstall | shell | Active (1.1.0) | `requirement-shell-idempotency.md` | 2026-08-13 |
 | requirement-shell-interactive-vs-noninteractive | Interactive vs non-interactive / confirm policy | shell | Active (1.2.0) | `requirement-shell-interactive-vs-noninteractive.md` | 2026-10-04 |
 | requirement-shell-cli-storage | Cache folder (Linux shm → tmp → `~/.cache`; Git Bash tmp → AppData; Mac tmp → Library/Caches → `~/cache`) and persistence `${HOME}/.local/${APP_NAME}`; silent tier miss | shell | Active (1.2.0) | `requirement-shell-cli-storage.md` | 2026-09-27 |
-| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest is any existing directory; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a missing binary or sudoers fragment warns and continues; a failed backup after pass is not a sudoers miss; file counts exclude symlinks; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.11.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-10 |
+| requirement-domain-tmpl-to-prj | Domain SSOT: template-name / project-name harness-docs hop; dest is any existing directory; dest specialized docs folders preserved; folder-backup only when root or NOPASSWD; a missing binary, a missing sudoers fragment, or a started backup that exits non-zero warns and continues; a file-count misalignment is a warning under file-counting-method; template inventory is RAM, the current folder, and PROJECTS_ROOT | domain | Active (1.12.0) | `requirement-domain-tmpl-to-prj.md` | 2026-10-14 |
 
 ## Intentionally absent (by design)
 

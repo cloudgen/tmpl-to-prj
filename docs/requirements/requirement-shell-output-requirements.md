@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-shell-output-requirements.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.0.1)  
 **Area**: shell  
 **Key**: `requirement-shell-output-requirements`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -77,7 +77,7 @@ This origin owns the `out_*` family. Domain hop messages still go through `out_*
 
 Rules:
 
-1. Fatal paths use `out_die` / `out_json_error`.  
+1. Fatal paths use `out_die` / `out_json_error`. Which conditions end the process, and the message text, live in `requirement-shell-exit-condition`. This file does not copy that table.  
 2. JSON mode: no colors, banners, or progress mixed into stdout JSON.  
 3. Capture pattern: `tmpl-to-prj --json <cmd> 2>err.log`.  
 4. **No secrets** on either channel (tokens, passwords, private keys, full private key material).
@@ -149,6 +149,7 @@ Rules:
 |-----|--------------|
 | `requirement-shell-cli-interface` | Modes and flags |
 | `requirement-shell-interactive-vs-noninteractive` | Prompt vs auto |
+| `requirement-shell-exit-condition` | When the process ends, and the message |
 | `docs/requirements/index.md` | Registry |
 
 ---
@@ -159,9 +160,10 @@ Rules:
 |------|--------|------|
 | 2026-08-03 | Active | Output SSOT for folder-backup |
 | 2026-08-13 | Active | Retarget to cli-template; drop domain message law |
+| 2026-10-10 | Active 1.0.1 | Exit catalog points at `requirement-shell-exit-condition` |
 
 ---
 
-**Last Updated**: 2026-08-13  
+**Last Updated**: 2026-10-10  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

@@ -1,6 +1,6 @@
 # tmpl-to-prj - Copy harness docs from a genesis template into a named project
 
-![Version](https://img.shields.io/badge/Version-1.6.3-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.6.4-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 
@@ -81,7 +81,7 @@ The companion URL is `${SCRIPT_URL}.sha256`. In this repository the file is `src
 After install, on a terminal, run `tmpl-to-prj` with no arguments. Live capture:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.6.3*) — numbered list of live commands
+[INFO] **tmpl-to-prj**(*1.6.4*) — numbered list of live commands
 1. **plan**: *Show template and project roots (no writes)*
 2. **apply**: *Copy harness docs from the template into the project*
 8. **self-management**: *this CLI install, version, update, uninstall*
@@ -92,7 +92,7 @@ Choice:
 Choose **8**:
 
 ```text
-[INFO] **tmpl-to-prj**(*1.6.3*) — self-management
+[INFO] **tmpl-to-prj**(*1.6.4*) — self-management
 82. **version**: *show current version*
 83. **about**: *show detailed diagnostics*
 84. **version-check**: *compare local vs remote version*
@@ -187,7 +187,9 @@ MIT. See [`LICENSE.md`](./LICENSE.md).
 
 ## Last Update
 
-2026-10-10 — A missing `folder-backup` binary or a missing sudoers fragment warns and template sync continues. Backup is not required for the docs copy. A backup that was started and failed still stops. Version **1.6.3**.
+2026-10-14 — A backup that was started and failed no longer stops template sync. A file-count misalignment is a warning. File counts follow **file-counting-method** and ignore symlinks and soft links. Version **1.6.4**.
+
+2026-10-10 — A missing `folder-backup` binary or a missing sudoers fragment warns and template sync continues. Backup is not required for the docs copy. A backup that was started and failed still stops. Version **1.6.3**. That stop is withdrawn in **1.6.4**.
 
 2026-10-07 — A project folder is any existing directory. The project list and `apply` no longer require `docs/` or `AGENTS.md`. A template, a stripped template, a non-template, and a folder that only has `src/` are all dests. Home, `/`, `/home`, `/dev`, and `/dev/shm` stay refused. Version **1.6.2**.
 
@@ -197,7 +199,7 @@ MIT. See [`LICENSE.md`](./LICENSE.md).
 
 2026-10-04 — `curl -fsSL …/src/tmpl-to-prj | sh` with no arguments places the program. A non-interactive empty line no longer prints help. A terminal with no words still shows the numbered menu. Version **1.5.2**.
 
-2026-10-04 — A folder-backup failure after a passed gate no longer says to check sudoers argv. Apply still stops before overlay and points at the folder-backup error. Version **1.5.1**.
+2026-10-04 — A folder-backup failure after a passed gate no longer says to check sudoers argv. Apply still stops before overlay and points at the folder-backup error. Version **1.5.1**. That stop is withdrawn in **1.6.4**.
 
 2026-10-04 — Specialized from selfmanaged: channel self-management and merged menu (1 plan, 2 apply, 8 self-management, 9 Exit). Channel downloads check a SHA-256 companion (match continues, mismatch stops, a missing file warns and continues). Local `install` (0755), off-TTY help, plan/apply, and the no-password folder-backup gate stay. Version **1.5.0**.
 

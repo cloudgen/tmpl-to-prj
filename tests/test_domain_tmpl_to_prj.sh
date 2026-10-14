@@ -427,8 +427,13 @@ run_test_domain_tmpl_to_prj() {
     assert_contains "TP-TMPL-TO-PRJ-25 sudo -n" "$(cat "${_sudolog}")" "-n"
     assert_contains "TP-TMPL-TO-PRJ-25 backup argv" "$(cat "${_sudolog}")" "backup"
     assert_not_contains "TP-TMPL-TO-PRJ-25 no password prompt text" "$_out" "password for"
+    if [ -d "${PROJECTS_ROOT}/proj-star"/.t2p-docs-backup-* ]; then
+        t_fail "TP-TMPL-TO-PRJ-25 exit 0 does not also snapshot"
+    else
+        t_pass "TP-TMPL-TO-PRJ-25 exit 0 does not also snapshot"
+    fi
 
-    # TP-TMPL-TO-PRJ-26 pass gate + backup exit 1 is not a sudoers miss (INC-20261004-002)
+    # TP-TMPL-TO-PRJ-26 pass gate + file-count misalignment warns and overlays (INC-20261014-001)
     t2p_mk_proj "${PROJECTS_ROOT}/proj-fb-fail"
     : >"${_fblog}"
     : >"${_sudolog}"
@@ -436,15 +441,45 @@ run_test_domain_tmpl_to_prj() {
     chmod 0755 "${_stub}"
     _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/star-sudoers" \
         sh "${SCRIPT}" apply --force kit-a proj-fb-fail 2>&1 >/dev/null)
-    assert_eq "TP-TMPL-TO-PRJ-26 backup fail exit 1" 1 "$?"
-    assert_contains "TP-TMPL-TO-PRJ-26 names backup failed" "$_err" "folder-backup backup failed"
+    assert_eq "TP-TMPL-TO-PRJ-26 file-count misalignment exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-26 warns" "$_err" "[WARN]"
+    assert_contains "TP-TMPL-TO-PRJ-26 names file-counting-method" "$_err" "file-counting-method"
+    assert_contains "TP-TMPL-TO-PRJ-26 names symlinks" "$_err" "symlinks and soft links"
+    assert_not_contains "TP-TMPL-TO-PRJ-26 no error line" "$_err" "[ERROR]"
     assert_not_contains "TP-TMPL-TO-PRJ-26 not a sudoers miss" "$_err" "check sudoers argv"
-    assert_contains "TP-TMPL-TO-PRJ-26 points at child error" "$_err" "folder-backup error above"
-    assert_file_exists "TP-TMPL-TO-PRJ-26 dest not overlaid" "${PROJECTS_ROOT}/proj-fb-fail/docs/skills/old.md"
+    assert_not_contains "TP-TMPL-TO-PRJ-26 old die text stays gone" "$_err" "folder-backup backup failed"
+    assert_file_missing "TP-TMPL-TO-PRJ-26 old dest skill replaced" "${PROJECTS_ROOT}/proj-fb-fail/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-26 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-fb-fail/docs/skills/from-kit.md")" "RAM-HOST"
+    if [ -d "${PROJECTS_ROOT}/proj-fb-fail"/.t2p-docs-backup-* ]; then
+        t_pass "TP-TMPL-TO-PRJ-26 local snapshot kept"
+    else
+        t_fail "TP-TMPL-TO-PRJ-26 local snapshot kept"
+    fi
     if grep -q 'backup' "${_fblog}"; then
         t_pass "TP-TMPL-TO-PRJ-26 backup was invoked"
     else
         t_fail "TP-TMPL-TO-PRJ-26 backup was invoked (log=$(cat "${_fblog}"))"
+    fi
+
+    # TP-TMPL-TO-PRJ-31 any other passed-backup non-zero warns and overlays
+    t2p_mk_proj "${PROJECTS_ROOT}/proj-fb-other"
+    : >"${_fblog}"
+    : >"${_sudolog}"
+    printf '#!/bin/sh\nprintf "%%s\\n" "$*" >> "%s"\ncase "$1" in version) exit 0 ;; esac\nprintf "%%s\\n" "[ERROR] tar failed" >&2\nexit 1\n' "${_fblog}" >"${_stub}"
+    chmod 0755 "${_stub}"
+    _err=$(TTY=1 PATH="${_bindir}:${PATH}" T2P_FOLDER_BACKUP="${_stub}" T2P_SUDOERS_FILE="${CI_HOME}/star-sudoers" \
+        sh "${SCRIPT}" apply --force kit-a proj-fb-other 2>&1 >/dev/null)
+    assert_eq "TP-TMPL-TO-PRJ-31 other backup fail exit 0" 0 "$?"
+    assert_contains "TP-TMPL-TO-PRJ-31 warns" "$_err" "[WARN]"
+    assert_contains "TP-TMPL-TO-PRJ-31 did not finish" "$_err" "did not finish"
+    assert_not_contains "TP-TMPL-TO-PRJ-31 no error line" "$_err" "[ERROR]"
+    assert_not_contains "TP-TMPL-TO-PRJ-31 not a sudoers miss" "$_err" "check sudoers argv"
+    assert_file_missing "TP-TMPL-TO-PRJ-31 old dest skill replaced" "${PROJECTS_ROOT}/proj-fb-other/docs/skills/old.md"
+    assert_contains "TP-TMPL-TO-PRJ-31 kit skill copied" "$(cat "${PROJECTS_ROOT}/proj-fb-other/docs/skills/from-kit.md")" "RAM-HOST"
+    if grep -q 'backup' "${_fblog}"; then
+        t_pass "TP-TMPL-TO-PRJ-31 backup was invoked"
+    else
+        t_fail "TP-TMPL-TO-PRJ-31 backup was invoked (log=$(cat "${_fblog}"))"
     fi
 
     # TP-TMPL-TO-PRJ-30 binary only under USER_BIN or GLOBAL_BIN, no sudoers file

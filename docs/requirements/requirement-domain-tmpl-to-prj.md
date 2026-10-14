@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-tmpl-to-prj.md  
-**Status**: Active (Version 1.11.0)  
+**Status**: Active (Version 1.12.0)  
 **Area**: domain  
 **Key**: `requirement-domain-tmpl-to-prj`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -135,7 +135,7 @@ Check order on apply and plan: **existence of** `folder-backup` **first**, in `{
 | **missing** | Not executable in `{{GLOBAL_BIN}}` or `{{USER_BIN}}`, or `version` fails | **Warn** and **continue**. Name both directories. Local dest-docs snapshot under dest `.t2p-docs-backup-<stamp>`; honest that it dies with `$HOME` wipe. **MUST NOT** invoke `sudo`. **MUST NOT** exit before overlay |
 | **narrow** | Binary exists; a readable fragment or `sudo -n -l` listing **shows** verb-only `backup` (no `*`) | **Warn** and **continue** with the local dest-docs snapshot. **MUST NOT** run `sudo`. Next may name sibling `folder-backup print-sudoers`. **MUST NOT** exit before overlay |
 | **unproven** | Binary exists; this login is not root; no NOPASSWD `backup *` (no fragment in `/etc/sudoers.d/`, unreadable fragment, or a password-only grant). A TTY does not change this | **Warn** and **continue** with the local dest-docs snapshot. **MUST NOT** run password `sudo`. The warning names the sibling path to submit a request and create a sudoer file fragment (`print-sudoers`, then `generate-sudoer-request`, then `submit-sudoer-request`). **MUST NOT** call this verb-only. **MUST NOT** treat a missing `/etc/{{username}}/folder-backup` as narrow. **MUST NOT** exit before overlay (**INC-20261010-001**) |
-| **pass** | This login is root (`id -u` = 0), **or** a fragment or `sudo -n -l` allows NOPASSWD `folder-backup backup *` | Root: `folder-backup backup {{DEST_ROOT}}` with no `sudo`. Else: `sudo -n` the resolved binary `backup {{DEST_ROOT}}`. Require success. **MUST NOT** also create `.t2p-docs-backup-*`. If that command exits non-zero, fail closed before overlay. **MUST NOT** name sudoers argv as the next step (the gate already proved the right). Next: read the folder-backup error already printed and re-run apply after that backup succeeds (**INC-20261004-002**) |
+| **pass** | This login is root (`id -u` = 0), **or** a fragment or `sudo -n -l` allows NOPASSWD `folder-backup backup *` | Root: `folder-backup backup {{DEST_ROOT}}` with no `sudo`. Else: `sudo -n` the resolved binary `backup {{DEST_ROOT}}`. On exit 0: record the durable archive. **MUST NOT** also create `.t2p-docs-backup-*`. If that command exits non-zero, including a file-count misalignment, **warn** and **continue** overlay with the local dest-docs snapshot. **MUST NOT** print `[ERROR]` for that misalignment. **MUST NOT** exit before overlay. **MUST NOT** name sudoers argv as the next step (the gate already proved the right). The warning names **file-counting-method** when the child reports a file-count gap (**INC-20261014-001**, revised) |
 
 **MUST NOT** auto-write `/etc`. **MUST NOT** invent `sudo cp` / `mkdir` / `tar`. **MUST NOT** use host `(ALL:ALL) ALL` from a non-TTY session. Another user’s sudoers file is **not** sufficient.
 
@@ -143,27 +143,27 @@ In-tool sudo **MUST** go through `util_sudo` (`requirement-shell-sudo-command`).
 
 v1 backs up **dest** (the mutated tree). Help **MAY** mention optional source backup: `sudo folder-backup backup <template-root>`. A source archive **MUST NOT** be reported as the dest backup.
 
-#### Backup file counts (symlink exclusion)
+#### Backup file counts (file-counting-method)
 
-This product does **not** compute these counts. The sibling backup tool owns the counters. The names below are the sets a **correct** file check compares. Both **exclude symlinks**.
+Any file count in this hop uses **file-counting-method**. A symlink and a soft link are the same object. Both are **out** of both file counts. This product does **not** compute the counters. The sibling backup tool owns them. The names below are the sets a **correct** file check compares.
 
-| Name | What is counted | Symlinks |
-|------|-----------------|----------|
+| Name | What is counted | Symlinks and soft links |
+|------|-----------------|-------------------------|
 | **source-folder-file-count** | Regular files in the source folder (`find <source> -type f`, no follow) | **Excluded.** A directory symlink is not walked, so the target is not counted twice. |
-| **archive-file-count** | Regular-file members in the archive (verbose listing type `-`) | **Excluded.** The member stays in the archive. |
+| **archive-file-count** | Regular-file members in the archive (verbose listing type `-`, plus hard-link type `h`) | **Excluded.** The member stays in the archive. |
 
 Directories, fifos, sockets, and device nodes are excluded from **both** counts.
 
-| Check | Sets | Symlinks |
-|-------|------|----------|
+| Check | Sets | Symlinks and soft links |
+|-------|------|-------------------------|
 | File check | **archive-file-count** == **source-folder-file-count** | Out of both sides |
 | Whole-tree check | Archive members == source entries (`find` paths, including the source root) | **In** both sides |
 
 **MUST NOT** define **archive-file-count** as “`tar -tzf` lines that do not end in `/`.” That set includes symlink members, so the file check fails by exactly the number of symlinks on a complete archive.
 
-**MUST NOT** make the two file counts match by deleting symlinks, or by creating the archive with `-h` / `--dereference` so the target is stored instead of the link.
+**MUST NOT** make the two file counts match by deleting symlinks or soft links, or by creating the archive with `-h` / `--dereference` so the target is stored instead of the link.
 
-A non-zero sibling backup still **fail-closes before overlay**. A gap equal to the symlink count is **not** files this CLI created and **not** a sudoers argv miss. Next remains the sibling error already printed. **MUST NOT** close **INC-20261005-001** by claiming this tree changed the sibling counters.
+A sibling backup that exits non-zero, including that file-count misalignment, **warns** and **continues** overlay. The misalignment message is `[WARN]`, not `[ERROR]`. A gap equal to the symlink count is **not** files this CLI created and **not** a sudoers argv miss. **MUST NOT** close **INC-20261005-001** by claiming this tree changed the sibling counters. The hop no longer waits on that sibling install (**INC-20261014-001**, revised).
 
 #### Overlay (sacred preserve)
 
@@ -255,7 +255,7 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
-- **Caution:** Fail closed on missing names and refused paths. A missing `folder-backup` binary, a missing sudoers fragment, a verb-only grant, or an unproven backup right warns and continues (including on a TTY). A backup command that was started and exited non-zero still stops before overlay.  
+- **Caution:** Fail closed on missing names and refused paths. A missing `folder-backup` binary, a missing sudoers fragment, a verb-only grant, an unproven backup right, or a backup command that was started and exited non-zero (including a file-count misalignment) warns and continues (including on a TTY). The misalignment is `[WARN]`, not `[ERROR]`.  
 - **Intentional:** Recipe is dest-docs replace + restore dest specialized docs folders. Folder-backup runs only for root or a NOPASSWD `backup *` fragment. Backup is not the hop.  
 - **Anti-fragile:** Restore those dest folders if copy fails; local snapshot when folder-backup cannot run.  
 - **Over-protect:** Never delete dest project root; never emit sudoers; never ask for a sudo password.
@@ -280,11 +280,11 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 10. Archive the template and call that the apply dest backup.  
 11. List a specialized product as a template because `docs/README.md` still says Template name / genesis-template.  
 12. Omit **0. Back to main menu** on TTY template or project pickers, print a second all-nines Back row, or treat that choice as Exit of the process.  
-13. After gate **pass**, tell the operator to check sudoers argv because `folder-backup backup` exited non-zero. Overlay stays forbidden. The Next step is the folder-backup error already printed (**INC-20261004-002**).  
+13. After gate **pass**, tell the operator to check sudoers argv because `folder-backup backup` exited non-zero, or exit before overlay for that failure. Warn and continue. A file-count misalignment is `[WARN]` and names **file-counting-method** (**INC-20261014-001**, revised). Do not print `[ERROR]` for that gap.  
 14. Omit an unspecialized kit that exists only as a child of `${PROJECTS_ROOT}` / `~/prjs`. The template inventory **MUST** search that parent. A child with one or more `requirement-*.md`, an incident body, or a product test stays off the list. Named resolve stays RAM, then that parent.  
 15. Treat `docs/requirements/README.md`, `docs/requirements/index.md`, or any non-`requirement-*.md` markdown as product law that excludes a template or a stripped template.  
-16. Count a symlink in **source-folder-file-count** or **archive-file-count**, or make those counts match by deleting symlinks or by `tar -h`.  
-17. Close **INC-20261005-001** by claiming this product fixed the sibling file counters.  
+16. Count a symlink or a soft link in **source-folder-file-count** or **archive-file-count**, or make those counts match by deleting links or by `tar -h`.  
+17. Close **INC-20261005-001** by claiming this product fixed the sibling file counters. Continue the hop anyway. The sibling install is not a precondition of overlay.  
 18. Require dest `docs/` or `AGENTS.md`, or drop a dest because it is a template, a stripped template, a non-template, or a directory with neither marker. A file and a refused path stay excluded.
 
 ---
@@ -305,9 +305,9 @@ Detect (typical): Termux — `PREFIX` contains `com.termux`; `TERMUX_VERSION` se
 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
-| **TP-TMPL-TO-PRJ-01..30** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven warns and overlays; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo` and still overlay; NOPASSWD uses `sudo -n`. **INC-20261004-001** / **INC-20261010-001**; **26**: pass gate and a failed backup do not say to check sudoers and still stop before overlay. **INC-20261004-002**; **27**: template inventory is the RAM parent, the current folder, and `PROJECTS_ROOT`; a projects-only unspecialized kit is listed from another folder; the same basename on RAM is one row; a specialized product, a `docs/` tree with no `README.md`, and nested `tests/` cases stay off the list; **28**: `requirement-*.md` excludes a non-template; README, index, and other non-requirement markdown do not; **29**: a directory with neither `docs/` nor `AGENTS.md` is a dest, as are a template and a non-template; a file is omitted; a refused path fails; a dot directory is off the inventory and still resolves by absolute path; **30**: a binary only in `{{USER_BIN}}` or only in `{{GLOBAL_BIN}}`, with no sudoers fragment, warns and overlays) |
+| **TP-TMPL-TO-PRJ-01..31** | `tests/test_domain_tmpl_to_prj.sh` | have (14–16: sibling dest / unproven warns and overlays; 17–19: unspecialized kit filter + picker back; **20–21**: dest incidents preserved / template placeholder only when dest had none; **22–23**: dest checklists / whitelists / housekeeping / docs/reviews preserved / kit placeholder only when dest had none; **24–25**: TTY and a password grant do not invoke `sudo` and still overlay; NOPASSWD uses `sudo -n`. **INC-20261004-001** / **INC-20261010-001**; **26**: pass gate and a file-count misalignment warn, do not print `[ERROR]`, do not name sudoers, and still overlay. **INC-20261014-001**; **31**: any other passed-backup non-zero warns and still overlays; **27**: template inventory is the RAM parent, the current folder, and `PROJECTS_ROOT`; a projects-only unspecialized kit is listed from another folder; the same basename on RAM is one row; a specialized product, a `docs/` tree with no `README.md`, and nested `tests/` cases stay off the list; **28**: `requirement-*.md` excludes a non-template; README, index, and other non-requirement markdown do not; **29**: a directory with neither `docs/` nor `AGENTS.md` is a dest, as are a template and a non-template; a file is omitted; a refused path fails; a dot directory is off the inventory and still resolves by absolute path; **30**: a binary only in `{{USER_BIN}}` or only in `{{GLOBAL_BIN}}`, with no sudoers fragment, warns and overlays) |
 | **TP-TX-06** | `tests/test_termux.sh` | have (Termux apply: no `sudo`; local snapshot) |
 
-**Last Updated**: 2026-10-10 (1.11.0 backup does not block template sync when the binary or the sudoers fragment is missing. **INC-20261010-001**. **PP-A-30**)  
+**Last Updated**: 2026-10-14 (1.12.0 a started backup that exits non-zero, including a file-count misalignment, warns and template sync continues. The misalignment is `[WARN]`, not `[ERROR]`. File counts follow **file-counting-method**. **INC-20261014-001**, revised)  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

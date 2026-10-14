@@ -3,7 +3,7 @@
 Maps **TP-*** coverage to `tests/`.  
 **Suite entry:** `./tests/run.sh`  
 **Ship unit:** `src/tmpl-to-prj`  
-**Product VERSION:** 1.6.3  
+**Product VERSION:** 1.6.4  
 **Last plan update:** 2026-10-07  
 **Last suite run:** PASS=342 FAIL=0 SKIP=0 (2026-10-07)
 
@@ -58,11 +58,12 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TMPL-TO-PRJ-23 | dest without those dirs keeps kit placeholders | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-24 | TTY and a password `backup *` grant do not invoke `sudo`; plan stays unproven | test_domain | requirement-domain-tmpl-to-prj · requirement-shell-sudo-command · INC-20261004-001 | **have** |
 | TP-TMPL-TO-PRJ-25 | NOPASSWD `backup *` apply uses `sudo -n` | test_domain | requirement-shell-sudo-command · INC-20261004-001 | **have** |
-| TP-TMPL-TO-PRJ-26 | Pass gate and a failed backup do not say to check sudoers; dest is not overlaid | test_domain | requirement-domain-tmpl-to-prj · INC-20261004-002 | **have** |
+| TP-TMPL-TO-PRJ-26 | Pass gate and a file-count misalignment warn, do not print `[ERROR]`, do not name sudoers, and still overlay | test_domain | requirement-domain-tmpl-to-prj · INC-20261014-001 | **have** |
 | TP-TMPL-TO-PRJ-27 | Template inventory is RAM, the current folder, and PROJECTS_ROOT; one row per basename | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-28 | `requirement-*.md` excludes a non-template; README, index, and other notes do not | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-29 | Any directory is a dest: bare folder, template, and non-template; a file is omitted; home is refused; a dot directory resolves by path | test_domain | requirement-domain-tmpl-to-prj | **have** |
 | TP-TMPL-TO-PRJ-30 | Binary only in USER_BIN or only in GLOBAL_BIN, no sudoers fragment: warn and overlay | test_domain | requirement-domain-tmpl-to-prj · INC-20261010-001 | **have** |
+| TP-TMPL-TO-PRJ-31 | Any other passed-backup non-zero warns and still overlays | test_domain | requirement-domain-tmpl-to-prj · requirement-shell-exit-condition · INC-20261014-001 | **have** |
 
 ---
 
@@ -119,6 +120,15 @@ Status: **have** = automated today · **todo** = needed · **optional** · **n/a
 | TP-TX-06 | Termux detect: stub `sudo` / folder-backup not invoked | test_termux | requirement-shell-termux-ish · requirement-shell-sudo-command | **have** |
 | TP-TX-07 | Git Bash `MSYSTEM`: stub `sudo` not invoked | test_termux | requirement-shell-sudo-command | **have** |
 | TP-TX-08 | Termux `install --global` fails without recommending `sudo` | test_termux | requirement-shell-local-self-management | **have** |
+
+### TP-EXIT (process exit catalog)
+
+| TP-ID | Intent | Suite | Primary requirement(s) | Status |
+|-------|--------|-------|------------------------|--------|
+| TP-EXIT-01 | Unknown token is status 1, `[ERROR]`, and names `help` | `tests/test_cli.sh` | requirement-shell-exit-condition | **todo** |
+| TP-EXIT-02 | `--json` unknown token is status 1, stderr JSON `out_error`, no `[ERROR]` | `tests/test_cli.sh` | requirement-shell-exit-condition | **todo** |
+| TP-EXIT-03 | Missing names is status 1. Unproven backup is status 0 and `[WARN]`, not `[ERROR]` | `tests/test_domain_tmpl_to_prj.sh` | requirement-shell-exit-condition | **todo** |
+| TP-EXIT-04 | Menu `9` exits 0. A bad menu number reprints and does not exit | `tests/test_cli.sh` | requirement-shell-exit-condition | **todo** |
 
 ---
 

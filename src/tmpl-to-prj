@@ -41,7 +41,7 @@
 # Single-file ship unit under src/; install to ~/.local/bin (user) or /usr/local/bin (root/--global).
 #
 # APP NAME: hard-assign APP_NAME="tmpl-to-prj"
-# VERSION: hard-assign VERSION="1.6.3"
+# VERSION: hard-assign VERSION="1.6.4"
 #
 # =============================================================================
 
@@ -58,8 +58,8 @@ APP_NAME="tmpl-to-prj"
 : "${SHORT_DESCRIPTION:=${APP_DESC}}"
 : "${DESCRIPTION:=POSIX /bin/sh local CLI: apply or plan a harness-docs hop using template-name and project-name. RAM-drive first. Preserves dest specialized docs folders (requirements, incidents, checklists, whitelists, housekeeping, docs/reviews).}"
 # Product version SSOT (semver). Extractors use: grep '^VERSION="'
-VERSION="1.6.3"
-: "${VERSION:=1.6.3}"
+VERSION="1.6.4"
+: "${VERSION:=1.6.4}"
 # Repository identity SSOT (git host owner/repo for this product's channel).
 # Dual install: `install` copies this file at mode 0755 (no network).
 # Non-interactive 0-argv and `self-install` place the CLI (copy when $0 is
@@ -303,7 +303,11 @@ out_error()   { out_text "out_error"   "$*"; }
 # Short, readable calls throughout the script while keeping all real logic
 # inside out_text() as Single Source of Truth.
 #
-# Last reviewed: 29 April 2026
+# ALIGNMENT:
+# - requirement-shell-exit-condition.md
+# - requirement-shell-output-requirements.md
+#
+# Last reviewed: 2026-10-10
 # =============================================================================
 out_die() { out_json_error "$*"; out_text out_error "$*"; exit 1; }
 
@@ -4447,8 +4451,10 @@ t2p_local_docs_snapshot() {
 # - INC-20261004-001
 # - INC-20261004-002
 # - INC-20261010-001
+# - INC-20261014-001 (revised): a started backup that exits non-zero warns and continues.
+#   A file-count gap is [WARN] and names file-counting-method. Do not replay the child [ERROR].
 #
-# Last updated: 2026-10-10
+# Last updated: 2026-10-14
 # =============================================================================
 t2p_backup_dest() {
     _dest="${1:-}"
@@ -4471,13 +4477,27 @@ t2p_backup_dest() {
     if [ "${T2P_FB_GATE}" = "pass" ]; then
         _bin=$(t2p_folder_backup_bin)
         out_info "Backing up dest with folder-backup: ${_dest}"
-        if util_sudo "${_bin}" backup "${_dest}"; then
+        _bk_ec=0
+        _bk_out=$(util_sudo "${_bin}" backup "${_dest}" 2>&1) || _bk_ec=$?
+        if [ "${_bk_ec}" -eq 0 ]; then
+            if [ -n "${_bk_out}" ]; then
+                printf '%s\n' "${_bk_out}"
+            fi
             T2P_BACKUP_NOTE="folder-backup:${_dest}"
             export T2P_BACKUP_NOTE
             out_success "folder-backup of dest finished."
             return 0
         fi
-        out_die "folder-backup backup failed. The gate already passed, so this is not a sudoers argv miss. Next: read the folder-backup error above and re-run apply after that backup succeeds."
+        case "${_bk_out}" in
+            *'file count'*)
+                out_warn "folder-backup reported a file-count misalignment. file-counting-method ignores symlinks and soft links, so that gap is not a missing file and not a sudoers argv miss. Backup is not required for template sync. Continuing with a local dest-docs snapshot."
+                ;;
+            *)
+                out_warn "folder-backup backup did not finish. Backup is not required for template sync. Continuing with a local dest-docs snapshot. The gate already passed, so this is not a sudoers argv miss."
+                ;;
+        esac
+        t2p_local_docs_snapshot "${_dest}"
+        return 0
     fi
     out_warn "folder-backup is not in ${GLOBAL_BIN} or ${USER_BIN}. Backup is not required for template sync. Continuing with a local dest-docs snapshot."
     t2p_local_docs_snapshot "${_dest}"
@@ -4949,7 +4969,7 @@ app_help() {
     out_plain "  ${APP_NAME} version-check"
     out_empty_line
     out_info "Interactive empty argv shows the numbered menu (1 plan, 2 apply, 8 self-management, 9 Exit). Under 8: 82 version, 83 about, 84 version-check, 85 self-update, 86 self-uninstall, 87 self-install, 0 Back. After plan or apply, pick an unspecialized template under the RAM parent, the current folder, or ${PROJECTS_ROOT} (0 requirement-*.md; README and index under docs/requirements may exist) then a project folder. A dest is any existing directory: a template, a stripped template, a non-template, or a folder with no docs/ and no AGENTS.md. Home, /, /home, /dev, and the RAM mount stay refused. Type 0 (or 9 when the list is short) to return to the main menu. Off-TTY empty argv places this program (self-install). The explicit help verb prints this text."
-    out_info "Optional extra: folder-backup backup TEMPLATE_ROOT when this login is root or holds a NOPASSWD backup * fragment (apply backs up dest when that same check passes). If folder-backup is not in ${GLOBAL_BIN} or ${USER_BIN}, or this login has no sudoers fragment for it, apply warns and still copies the template docs."
+    out_info "Optional extra: folder-backup backup TEMPLATE_ROOT when this login is root or holds a NOPASSWD backup * fragment (apply backs up dest when that same check passes). If folder-backup is not in ${GLOBAL_BIN} or ${USER_BIN}, or this login has no sudoers fragment for it, apply warns and still copies the template docs. If that backup exits non-zero, including a file-count misalignment, apply warns and still copies the template docs."
 }
 
 # =============================================================================
